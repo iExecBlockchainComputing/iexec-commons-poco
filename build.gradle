@@ -8,6 +8,14 @@ plugins {
 
 group = 'com.iexec.commons'
 
+if (!project.hasProperty('gitBranch')) {
+    ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+}
+
+if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
+    version += '-NEXT-SNAPSHOT'
+}
+
 repositories {
     mavenCentral()
     maven {
