@@ -1,0 +1,77 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'org.sonarqube' version '3.3'
+    id 'maven-publish'
+    id 'io.freefair.lombok' version '6.6.1'
+}
+
+group = 'com.iexec.commons'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://docker-regis-adm.iex.ec/repository/maven-public/'
+        credentials {
+            username nexusUser
+            password nexusPassword
+        }
+    }
+}
+
+dependencies {
+    api 'org.web3j:core:4.8.9'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+    useJUnitPlatform()
+}
+
+test {
+    reports {
+        junitXml.required = true
+        html.required = true
+    }
+}
+
+task itest {
+    group 'Verification'
+    description 'Runs the integration tests.'
+}
+
+jacoco {
+     toolVersion = '0.8.7'
+}
+// sonarqube code coverage requires jacoco XML report
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+tasks.sonarqube.dependsOn tasks.jacocoTestReport
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username nexusUser
+                password nexusPassword
+            }
+            url = project.hasProperty('nexusUrl') ? nexusUrl : ''
+        }
+    }
+}
