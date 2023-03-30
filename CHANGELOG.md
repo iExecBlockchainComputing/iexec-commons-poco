@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Init Gradle project. (#1 #2)
+- Migrate contract package of `iexec-common` library and the other classes used in the POCO protocol to this `iexec-commons-poco` library. 
 ### Bug Fixes
 ### Quality
 ### Dependency Upgrades
