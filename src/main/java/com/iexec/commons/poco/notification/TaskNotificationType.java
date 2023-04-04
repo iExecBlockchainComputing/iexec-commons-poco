@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package com.iexec.commons.poco.chain;
+package com.iexec.commons.poco.notification;
 
-import java.math.BigInteger;
+public enum TaskNotificationType {
 
-public enum ChainContributionStatus implements ChainStatus {
-    UNSET,
-    CONTRIBUTED,
-    REVEALED,
-    REJECTED;
-
-    public static ChainContributionStatus getValue(int i) {
-        return ChainContributionStatus.values()[i];
-    }
-
-    public static ChainContributionStatus getValue(BigInteger i) {
-        return ChainContributionStatus.values()[i.intValue()];
-    }
+    PLEASE_CONTINUE,
+    PLEASE_WAIT,            // subscribe & do nothing (wait)
+    PLEASE_START,
+    PLEASE_DOWNLOAD_APP,
+    PLEASE_DOWNLOAD_DATA,
+    PLEASE_COMPUTE,
+    PLEASE_CONTRIBUTE,      // subscribe & contribute if result found, else compute
+    PLEASE_REVEAL,          // subscribe & reveal
+    PLEASE_UPLOAD,          // subscribe & upload result
+    PLEASE_COMPLETE,        // complete + unsubscribe
+    PLEASE_ABORT,           // abort + unsubscribe
 
 }

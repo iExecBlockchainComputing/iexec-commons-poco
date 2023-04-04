@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
-package com.iexec.commons.poco.chain.adapter.args;
+package com.iexec.commons.poco.notification;
 
+import com.iexec.commons.poco.chain.WorkerpoolAuthorization;
+import com.iexec.commons.poco.task.TaskAbortCause;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TaskInitializeArgs {
+public class TaskNotificationExtra {
 
-    private String chainDealId;
-    private int taskIndex;
+    private WorkerpoolAuthorization workerpoolAuthorization;
+    private String smsUrl;
 
+    // block number from which this notification makes sense
+    // (it is not used for all notification types)
+    private long blockNumber;
+
+    // The reason behind an "Abort" notification. Used only for
+    // Abort notifications.
+    private TaskAbortCause taskAbortCause;
 }
