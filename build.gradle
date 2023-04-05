@@ -49,9 +49,6 @@ dependencies {
     
     //json
     implementation 'javax.validation:validation-api'
-
-    implementation 'org.hibernate.validator:hibernate-validator'
-    implementation 'org.glassfish:javax.el:3.0.0'
     
     // google core libs
     implementation 'com.google.guava:guava:28.2-jre'
