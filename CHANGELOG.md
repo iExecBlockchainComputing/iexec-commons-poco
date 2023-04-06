@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Init Gradle project. (#1 #2)
+- Migrate from `iexec-common` library to this `iexec-commons-poco` library packages related to blockchain and iExec PoCo protocol. (#3)  
 ### Bug Fixes
 ### Quality
 ### Dependency Upgrades
