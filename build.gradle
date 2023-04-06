@@ -1,0 +1,115 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'org.sonarqube' version '3.3'
+    id 'maven-publish'
+    id 'io.freefair.lombok' version '6.6.1'
+}
+
+group = 'com.iexec.commons'
+
+if (!project.hasProperty('gitBranch')) {
+    ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+}
+
+if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
+    version += '-NEXT-SNAPSHOT'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://docker-regis-adm.iex.ec/repository/maven-public/'
+        credentials {
+            username nexusUser
+            password nexusPassword
+        }
+    }
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.6.14')
+    api 'org.web3j:core:4.8.9'
+
+    // apache commons.lang3
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+    // multiaddresses (IPFS)
+    implementation 'com.github.multiformats:java-multiaddr:v1.4.6'
+    
+    //jaxb required with Java 11
+    implementation 'javax.xml.bind:jaxb-api'
+    
+    // failsafe
+    implementation 'net.jodah:failsafe:2.4.4'
+     //TODO Migrate from Awaitility to Failsafe everywhere
+    implementation 'org.awaitility:awaitility'
+    
+    //json
+    implementation 'javax.validation:validation-api'
+    
+    // google core libs
+    implementation 'com.google.guava:guava:28.2-jre'
+
+    implementation 'javax.annotation:javax.annotation-api'
+
+    // tests
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+    useJUnitPlatform()
+}
+
+test {
+    reports {
+        junitXml.required = true
+        html.required = true
+    }
+}
+
+task itest {
+    group 'Verification'
+    description 'Runs the integration tests.'
+}
+
+jacoco {
+     toolVersion = '0.8.7'
+}
+// sonarqube code coverage requires jacoco XML report
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+tasks.sonarqube.dependsOn tasks.jacocoTestReport
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username nexusUser
+                password nexusPassword
+            }
+            url = project.hasProperty('nexusUrl') ? nexusUrl : ''
+        }
+    }
+}
