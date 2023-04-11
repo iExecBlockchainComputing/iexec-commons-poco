@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[1.0.1]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v1.0.1) 2023-04-11
+
+### Bug Fixes
+- Remove unused `guava` dependency. (#5)
+
 ## [[1.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v1.0.0) 2023-04-06
 
 ### New Features
