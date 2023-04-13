@@ -31,7 +31,7 @@ repositories {
 
 dependencies {
     implementation platform('org.springframework.boot:spring-boot-dependencies:2.6.14')
-    api 'org.web3j:core:4.8.9'
+    api 'org.web3j:core:4.9.7'
 
     // apache commons.lang3
     implementation 'org.apache.commons:commons-lang3'
