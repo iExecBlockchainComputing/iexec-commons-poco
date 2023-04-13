@@ -15,15 +15,14 @@ web3j -v
 Version: 1.4.2
 ```
 
-After, you need to clone `Poco-dev` repository and compile
+After, you need to clone `Poco-dev` repository
 ```
 git clone https://github.com/iExecBlockchainComputing/PoCo-dev/
 cd PoCo-dev
 git checkout x.y.z
-npm i
-./node_modules/.bin/truffle compile
 ```
 
+You can now generate wrappers with Web3j CLI :
 ```
 web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/App.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
 web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/AppRegistry.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
