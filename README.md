@@ -22,23 +22,20 @@ cd PoCo-dev
 git checkout x.y.z
 ```
 
-You can now generate wrappers with Web3j CLI :
+Edit script `generateContractWrappers` and check lines *15* and *18*. If necessary, adjust the directories to match your local work tree.
+``` shell
+#Put here the PoCo-dev directory that contains smart contracts (JSON files)
+POCO_DEV_CONTRACTS_DIRECTORY=${HOME}/iexecdev/PoCo-dev/build/contracts/
+
+#Put here the src/main/java/ directory of commons-poco project
+COMMONS_POCO_WRAPPER_DIRECTORY=${HOME}/iexecdev/iexec-commons-poco/src/main/java/
 ```
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/App.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/AppRegistry.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/Dataset.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/DatasetRegistry -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/DatasetRegistry.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/Ownable.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/Workerpool.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/WorkerpoolRegistry -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/WorkerpoolRegistry.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
 
+Clean `IexecLibOrders_v5.OrderOperationEnum` references from `IexecLibOrders_v5.json` with your favorite editor(Only in abi node).
 
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/IexecInterfaceTokenABILegacy.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-# Rename IexecInterfaceTokenABILegacy.java to IexecHubContract.java
-
-# Clean IexecLibOrders_v5.OrderOperationEnum references from IexecLibOrders_v5.json (Only in abi node), then 
-web3j generate truffle --truffle-json ~/iexecdev/PoCo-dev/build/contracts/IexecLibOrders_v5.json -o ~/iexecdev/iexec-commons-poco/src/main/java/ -p com.iexec.commons.poco.contract.generated
-
+You can now run the script
+``` shell
+./generateContractWrappers App AppRegistry AppRegistry Dataset DatasetRegistry Ownable Workerpool WorkerpoolRegistry
 ```
+
+After this execution and if no error has occurred, you must rename `IexecInterfaceTokenABILegacy.java` to `IexecHubContract.java`
