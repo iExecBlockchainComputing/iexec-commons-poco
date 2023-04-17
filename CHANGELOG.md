@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade `web3j` dependency from 4.8.9 to 4.9.7. (#8)
 - Regenerate all wrappers with new web3j cli version. (#8)
 - Update the readme file with the generation instructions. (#8)
+- Add `PLEASE_CONTRIBUTE_AND_FINALIZE` to `TaskNotificationType`. (#9)
 ### Bug Fixes
 ### Quality
 ### Dependency Upgrades

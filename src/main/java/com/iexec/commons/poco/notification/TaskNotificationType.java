@@ -19,15 +19,16 @@ package com.iexec.commons.poco.notification;
 public enum TaskNotificationType {
 
     PLEASE_CONTINUE,
-    PLEASE_WAIT,            // subscribe & do nothing (wait)
+    PLEASE_WAIT,                    // subscribe & do nothing (wait)
     PLEASE_START,
     PLEASE_DOWNLOAD_APP,
     PLEASE_DOWNLOAD_DATA,
     PLEASE_COMPUTE,
-    PLEASE_CONTRIBUTE,      // subscribe & contribute if result found, else compute
-    PLEASE_REVEAL,          // subscribe & reveal
-    PLEASE_UPLOAD,          // subscribe & upload result
-    PLEASE_COMPLETE,        // complete + unsubscribe
-    PLEASE_ABORT,           // abort + unsubscribe
+    PLEASE_CONTRIBUTE,              // subscribe & contribute if result found, else compute
+    PLEASE_REVEAL,                  // subscribe & reveal
+    PLEASE_UPLOAD,                  // subscribe & upload result
+    PLEASE_CONTRIBUTE_AND_FINALIZE, // contribute & finalize on-chain
+    PLEASE_COMPLETE,                // complete + unsubscribe
+    PLEASE_ABORT,                   // abort + unsubscribe
 
 }
