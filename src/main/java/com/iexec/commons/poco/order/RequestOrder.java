@@ -26,7 +26,6 @@ import lombok.Value;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
-import java.util.Objects;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
