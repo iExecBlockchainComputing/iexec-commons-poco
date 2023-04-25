@@ -27,10 +27,10 @@ import java.math.BigInteger;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Order {
 
-    BigInteger volume;
-    String tag;
-    String salt;
-    String sign;
+    protected final BigInteger volume;
+    protected final String tag;
+    protected final String salt;
+    protected final String sign;
 
     @JsonIgnore
     public boolean isSigned() {
