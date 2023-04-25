@@ -49,4 +49,3 @@ public abstract class Order {
     public abstract Order withSignature(String signature);
 
 }
-
