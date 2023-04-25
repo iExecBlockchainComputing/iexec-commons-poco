@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Regenerate all wrappers with new web3j cli version. (#8)
 - Update the readme file with the generation instructions. (#8)
 - Add `PLEASE_CONTRIBUTE_AND_FINALIZE` to `TaskNotificationType`. (#9)
+- Add `com.iexec.commmons.poco.order` package. (#10)
 ### Bug Fixes
 ### Quality
 ### Dependency Upgrades
