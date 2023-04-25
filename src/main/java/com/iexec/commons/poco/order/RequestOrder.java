@@ -80,26 +80,6 @@ public class RequestOrder extends Order {
         this.params = params;
     }
 
-    public boolean equalsExcludedSaltSignAndParams(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RequestOrder that = (RequestOrder) o;
-        return Objects.equals(app, that.app) &&
-                Objects.equals(appmaxprice, that.appmaxprice) &&
-                Objects.equals(dataset, that.dataset) &&
-                Objects.equals(datasetmaxprice, that.datasetmaxprice) &&
-                Objects.equals(workerpool, that.workerpool) &&
-                Objects.equals(workerpoolmaxprice, that.workerpoolmaxprice) &&
-                Objects.equals(volume, that.volume) &&
-                Objects.equals(category, that.category) &&
-                Objects.equals(trust, that.trust) &&
-                Objects.equals(tag, that.tag) &&
-                Objects.equals(beneficiary, that.beneficiary) &&
-                Objects.equals(callback, that.callback) &&
-                //Objects.equals(params, that.params) &&
-                Objects.equals(requester, that.requester);
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class RequestOrderBuilder{}
 
