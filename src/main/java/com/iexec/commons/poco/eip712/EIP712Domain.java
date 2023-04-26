@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Represents the {@code EIP712Domain} part an EIP-712 compliant data structure.
+ * Represents the {@code EIP712Domain} part of an EIP-712 compliant data structure.
  * <p>
  * This class allows to:
  * <ul>
