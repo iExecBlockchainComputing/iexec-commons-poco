@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Update the readme file with the generation instructions. (#8)
 - Add `PLEASE_CONTRIBUTE_AND_FINALIZE` to `TaskNotificationType`. (#9)
 - Add `com.iexec.commmons.poco.order` package. (#10)
+- Add `com.iexec.commons.poco.eip712` package. (#11)
 ### Bug Fixes
 ### Quality
 ### Dependency Upgrades
