@@ -1,0 +1,5 @@
+services:
+  poco-chain:
+    image: docker-regis.iex.ec/poco-chain:native-v5.4.2-5s
+    expose:
+      - "8545"
