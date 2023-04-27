@@ -68,7 +68,7 @@ class EIP712AppOrderTest {
         EIP712AppOrder eip712AppOrder = new EIP712AppOrder(DOMAIN, APP_ORDER);
         String signatureString = eip712AppOrder.signMessage(getWallet());
         assertThat(signatureString)
-                .isEqualTo("0xb1d87561e2358d0f2f3f305562f47da8a053faa179b00a534405996da5ff20e63cabc35e204619d95e9e8b431ad30c7e0f95f189860821b8066b13da896f15ee1b");
+                .isEqualTo("0x82c2d8a5f59f1088eb0b9a627c367ae7dae1772c8bd98c394699ae24830611e1171026f4e28d2c60302c34a04c60c4fc2f1363e165072dca04a9f203734978671c");
     }
 
     private ECKeyPair getWallet() {

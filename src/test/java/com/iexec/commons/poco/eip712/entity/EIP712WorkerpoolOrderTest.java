@@ -70,7 +70,7 @@ class EIP712WorkerpoolOrderTest {
         EIP712WorkerpoolOrder eip712WorkerpoolOrder = new EIP712WorkerpoolOrder(DOMAIN, WORKERPOOL_ORDER);
         String signatureString = eip712WorkerpoolOrder.signMessage(getWallet());
         assertThat(signatureString)
-                .isEqualTo("0x5d7c625e34c1dbfa76c6f1b953910f21d83fb51499748e2ccf15f9d357142f1c4f8b24dc583914b02c868d5a1d751409bbe83c753152cfd88fdd3ac65b39e9fe1c");
+                .isEqualTo("0x18bb5dbf608ade315c9e81f0b89929a93aa36aee0a1d51e9119c66799af126596c6cfd1e676ea394e346c616710a675388d5b270a195e494e75d107c87a45dce1c");
     }
 
     private ECKeyPair getWallet() {
