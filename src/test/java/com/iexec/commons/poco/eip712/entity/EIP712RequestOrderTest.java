@@ -77,7 +77,7 @@ class EIP712RequestOrderTest {
 
         String signatureString = eip712RequestOrder.signMessage(getWallet());
         assertThat(signatureString)
-                .isEqualTo("0xe4085c70e1d543daf0433d9b7a15f10679befb65dc33c3eeb284dee1ba409f724ce8223a262c8eeb2d3f4f3cc44c2c5d06192ab1d74b3554904425f6f5f8c4cc1c");
+                .isEqualTo("0x611511fa5169dff40f7b4c0013e9f149e79dfddacd80a19852a1e9b42294eaef4329367f01eb48930f990a418befed0c5634e493809f2e9a6a60727137964df51c");
     }
 
     private ECKeyPair getWallet() {

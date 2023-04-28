@@ -68,7 +68,7 @@ class EIP712DatasetOrderTest {
         EIP712DatasetOrder eip712DatasetOrder = new EIP712DatasetOrder(DOMAIN, DATASET_ORDER);
         String signatureString = eip712DatasetOrder.signMessage(getWallet());
         assertThat(signatureString)
-                .isEqualTo("0x955db5242901dfec80d1cf20dce54a8c60274db55fb572ead03f32a2475e18b60e308e1a3bc599d774549283ec737bcedca8420bdae9e4784e3f62e8f4ff085f1c");
+                .isEqualTo("0x94661cab25380e7a6e1c20762988f6f854c5123a17ad27c65580d7c3edcfa2025a9d255c679c4cf7d489560917c17d3af3da83737b3722824918d39aecfedf711c");
     }
 
     private ECKeyPair getWallet() {

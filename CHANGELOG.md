@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add `PLEASE_CONTRIBUTE_AND_FINALIZE` to `TaskNotificationType`. (#9)
 - Add `com.iexec.commmons.poco.order` package. (#10)
 - Add `com.iexec.commons.poco.eip712` package. (#11)
+- Add `MatchOrdersTests` on nethermind `poco-chain`. (#12)
 ### Bug Fixes
 ### Quality
 ### Dependency Upgrades
