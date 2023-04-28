@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
+import static com.iexec.commons.poco.chain.Web3jAbstractService.GAS_LIMIT_CAP;
 import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,7 +41,7 @@ class Web3jAbstractServiceTest {
                 BigInteger.valueOf(100000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_FINALIZE),
-                BigInteger.valueOf(3000000));
+                BigInteger.valueOf(300000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_REOPEN),
                 BigInteger.valueOf(500000));
@@ -49,7 +50,7 @@ class Web3jAbstractServiceTest {
                 BigInteger.valueOf(700000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction("randomfunction"),
-                BigInteger.valueOf(500000));
+                BigInteger.valueOf(GAS_LIMIT_CAP));
     }
     
 }
