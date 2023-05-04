@@ -90,16 +90,6 @@ public abstract class IexecHubAbstractService {
         this(credentials, web3jAbstractService, iexecHubAddress, Duration.ofMillis(DEFAULT_BLOCK_TIME), 6, 3);
     }
 
-    @Deprecated
-    protected IexecHubAbstractService(
-            Credentials credentials,
-            Web3jAbstractService web3jAbstractService,
-            String iexecHubAddress,
-            int nbBlocksToWaitPerRetry,
-            int maxRetries) {
-        this(credentials, web3jAbstractService, iexecHubAddress, Duration.ofMillis(DEFAULT_BLOCK_TIME), nbBlocksToWaitPerRetry, maxRetries);
-    }
-
     /**
      * Base constructor for the IexecHubAbstractService
      * @param credentials credentials for sending transaction
