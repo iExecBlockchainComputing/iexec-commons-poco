@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Add `com.iexec.commons.poco.eip712` package. (#11)
 - Add `MatchOrdersTests` on nethermind `poco-chain`. (#12)
 ### Bug Fixes
+- Set `protected` visibility on abstract classes constructors. (#13)
 ### Quality
 ### Dependency Upgrades
 
