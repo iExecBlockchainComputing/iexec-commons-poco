@@ -83,18 +83,20 @@ public abstract class IexecHubAbstractService {
     // /!\ TODO remove expired task descriptions
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
 
-    public IexecHubAbstractService(Credentials credentials,
-                                   Web3jAbstractService web3jAbstractService,
-                                   String iexecHubAddress) {
+    protected IexecHubAbstractService(
+            Credentials credentials,
+            Web3jAbstractService web3jAbstractService,
+            String iexecHubAddress) {
         this(credentials, web3jAbstractService, iexecHubAddress, Duration.ofMillis(DEFAULT_BLOCK_TIME), 6, 3);
     }
 
     @Deprecated
-    public IexecHubAbstractService(Credentials credentials,
-                                   Web3jAbstractService web3jAbstractService,
-                                   String iexecHubAddress,
-                                   int nbBlocksToWaitPerRetry,
-                                   int maxRetries) {
+    protected IexecHubAbstractService(
+            Credentials credentials,
+            Web3jAbstractService web3jAbstractService,
+            String iexecHubAddress,
+            int nbBlocksToWaitPerRetry,
+            int maxRetries) {
         this(credentials, web3jAbstractService, iexecHubAddress, Duration.ofMillis(DEFAULT_BLOCK_TIME), nbBlocksToWaitPerRetry, maxRetries);
     }
 
@@ -107,12 +109,13 @@ public abstract class IexecHubAbstractService {
      * @param nbBlocksToWaitPerRetry nb block to wait per retry
      * @param maxRetries maximum reties
      */
-    public IexecHubAbstractService(Credentials credentials,
-                                   Web3jAbstractService web3jAbstractService,
-                                   String iexecHubAddress,
-                                   Duration blockTime,
-                                   int nbBlocksToWaitPerRetry,
-                                   int maxRetries) {
+    protected IexecHubAbstractService(
+            Credentials credentials,
+            Web3jAbstractService web3jAbstractService,
+            String iexecHubAddress,
+            Duration blockTime,
+            int nbBlocksToWaitPerRetry,
+            int maxRetries) {
         this.credentials = credentials;
         this.web3jAbstractService = web3jAbstractService;
         this.iexecHubAddress = iexecHubAddress;

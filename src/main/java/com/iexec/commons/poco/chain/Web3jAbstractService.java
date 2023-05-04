@@ -53,7 +53,7 @@ public abstract class Web3jAbstractService {
      * Apart from initializing usual business entities, it initializes a single
      * and shared web3j instance. This inner web3j instance allows to connect to
      * a remote blockchain node.
-     *
+     * <p>
      * If reusing a whole web3j instance between calls might be overkilled, it
      * is important to use a single and shared HttpService.
      * The usage of a single HttpService ensures the creation of a single
@@ -65,10 +65,11 @@ public abstract class Web3jAbstractService {
      * @param gasPriceCap gas price cap
      * @param isSidechain true if iExec native chain, false if iExec token chain
      */
-    public Web3jAbstractService(String chainNodeAddress,
-                                float gasPriceMultiplier,
-                                long gasPriceCap,
-                                boolean isSidechain) {
+    protected Web3jAbstractService(
+            String chainNodeAddress,
+            float gasPriceMultiplier,
+            long gasPriceCap,
+            boolean isSidechain) {
         this.chainNodeAddress = chainNodeAddress;
         this.gasPriceMultiplier = gasPriceMultiplier;
         this.gasPriceCap = gasPriceCap;
