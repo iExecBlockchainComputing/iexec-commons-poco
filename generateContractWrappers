@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+###################################################################
+#Script Name	: generateContractWrappers                                                                                             
+#Description	: Script to facilitate the generation of java wrappers                                                                               
+#Args         : list of smart contracts json files without extension
+#Exemple      : ./generateContractWrappers App AppRegistry                                                                                    
+#Author       : iExec                                             
+###################################################################
+
+set -Eeuo pipefail
+
+
+#Put here the PoCo-dev directory that contains smart contracts (JSON files)
+POCO_DEV_CONTRACTS_DIRECTORY=${HOME}/iexecdev/PoCo-dev/build/contracts/
+
+#Put here the src/main/java/ directory of commons-poco project 
+COMMONS_POCO_WRAPPER_DIRECTORY=${HOME}/iexecdev/iexec-commons-poco/src/main/java/
+
+#Put here the java package for commons-poco Wrappers
+COMMONS_POCO_PACKAGE='com.iexec.commons.poco.contract.generated'
+
+
+check_mandatory_dependency(){
+  CMDS="web3j"
+
+  for i in $CMDS
+  do          
+    command -v $i >/dev/null && continue || { echo "$i command not found."; exit 1; }
+  done
+}
+
+check_mandatory_directory(){
+  if [ ! -d "$1" ];
+  then
+    echo "$1 directory does not exist."
+    exit 1
+  fi
+}
+
+generate_wrapper() {
+  if test -f "$POCO_DEV_CONTRACTS_DIRECTORY$1.json"; then
+    web3j generate truffle --truffle-json $POCO_DEV_CONTRACTS_DIRECTORY$1.json -o $COMMONS_POCO_WRAPPER_DIRECTORY -p $COMMONS_POCO_PACKAGE
+  else
+    echo "Missing $POCO_DEV_CONTRACTS_DIRECTORY$1.json file"
+    exit  1
+  fi
+}
+
+
+check_mandatory_dependency
+check_mandatory_directory $POCO_DEV_CONTRACTS_DIRECTORY
+check_mandatory_directory $COMMONS_POCO_WRAPPER_DIRECTORY
+
+
+for var in "$@" 
+do      
+  generate_wrapper $var  
+done

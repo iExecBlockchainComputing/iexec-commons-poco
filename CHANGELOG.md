@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[2.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.0) 2023
+
+### New Features
+- Upgrade `web3j` dependency from 4.8.9 to 4.9.7. (#8)
+- Regenerate all wrappers with new web3j cli version. (#8)
+- Update the readme file with the generation instructions. (#8)
+- Add `PLEASE_CONTRIBUTE_AND_FINALIZE` to `TaskNotificationType`. (#9)
+- Add `com.iexec.commmons.poco.order` package. (#10)
+- Add `com.iexec.commons.poco.eip712` package. (#11)
+- Add `MatchOrdersTests` on nethermind `poco-chain`. (#12)
+### Bug Fixes
+- Set `protected` visibility on abstract classes constructors. (#13)
+
 ## [[1.0.2]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v1.0.2) 2023-04-11
 
 ### Bug Fixes

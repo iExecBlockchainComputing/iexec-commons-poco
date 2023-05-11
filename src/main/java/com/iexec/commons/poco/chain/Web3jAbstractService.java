@@ -42,7 +42,7 @@ import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_
 @Slf4j
 public abstract class Web3jAbstractService {
 
-    private static final long GAS_LIMIT_CAP = 500000;
+    static final long GAS_LIMIT_CAP = 1000000;
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
     private final boolean isSidechain;
@@ -53,7 +53,7 @@ public abstract class Web3jAbstractService {
      * Apart from initializing usual business entities, it initializes a single
      * and shared web3j instance. This inner web3j instance allows to connect to
      * a remote blockchain node.
-     *
+     * <p>
      * If reusing a whole web3j instance between calls might be overkilled, it
      * is important to use a single and shared HttpService.
      * The usage of a single HttpService ensures the creation of a single
@@ -65,10 +65,11 @@ public abstract class Web3jAbstractService {
      * @param gasPriceCap gas price cap
      * @param isSidechain true if iExec native chain, false if iExec token chain
      */
-    public Web3jAbstractService(String chainNodeAddress,
-                                float gasPriceMultiplier,
-                                long gasPriceCap,
-                                boolean isSidechain) {
+    protected Web3jAbstractService(
+            String chainNodeAddress,
+            float gasPriceMultiplier,
+            long gasPriceCap,
+            boolean isSidechain) {
         this.chainNodeAddress = chainNodeAddress;
         this.gasPriceMultiplier = gasPriceMultiplier;
         this.gasPriceCap = gasPriceCap;
@@ -328,7 +329,7 @@ public abstract class Web3jAbstractService {
                 gasLimit = 100000;//seen 56333
                 break;
             case FUNC_FINALIZE:
-                gasLimit = 3000000;//seen 175369 (242641 in reopen case)
+                gasLimit = 300000;//seen 175369 (242641 in reopen case)
                 break;
             case FUNC_REOPEN:
                 gasLimit = 500000;//seen 43721
