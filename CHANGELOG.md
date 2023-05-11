@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[2.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.0) 2023
+## [[2.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.0) 2023-05-11
 
 ### New Features
 - Upgrade `web3j` dependency from 4.8.9 to 4.9.7. (#8)
