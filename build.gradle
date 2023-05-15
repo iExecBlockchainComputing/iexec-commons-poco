@@ -76,13 +76,18 @@ tasks.withType(Test).configureEach {
 }
 
 test {
+    doFirst {
+        exec {
+            commandLine 'docker', 'compose', 'pull', '-q'
+        }
+    }
     reports {
         junitXml.required = true
         html.required = true
     }
 }
 
-task itest {
+tasks.register('itest', Test) {
     group 'Verification'
     description 'Runs the integration tests.'
 }
