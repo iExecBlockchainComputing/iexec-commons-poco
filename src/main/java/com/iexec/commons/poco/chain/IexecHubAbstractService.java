@@ -1188,16 +1188,16 @@ public abstract class IexecHubAbstractService {
     }
 
     public boolean isTeeTask(String chainTaskId) {
-        Optional<TaskDescription> oTaskDescription =
-                getTaskDescriptionFromChain(chainTaskId);
+        TaskDescription oTaskDescription =
+                getTaskDescription(chainTaskId);
 
-        if (oTaskDescription.isEmpty()) {
+        if (oTaskDescription == null) {
             log.error("Couldn't get task description from chain [chainTaskId:{}]",
                     chainTaskId);
             return false;
         }
 
-        return oTaskDescription.get().isTeeTask();
+        return oTaskDescription.isTeeTask();
     }
 
     public ChainReceipt getContributionBlock(String chainTaskId, String workerWallet,
