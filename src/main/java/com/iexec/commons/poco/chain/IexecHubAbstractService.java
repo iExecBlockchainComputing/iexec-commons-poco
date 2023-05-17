@@ -1336,4 +1336,29 @@ public abstract class IexecHubAbstractService {
                 return false;
         }
     }
+
+    // region Purge
+    /**
+     * Purge description of given task.
+     *
+     * @param chainTaskId ID of the task to purge.
+     * @return {@literal true} if task description was cached
+     * and has been purged;
+     * {@literal false} otherwise.
+     */
+    protected boolean purgeTask(String chainTaskId) {
+        if (!taskDescriptions.containsKey(chainTaskId)) {
+            log.info("Can't purge task description [chainTaskId:{}]", chainTaskId);
+        }
+
+        return taskDescriptions.remove(chainTaskId) != null;
+    }
+
+    /**
+     * Purge all cached task descriptions.
+     */
+    protected void purgeAllTasksData() {
+        taskDescriptions.clear();
+    }
+    // endregion
 }
