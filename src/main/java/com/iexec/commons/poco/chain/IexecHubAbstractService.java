@@ -1349,6 +1349,7 @@ public abstract class IexecHubAbstractService {
     protected boolean purgeTask(String chainTaskId) {
         if (!taskDescriptions.containsKey(chainTaskId)) {
             log.info("Can't purge task description [chainTaskId:{}]", chainTaskId);
+            return false;
         }
 
         return taskDescriptions.remove(chainTaskId) != null;
