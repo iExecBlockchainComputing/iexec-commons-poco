@@ -42,7 +42,7 @@ import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_
 @Slf4j
 public abstract class Web3jAbstractService {
 
-    static final long GAS_LIMIT_CAP = 1000000;
+    static final long GAS_LIMIT_CAP = 1_000_000;
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
     private final boolean isSidechain;
@@ -320,30 +320,30 @@ public abstract class Web3jAbstractService {
         long gasLimit;
         switch (functionName) {
             case FUNC_INITIALIZE:
-                gasLimit = 300000;//seen 176340
+                gasLimit = 300_000;//seen 176340
                 break;
             case FUNC_CONTRIBUTE:
-                gasLimit = 500000;//seen 333541
+                gasLimit = 500_000;//seen 333541
                 break;
             case FUNC_REVEAL:
-                gasLimit = 100000;//seen 56333
+                gasLimit = 100_000;//seen 56333
                 break;
             case FUNC_CONTRIBUTEANDFINALIZE:
             case FUNC_FINALIZE:
                 // Multiply with a factor of 10 for callback gas consumption
-                gasLimit = 3000000;//seen 175369 (242641 in reopen case)
+                gasLimit = 3_000_000;//seen 175369 (242641 in reopen case)
                 break;
             case FUNC_REOPEN:
-                gasLimit = 500000;//seen 43721
+                gasLimit = 500_000;//seen 43721
                 break;
             case FUNC_CREATEAPP:
-                gasLimit = 900000;//800000 might not be enough
+                gasLimit = 900_000;//800000 might not be enough
                 break;
             case FUNC_CREATEWORKERPOOL:
-                gasLimit = 700000;
+                gasLimit = 700_000;
                 break;
             case FUNC_CREATEDATASET:
-                gasLimit = 700000;//seen 608878
+                gasLimit = 700_000;//seen 608878
                 break;
             default:
                 gasLimit = GAS_LIMIT_CAP;

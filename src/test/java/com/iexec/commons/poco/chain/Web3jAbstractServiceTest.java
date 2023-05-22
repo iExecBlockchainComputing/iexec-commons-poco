@@ -32,25 +32,25 @@ class Web3jAbstractServiceTest {
     void getGasLimitForFunction() {
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_INITIALIZE),
-                BigInteger.valueOf(300000));
+                BigInteger.valueOf(300_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_CONTRIBUTE),
-                BigInteger.valueOf(500000));
+                BigInteger.valueOf(500_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_REVEAL),
-                BigInteger.valueOf(100000));
+                BigInteger.valueOf(100_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_CONTRIBUTEANDFINALIZE),
-                BigInteger.valueOf(3000000));
+                BigInteger.valueOf(3_000_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_FINALIZE),
-                BigInteger.valueOf(3000000));
+                BigInteger.valueOf(3_000_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_REOPEN),
-                BigInteger.valueOf(500000));
+                BigInteger.valueOf(500_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_CREATEDATASET),
-                BigInteger.valueOf(700000));
+                BigInteger.valueOf(700_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction("randomfunction"),
                 BigInteger.valueOf(GAS_LIMIT_CAP));
