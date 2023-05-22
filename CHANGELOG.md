@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[2.0.1]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.1) 2023-05-22
+
+### New Features
+- Add purge cached task descriptions ability. (#20)
+### Bug Fixes
+- Pull `poco-chain` image before tests. (#18)
+- Keep a security factor of 10 for callback gas consumption during `finalize` and `contributeAndFinalize`. (#22)
+
 ## [[2.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.0) 2023-05-11
 
 ### New Features
