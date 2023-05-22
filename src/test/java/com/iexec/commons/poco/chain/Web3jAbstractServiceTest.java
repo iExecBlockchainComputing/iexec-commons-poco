@@ -40,8 +40,11 @@ class Web3jAbstractServiceTest {
                         .getGasLimitForFunction(FUNC_REVEAL),
                 BigInteger.valueOf(100000));
         assertEquals(Web3jAbstractService
+                        .getGasLimitForFunction(FUNC_CONTRIBUTEANDFINALIZE),
+                BigInteger.valueOf(3000000));
+        assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_FINALIZE),
-                BigInteger.valueOf(300000));
+                BigInteger.valueOf(3000000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_REOPEN),
                 BigInteger.valueOf(500000));

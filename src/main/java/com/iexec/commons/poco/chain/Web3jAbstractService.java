@@ -328,8 +328,10 @@ public abstract class Web3jAbstractService {
             case FUNC_REVEAL:
                 gasLimit = 100000;//seen 56333
                 break;
+            case FUNC_CONTRIBUTEANDFINALIZE:
             case FUNC_FINALIZE:
-                gasLimit = 300000;//seen 175369 (242641 in reopen case)
+                // Multiply with a factor of 10 for callback gas consumption
+                gasLimit = 3000000;//seen 175369 (242641 in reopen case)
                 break;
             case FUNC_REOPEN:
                 gasLimit = 500000;//seen 43721
