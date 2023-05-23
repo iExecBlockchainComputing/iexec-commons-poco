@@ -16,16 +16,12 @@
 
 package com.iexec.commons.poco.chain;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
 public class ChainReceipt {
-    private long blockNumber;
-    private String txHash;
+    long blockNumber;
+    String txHash;
 }

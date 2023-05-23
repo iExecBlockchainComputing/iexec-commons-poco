@@ -16,19 +16,15 @@
 
 package com.iexec.commons.poco.chain;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
-@Getter
 public class ChainDataset {
-
-    private String chainDatasetId;
-    private String owner;
-    private String name;
-    private String uri;
-    private String checksum;
-
+    String chainDatasetId;
+    String owner;
+    String name;
+    String uri;
+    String checksum;
 }

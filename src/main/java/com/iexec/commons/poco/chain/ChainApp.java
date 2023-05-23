@@ -17,21 +17,16 @@
 package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
 
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
-@Getter
 public class ChainApp {
-
-    private String chainAppId;
-    private String name;
-    private String type;
-    private String uri;
-    private String checksum;
-    private TeeEnclaveConfiguration enclaveConfiguration;
-
+    String chainAppId;
+    String name;
+    String type;
+    String uri;
+    String checksum;
+    TeeEnclaveConfiguration enclaveConfiguration;
 }

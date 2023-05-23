@@ -16,16 +16,13 @@
 
 package com.iexec.commons.poco.chain;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
-@Getter
 public class ChainWorkerpool {
-
-    private String chainWorkerpoolId;
-    private String owner;
-    private String description;
+    String chainWorkerpoolId;
+    String owner;
+    String description;
 }
