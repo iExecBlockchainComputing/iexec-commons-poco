@@ -18,17 +18,13 @@ package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.utils.BytesUtils;
-import lombok.*;
-import org.web3j.tuples.generated.Tuple6;
-import org.web3j.tuples.generated.Tuple9;
+import lombok.Builder;
+import lombok.Value;
 
 import java.math.BigInteger;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
-@Getter
 public class ChainDeal {
 
     String chainDealId;
