@@ -36,8 +36,6 @@ import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
-import org.web3j.tuples.generated.Tuple6;
-import org.web3j.tuples.generated.Tuple9;
 import org.web3j.tx.ChainIdLong;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -815,17 +813,11 @@ public abstract class IexecHubAbstractService {
 
         byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
-            Tuple9<String, String, BigInteger, String, String, BigInteger, String, String, BigInteger> dealPt1 =
-                    iexecHub.viewDealABILegacy_pt1(chainDealIdBytes).send();
-            Tuple6<BigInteger, byte[], String, String, String, String> dealPt2 =
-                    iexecHub.viewDealABILegacy_pt2(chainDealIdBytes).send();
-            Tuple6<BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, BigInteger> config =
-                    iexecHub.viewConfigABILegacy(chainDealIdBytes).send();
+            IexecHubContract.Deal deal = iexecHub.viewDeal(chainDealIdBytes).send();
 
-
-            String appAddress = dealPt1.component1();
-            String datasetAddress = dealPt1.component4();
-            BigInteger categoryId = config.component1();
+            String appAddress = deal.app.pointer;
+            String datasetAddress = deal.dataset.pointer;
+            BigInteger categoryId = deal.category;
 
             Optional<ChainApp> chainApp = getChainApp(getAppContract(appAddress));
             if (chainApp.isEmpty()) {
@@ -841,7 +833,7 @@ public abstract class IexecHubAbstractService {
                     getChainDataset(getDatasetContract(datasetAddress));
             ChainDataset dataset = chainDataset.orElse(null);
 
-            ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, dealPt1, dealPt2, config, app, category, dataset);
+            ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
             if (chainDeal.getStartTime() == null
                     || chainDeal.getStartTime().longValue() <= 0) {

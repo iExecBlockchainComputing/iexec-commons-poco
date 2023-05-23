@@ -16,6 +16,7 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.*;
 import org.web3j.tuples.generated.Tuple6;
@@ -65,33 +66,33 @@ public class ChainDeal {
                 !getChainDataset().getChainDatasetId().equals(BytesUtils.EMPTY_ADDRESS);
     }
 
-    public static ChainDeal parts2ChainDeal(String chainDealId, Tuple9<String, String, BigInteger, String, String, BigInteger, String, String, BigInteger> dealPt1, Tuple6<BigInteger, byte[], String, String, String, String> dealPt2, Tuple6<BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, BigInteger> config, ChainApp app, ChainCategory category, ChainDataset dataset) {
-        if (dealPt1 == null || dealPt2 == null || config == null || app == null || category == null) {
-            return new ChainDeal();
+    public static ChainDeal parts2ChainDeal(String chainDealId, IexecHubContract.Deal deal, ChainApp app, ChainCategory category, ChainDataset dataset) {
+        if (deal == null || app == null || category == null) {
+            return ChainDeal.builder().build();
         }
         return ChainDeal.builder()
                 .chainDealId(chainDealId)
                 .chainApp(app)
-                .dappOwner(dealPt1.component2())
-                .dappPrice(dealPt1.component3())
+                .dappOwner(deal.app.owner)
+                .dappPrice(deal.app.price)
                 .chainDataset(dataset)
-                .dataOwner(dealPt1.component5())
-                .dataPrice(dealPt1.component6())
-                .poolPointer(dealPt1.component7())
-                .poolOwner(dealPt1.component8())
-                .poolPrice(dealPt1.component9())
-                .trust(dealPt2.component1())
-                .tag(BytesUtils.bytesToString(dealPt2.component2()))
-                .requester(dealPt2.component3())
-                .beneficiary(dealPt2.component4())
-                .callback(dealPt2.component5())
-                .params(DealParams.createFromString(dealPt2.component6()))
+                .dataOwner(deal.dataset.owner)
+                .dataPrice(deal.dataset.price)
+                .poolPointer(deal.workerpool.pointer)
+                .poolOwner(deal.workerpool.owner)
+                .poolPrice(deal.workerpool.price)
+                .trust(deal.trust)
+                .tag(BytesUtils.bytesToString(deal.tag))
+                .requester(deal.requester)
+                .beneficiary(deal.beneficiary)
+                .callback(deal.callback)
+                .params(DealParams.createFromString(deal.params))
                 .chainCategory(category)
-                .startTime(config.component2())
-                .botFirst(config.component3())
-                .botSize(config.component4())
-                .workerStake(config.component5())
-                .schedulerRewardRatio(config.component6())
+                .startTime(deal.startTime)
+                .botFirst(deal.botFirst)
+                .botSize(deal.botSize)
+                .workerStake(deal.workerStake)
+                .schedulerRewardRatio(deal.schedulerRewardRatio)
                 .build();
     }
 }
