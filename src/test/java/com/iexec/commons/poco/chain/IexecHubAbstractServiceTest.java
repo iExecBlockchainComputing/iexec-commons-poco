@@ -39,8 +39,8 @@ class IexecHubAbstractServiceTest {
 
     public static final int RETRY_DELAY = 10; //in ms
     public static final int MAX_RETRY = 3;
-    private final static String CHAIN_DEAL_ID = BytesUtils.toByte32HexString(0xa);
-    private static String CHAIN_TASK_ID;
+    private static final String CHAIN_DEAL_ID = BytesUtils.toByte32HexString(0xa);
+    private static final String CHAIN_TASK_ID = generateChainTaskId(CHAIN_DEAL_ID, 0);
 
     @Mock
     private IexecHubAbstractService iexecHubAbstractService;
@@ -48,7 +48,6 @@ class IexecHubAbstractServiceTest {
     @BeforeEach
     void beforeEach() {
         MockitoAnnotations.openMocks(this);
-        CHAIN_TASK_ID = generateChainTaskId(CHAIN_DEAL_ID, 0);
     }
 
     @Test
@@ -236,6 +235,7 @@ class IexecHubAbstractServiceTest {
         return ChainTask.builder()
                 .dealid(CHAIN_DEAL_ID)
                 .idx(0)
+                .chainTaskId(CHAIN_TASK_ID)
                 .build();
     }
 
