@@ -963,15 +963,14 @@ public abstract class IexecHubAbstractService {
                 app.getContractAddress().equals(BytesUtils.EMPTY_ADDRESS)) {
             return Optional.empty();
         }
-        ChainApp chainApp;
+        ChainApp.ChainAppBuilder chainAppBuilder = ChainApp.builder();
         try {
-            chainApp = ChainApp.builder()
+            chainAppBuilder
                     .chainAppId(app.getContractAddress())
                     .name(app.m_appName().send())
                     .type(app.m_appType().send())
                     .uri(BytesUtils.bytesToString(app.m_appMultiaddr().send()))
-                    .checksum(BytesUtils.bytesToString(app.m_appChecksum().send()))
-                    .build();
+                    .checksum(BytesUtils.bytesToString(app.m_appChecksum().send()));
         } catch (Exception e) {
             log.error("Failed to get chain app [chainAppId:{}]",
                     app.getContractAddress(), e);
@@ -987,10 +986,10 @@ public abstract class IexecHubAbstractService {
         }
         if (StringUtils.isEmpty(mrEnclave)) {
             // Standard application
-            return Optional.of(chainApp);
+            return Optional.of(chainAppBuilder.build());
         }
         try {
-            chainApp.setEnclaveConfiguration(
+            chainAppBuilder.enclaveConfiguration(
                     buildEnclaveConfigurationFromJsonString(mrEnclave));
         } catch (Exception e) {
             log.error("Failed to get tee chain app enclave configuration " +
@@ -998,7 +997,7 @@ public abstract class IexecHubAbstractService {
                     mrEnclave, e);
             return Optional.empty();
         }
-        return Optional.of(chainApp);
+        return Optional.of(chainAppBuilder.build());
     }
 
     public Optional<ChainDataset> getChainDataset(Dataset dataset) {
