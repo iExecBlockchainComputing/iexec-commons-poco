@@ -72,7 +72,7 @@ class AccountTests {
 
     static class Web3jService extends Web3jAbstractService {
         public Web3jService() {
-            super("http://localhost:" + environment.getServicePort("poco-chain", 8545), 1.0f, 22000000000L, true);
+            super("http://localhost:" + environment.getServicePort("poco-chain", 8545), 1.0f, 22_000_000_000L, true);
         }
     }
 
