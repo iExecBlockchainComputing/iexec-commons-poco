@@ -20,9 +20,9 @@ import com.iexec.commons.poco.chain.IexecHubAbstractService;
 import com.iexec.commons.poco.chain.Web3jAbstractService;
 import org.web3j.crypto.Credentials;
 
-public class IexecHubService extends IexecHubAbstractService {
+public class IexecHubTestService extends IexecHubAbstractService {
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
-    public IexecHubService(Credentials credentials, Web3jAbstractService web3jAbstractService) {
+    public IexecHubTestService(Credentials credentials, Web3jAbstractService web3jAbstractService) {
         super(credentials, web3jAbstractService, IEXEC_HUB_ADDRESS);
     }
 }

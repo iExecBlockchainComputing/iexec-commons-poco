@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AccountTests {
 
     private Credentials credentials;
-    private IexecHubService iexecHubService;
+    private IexecHubTestService iexecHubService;
 
     @Container
     static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
@@ -48,8 +48,8 @@ class AccountTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        Web3jService web3jService = new Web3jService(environment.getServicePort("poco-chain", 8545));
-        iexecHubService = new IexecHubService(credentials, web3jService);
+        Web3jTestService web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        iexecHubService = new IexecHubTestService(credentials, web3jService);
     }
 
     @Test

@@ -49,8 +49,8 @@ class MatchOrdersTests {
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
     private Credentials credentials;
-    private IexecHubService iexecHubService;
-    private Web3jService web3jService;
+    private IexecHubTestService iexecHubService;
+    private Web3jTestService web3jService;
     private OrderSigner signer;
 
     @Container
@@ -60,8 +60,8 @@ class MatchOrdersTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        web3jService = new Web3jService(environment.getServicePort("poco-chain", 8545));
-        iexecHubService = new IexecHubService(credentials, web3jService);
+        web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
     }
 

@@ -18,8 +18,8 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.Web3jAbstractService;
 
-public class Web3jService extends Web3jAbstractService {
-    public Web3jService(int chainServicePort) {
+public class Web3jTestService extends Web3jAbstractService {
+    public Web3jTestService(int chainServicePort) {
         super("http://localhost:" + chainServicePort, 1.0f, 22_000_000_000L, true);
     }
 }
