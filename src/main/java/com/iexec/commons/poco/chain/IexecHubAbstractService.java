@@ -1258,6 +1258,28 @@ public abstract class IexecHubAbstractService {
                 .blockingFirst();
     }
 
+    public ChainReceipt getFinalizeBlock(String chainTaskId, long fromBlock) {
+        long latestBlock = web3jAbstractService.getLatestBlockNumber();
+        if (fromBlock > latestBlock) {
+            return ChainReceipt.builder().build();
+        }
+
+        IexecHubContract iexecHub = getHubContract();
+        EthFilter ethFilter = createFinalizeEthFilter(fromBlock, latestBlock);
+
+        // filter only taskFinalize events for the chainTaskId (there should be only one)
+        // and retrieve the block number of the event
+        return iexecHub.taskFinalizeEventFlowable(ethFilter)
+                .filter(eventResponse ->
+                        chainTaskId.equals(BytesUtils.bytesToString(eventResponse.taskid))
+                )
+                .map(eventResponse -> ChainReceipt.builder()
+                        .blockNumber(eventResponse.log.getBlockNumber().longValue())
+                        .txHash(eventResponse.log.getTransactionHash())
+                        .build())
+                .blockingFirst();
+    }
+
     private EthFilter createContributeEthFilter(long fromBlock, long toBlock) {
         return createEthFilter(fromBlock, toBlock, TASKCONTRIBUTE_EVENT);
     }
@@ -1268,6 +1290,10 @@ public abstract class IexecHubAbstractService {
 
     private EthFilter createRevealEthFilter(long fromBlock, long toBlock) {
         return createEthFilter(fromBlock, toBlock, TASKREVEAL_EVENT);
+    }
+
+    private EthFilter createFinalizeEthFilter(long fromBlock, long toBlock) {
+        return createEthFilter(fromBlock, toBlock, TASKFINALIZE_EVENT);
     }
 
     private EthFilter createEthFilter(long fromBlock, long toBlock, Event event) {
