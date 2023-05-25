@@ -17,13 +17,13 @@
 package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.DealParams;
-import com.iexec.commons.poco.chain.IexecHubAbstractService;
-import com.iexec.commons.poco.chain.Web3jAbstractService;
 import com.iexec.commons.poco.eip712.OrderSigner;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -39,7 +39,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @Tag("itest")
@@ -49,8 +49,8 @@ class MatchOrdersTests {
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
     private Credentials credentials;
-    private IexecHubService iexecHubService;
-    private Web3jService web3jService;
+    private IexecHubTestService iexecHubService;
+    private Web3jTestService web3jService;
     private OrderSigner signer;
 
     @Container
@@ -60,8 +60,8 @@ class MatchOrdersTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        web3jService = new Web3jService();
-        iexecHubService = new IexecHubService(credentials, web3jService);
+        web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
     }
 
@@ -177,15 +177,4 @@ class MatchOrdersTests {
         assertThat(receipt.isStatusOK()).isTrue();
     }
 
-    static class IexecHubService extends IexecHubAbstractService {
-        public IexecHubService(Credentials credentials, Web3jAbstractService web3jAbstractService) {
-            super(credentials, web3jAbstractService, IEXEC_HUB_ADDRESS);
-        }
-    }
-
-    static class Web3jService extends Web3jAbstractService {
-        public Web3jService() {
-            super("http://localhost:" + environment.getServicePort("poco-chain", 8545), 1.0f, 22000000000L, true);
-        }
-    }
 }

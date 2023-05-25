@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Representations of on-chain object are now immutable. (#24 #25 #26)
 ### Quality
 - Move methods to get event blocks to `iexec-core`. (#28)
+- Add `IexecHubTestService` and `Web3jTestService` classes for tests. (#29)
 
 ## [[2.0.1]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.1) 2023-05-22
 

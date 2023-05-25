@@ -17,8 +17,6 @@
 package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.ChainAccount;
-import com.iexec.commons.poco.chain.IexecHubAbstractService;
-import com.iexec.commons.poco.chain.Web3jAbstractService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -39,10 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class AccountTests {
 
-    private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
-
     private Credentials credentials;
-    private IexecHubService iexecHubService;
+    private IexecHubTestService iexecHubService;
 
     @Container
     static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
@@ -52,8 +48,8 @@ class AccountTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        Web3jService web3jService = new Web3jService();
-        iexecHubService = new IexecHubService(credentials, web3jService);
+        Web3jTestService web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        iexecHubService = new IexecHubTestService(credentials, web3jService);
     }
 
     @Test
@@ -62,18 +58,6 @@ class AccountTests {
         assertThat(oChainAccount).isPresent();
         assertThat(oChainAccount.get().getDeposit()).isEqualTo(10_000_000L);
         assertThat(oChainAccount.get().getLocked()).isZero();
-    }
-
-    static class IexecHubService extends IexecHubAbstractService {
-        public IexecHubService(Credentials credentials, Web3jAbstractService web3jAbstractService) {
-            super(credentials, web3jAbstractService, IEXEC_HUB_ADDRESS);
-        }
-    }
-
-    static class Web3jService extends Web3jAbstractService {
-        public Web3jService() {
-            super("http://localhost:" + environment.getServicePort("poco-chain", 8545), 1.0f, 22_000_000_000L, true);
-        }
     }
 
 }
