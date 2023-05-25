@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### New Features
 - Call `IexecHubContract#viewDeal` instead of legacy ABI in `IexecHubAbstractService#getChainDeal`. (#24)
 - Representations of on-chain object are now immutable. (#24 #25 #26)
+### Quality
+- Move methods to get event blocks to `iexec-core`. (#28)
 
 ## [[2.0.1]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.1) 2023-05-22
 
