@@ -16,12 +16,18 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Value;
 
 @Value
 @Builder
+@JsonDeserialize(builder = ChainReceipt.ChainReceiptBuilder.class)
 public class ChainReceipt {
     long blockNumber;
     String txHash;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class ChainReceiptBuilder{}
 }
