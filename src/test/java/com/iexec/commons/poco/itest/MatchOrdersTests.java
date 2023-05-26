@@ -165,7 +165,7 @@ class MatchOrdersTests {
                 .isEqualTo("0xdcb9d67a92d09362bf774dbf3259d04ea6d7e8e44b66db71cb03acc834c7955a515efb05afe9c461f25225f32b89972bffc05257c0662189c4edde014683859c1c");
 
         TransactionReceipt receipt = iexecHubService
-                .getHubContract(web3jService.getWritingContractGasProvider(), 65535L)
+                .getHubContract()
                 .matchOrders(
                         signedAppOrder.toHubContract(),
                         signedDatasetOrder.toHubContract(),

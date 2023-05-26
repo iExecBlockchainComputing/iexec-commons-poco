@@ -58,6 +58,9 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.testcontainers:junit-jupiter:1.17.2'
 
+    // spring-test for ReflectionTestUtils
+    testImplementation 'org.springframework:spring-test'
+
     // logback
     testRuntimeOnly 'ch.qos.logback:logback-classic'
 }

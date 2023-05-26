@@ -67,6 +67,7 @@ public abstract class IexecHubAbstractService {
     public static final String PENDING_RECEIPT_STATUS = "pending";
     private final Credentials credentials;
     private final String iexecHubAddress;
+    protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus;
     private final Duration blockTime;
@@ -114,9 +115,14 @@ public abstract class IexecHubAbstractService {
         this.retryDelay = nbBlocksToWaitPerRetry * (int)this.blockTime.toMillis();
         this.maxRetries = maxRetries;
 
-        String hubAddress = getHubContract().getContractAddress();
-        log.info("Abstract IexecHubService initialized (iexec proxy address) " +
-                "[hubAddress:{}]", hubAddress);
+        iexecHubContract = getHubContract(
+                this.web3jAbstractService.getContractGasProvider(),
+                this.web3jAbstractService.getChainId(),
+                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH,
+                this.blockTime.toMillis()
+        );
+        log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
+                iexecHubContract.getContractAddress());
         setMaxNbOfPeriodsForConsensus();
     }
 
@@ -134,38 +140,19 @@ public abstract class IexecHubAbstractService {
         return Math.max(workerScore / 3, 3) - 1;
     }
 
-    /*
-     * We wan't a fresh new instance of IexecHubContract on each call in order to get
-     * the last ContractGasProvider which depends on the gas price of the network
-     */
-    public IexecHubContract getHubContract(ContractGasProvider contractGasProvider) {
-        return getHubContract(contractGasProvider,
-                ChainIdLong.NONE,
-                (int)blockTime.toMillis(),
-                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
-    }
-
-    public IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
-                                           long chainId) {
-        return getHubContract(contractGasProvider,
-                chainId,
-                (int)blockTime.toMillis(),
-                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
-    }
-
     /**
      * Get an IexecHubContract instance.
      *
      * @param contractGasProvider gas provider, useful for sending txs
      * @param chainId chain ID for EIP155 protection
-     * @param watchFrequency frequency for getting tx receipt
      * @param watchAttempts number of attempts to get tx receipt
+     * @param watchFrequency frequency for getting tx receipt
      * @return an IexecHubContract instance
      */
     public IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
                                            long chainId,
-                                           int watchFrequency,
-                                           int watchAttempts) {
+                                           int watchAttempts,
+                                           long watchFrequency) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load IexecHub " +
                         "contract from address " + iexecHubAddress);
@@ -192,7 +179,7 @@ public abstract class IexecHubAbstractService {
      * This method should only be used for reading
      */
     public IexecHubContract getHubContract() {
-        return getHubContract(new DefaultGasProvider());
+        return iexecHubContract;
     }
 
     // TODO move workerpool methods to their own class (e.g.: WorkerpoolManager)
@@ -225,7 +212,7 @@ public abstract class IexecHubAbstractService {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load WorkerpoolRegistry contract");
         try {
-            workerpoolRegistryAddress = getHubContract().workerpoolregistry().send();
+            workerpoolRegistryAddress = iexecHubContract.workerpoolregistry().send();
             if (workerpoolRegistryAddress == null || workerpoolRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
@@ -346,7 +333,7 @@ public abstract class IexecHubAbstractService {
         }
 
         WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getReadingContractGasProvider());
+                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
         if (workerpoolRegistry == null) {
             log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
             return null;
@@ -531,7 +518,7 @@ public abstract class IexecHubAbstractService {
         }
 
         AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getReadingContractGasProvider());
+                getAppRegistryContract(web3jAbstractService.getContractGasProvider());
         if (appRegistry == null) {
             log.error("Failed to get appRegistry" + paramsPrinter,
                     owner, name, multiAddress, checksum);
@@ -720,7 +707,7 @@ public abstract class IexecHubAbstractService {
         }
 
         DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getReadingContractGasProvider());
+                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
         if (datasetRegistry == null) {
             log.error("Failed to get datasetRegistry" + paramsPrinter,
                     owner, name, multiAddress, checksum);
@@ -804,11 +791,9 @@ public abstract class IexecHubAbstractService {
      * @return deal object
      */
     public Optional<ChainDeal> getChainDeal(String chainDealId) {
-        IexecHubContract iexecHub = getHubContract(new DefaultGasProvider());
-
         byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
-            IexecHubContract.Deal deal = iexecHub.viewDeal(chainDealIdBytes).send();
+            IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
 
             String appAddress = deal.app.pointer;
             String datasetAddress = deal.dataset.pointer;
@@ -865,7 +850,7 @@ public abstract class IexecHubAbstractService {
 
     public Optional<ChainTask> getChainTask(String chainTaskId) {
         try {
-            ChainTask chainTask = ChainTask.tuple2ChainTask(getHubContract()
+            ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
                     .viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)).send());
             String chainDealId = chainTask.getDealid();
             if (isNonZeroedBytes32(chainDealId)){
@@ -882,8 +867,8 @@ public abstract class IexecHubAbstractService {
 
     public Optional<ChainAccount> getChainAccount(String walletAddress) {
         try {
-            return Optional.of(ChainAccount.tuple2Account(getHubContract(new DefaultGasProvider())
-                    .viewAccountABILegacy(walletAddress).send()));
+            return Optional.of(ChainAccount.tuple2Account(
+                    iexecHubContract.viewAccountABILegacy(walletAddress).send()));
         } catch (Exception e) {
             log.error("Failed to get ChainAccount [walletAddress:{}]", walletAddress, e);
         }
@@ -893,9 +878,9 @@ public abstract class IexecHubAbstractService {
     public Optional<ChainContribution> getChainContribution(String chainTaskId,
                                                             String workerAddress) {
         try {
-            return Optional.of(ChainContribution.tuple2Contribution(getHubContract()
-                    .viewContributionABILegacy(BytesUtils
-                            .stringToBytes(chainTaskId), workerAddress).send()));
+            return Optional.of(ChainContribution.tuple2Contribution(
+                    iexecHubContract.viewContributionABILegacy(
+                            BytesUtils.stringToBytes(chainTaskId), workerAddress).send()));
         } catch (Exception e) {
             log.error("Failed to get ChainContribution [chainTaskId:{}" +
                     ", workerAddress:{}]", chainTaskId, workerAddress, e);
@@ -916,7 +901,7 @@ public abstract class IexecHubAbstractService {
      */
     public Optional<ChainCategory> getChainCategory(long id) {
         try {
-            Tuple3<String, String, BigInteger> category = getHubContract()
+            Tuple3<String, String, BigInteger> category = iexecHubContract
                     .viewCategoryABILegacy(BigInteger.valueOf(id)).send();
             ChainCategory chainCategory = ChainCategory.tuple2ChainCategory(id,
                     category.component1(),
@@ -1016,7 +1001,7 @@ public abstract class IexecHubAbstractService {
     public Optional<Integer> getWorkerScore(String address) {
         if (address != null && !address.isEmpty()) {
             try {
-                BigInteger workerScore = getHubContract().viewScore(address).send();
+                BigInteger workerScore = iexecHubContract.viewScore(address).send();
                 return Optional.of(workerScore.intValue());
             } catch (Exception e) {
                 log.error("Failed to getWorkerScore [address:{}]", address, e);
@@ -1084,7 +1069,7 @@ public abstract class IexecHubAbstractService {
 
     private void setMaxNbOfPeriodsForConsensus() {
         try {
-            this.maxNbOfPeriodsForConsensus = getHubContract()
+            this.maxNbOfPeriodsForConsensus = iexecHubContract
                     .contribution_deadline_ratio().send().longValue();
         } catch (Exception e) {
             log.error("Failed to get maxNbOfPeriodsForConsensus from the chain", e);

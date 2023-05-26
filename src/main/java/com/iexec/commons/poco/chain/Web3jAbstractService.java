@@ -46,8 +46,10 @@ public abstract class Web3jAbstractService {
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
     private final boolean isSidechain;
+    private final int chainId;
     private final String chainNodeAddress;
     private final Web3j web3j;
+    private final ContractGasProvider contractGasProvider;
 
     /**
      * Apart from initializing usual business entities, it initializes a single
@@ -66,16 +68,19 @@ public abstract class Web3jAbstractService {
      * @param isSidechain true if iExec native chain, false if iExec token chain
      */
     protected Web3jAbstractService(
+            int chainId,
             String chainNodeAddress,
             float gasPriceMultiplier,
             long gasPriceCap,
             boolean isSidechain) {
+        this.chainId = chainId;
         this.chainNodeAddress = chainNodeAddress;
         this.gasPriceMultiplier = gasPriceMultiplier;
         this.gasPriceCap = gasPriceCap;
         this.isSidechain = isSidechain;
         this.web3j = Web3j.build(new HttpService(chainNodeAddress));
         this.getWeb3j(true); //let's check eth node connection at boot
+        this.contractGasProvider = getWritingContractGasProvider();
     }
 
     public static BigInteger getMaxTxCost(long gasPriceCap) {
@@ -101,8 +106,16 @@ public abstract class Web3jAbstractService {
         return web3j;
     }
 
+    public int getChainId() {
+        return chainId;
+    }
+
     public Web3j getWeb3j() {
-        return getWeb3j(false);
+        return web3j;
+    }
+
+    public ContractGasProvider getContractGasProvider() {
+        return contractGasProvider;
     }
 
     public EthBlock.Block getLatestBlock() throws IOException {
@@ -259,35 +272,6 @@ public abstract class Web3jAbstractService {
         long wishedGasPrice = (long) (networkGasPrice.get().floatValue() * gasPriceMultiplier);
 
         return BigInteger.valueOf(Math.min(wishedGasPrice, gasPriceCap));
-    }
-
-    /*
-     * This is just a dummy stub for contract reader:
-     * gas price & gas limit is not required when querying (read) an eth node
-     *
-     */
-    public ContractGasProvider getReadingContractGasProvider() {
-        return new ContractGasProvider() {
-            @Override
-            public BigInteger getGasPrice(String contractFunc) {
-                return null;
-            }
-
-            @Override
-            public BigInteger getGasPrice() {
-                return null;
-            }
-
-            @Override
-            public BigInteger getGasLimit(String contractFunc) {
-                return null;
-            }
-
-            @Override
-            public BigInteger getGasLimit() {
-                return null;
-            }
-        };
     }
 
     public ContractGasProvider getWritingContractGasProvider() {
