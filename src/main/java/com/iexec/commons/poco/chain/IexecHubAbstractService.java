@@ -149,10 +149,10 @@ public abstract class IexecHubAbstractService {
      * @param watchFrequency frequency for getting tx receipt
      * @return an IexecHubContract instance
      */
-    public IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
-                                           long chainId,
-                                           int watchAttempts,
-                                           long watchFrequency) {
+    private IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
+                                            long chainId,
+                                            int watchAttempts,
+                                            long watchFrequency) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load IexecHub " +
                         "contract from address " + iexecHubAddress);
