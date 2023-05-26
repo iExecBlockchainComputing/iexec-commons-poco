@@ -273,7 +273,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String workerpoolAddress = workerpoolRegistry.getTransferEvents(createWorkerpoolReceipt)
+        String workerpoolAddress = WorkerpoolRegistry.getTransferEvents(createWorkerpoolReceipt)
                 .stream()
                 .findFirst()
                 .map(event -> event.tokenId) // workerpool is an ERC721
@@ -448,7 +448,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String appAddress = appRegistry.getTransferEvents(createAppReceipt)
+        String appAddress = AppRegistry.getTransferEvents(createAppReceipt)
                 .stream()
                 .findFirst()
                 .map(event -> event.tokenId) // app is an ERC721
@@ -640,7 +640,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String datasetAddress = datasetRegistry.getTransferEvents(createDatasetReceipt)
+        String datasetAddress = DatasetRegistry.getTransferEvents(createDatasetReceipt)
                 .stream()
                 .findFirst()
                 .map(event -> event.tokenId) // dataset is an ERC721
