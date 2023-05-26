@@ -128,7 +128,7 @@ public abstract class IexecHubAbstractService {
 
     @PostConstruct
     private void validateRemoteIexecHubSmartContract() {
-        if (!new IexecHubSmartContractValidator().validate(getHubContract())) {
+        if (!new IexecHubSmartContractValidator().validate(iexecHubContract)) {
             throw new IllegalArgumentException(
                     "IexecHub smart contract validation failed."
             );
@@ -379,7 +379,7 @@ public abstract class IexecHubAbstractService {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load AppRegistry contract");
         try {
-            appRegistryAddress = getHubContract().appregistry().send();
+            appRegistryAddress = iexecHubContract.appregistry().send();
             if (appRegistryAddress == null || appRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
@@ -569,7 +569,7 @@ public abstract class IexecHubAbstractService {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load DatasetRegistry contract");
         try {
-            datasetRegistryAddress = getHubContract().datasetregistry().send();
+            datasetRegistryAddress = iexecHubContract.datasetregistry().send();
             if (datasetRegistryAddress == null || datasetRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
