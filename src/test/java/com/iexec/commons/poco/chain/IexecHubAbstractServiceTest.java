@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.tuples.generated.Tuple12;
 
@@ -222,8 +223,7 @@ class IexecHubAbstractServiceTest {
 
     private void whenViewTaskReturnTaskTuple(String chainTaskId, String chainDealId) throws Exception {
         IexecHubContract iexecHubContract = mock(IexecHubContract.class);
-        when(iexecHubAbstractService.getHubContract())
-                .thenReturn(iexecHubContract);
+        ReflectionTestUtils.setField(iexecHubAbstractService, "iexecHubContract", iexecHubContract);
         RemoteFunctionCall getTaskRemoteFunctionCall = mock(RemoteFunctionCall.class);
         when(iexecHubContract.viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)))
                 .thenReturn(getTaskRemoteFunctionCall);

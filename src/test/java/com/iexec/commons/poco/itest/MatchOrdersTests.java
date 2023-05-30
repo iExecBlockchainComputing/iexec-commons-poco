@@ -16,7 +16,9 @@
 
 package com.iexec.commons.poco.itest;
 
+import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.DealParams;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.OrderSigner;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
@@ -37,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -165,7 +168,7 @@ class MatchOrdersTests {
                 .isEqualTo("0xdcb9d67a92d09362bf774dbf3259d04ea6d7e8e44b66db71cb03acc834c7955a515efb05afe9c461f25225f32b89972bffc05257c0662189c4edde014683859c1c");
 
         TransactionReceipt receipt = iexecHubService
-                .getHubContract(web3jService.getWritingContractGasProvider(), 65535L)
+                .getHubContract()
                 .matchOrders(
                         signedAppOrder.toHubContract(),
                         signedDatasetOrder.toHubContract(),
@@ -175,6 +178,13 @@ class MatchOrdersTests {
 
         assertThat(receipt).isNotNull();
         assertThat(receipt.isStatusOK()).isTrue();
+
+        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
+        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
+
+        String chainDealId = BytesUtils.bytesToString(dealid);
+        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
+        assertThat(oChainDeal).isPresent();
     }
 
 }
