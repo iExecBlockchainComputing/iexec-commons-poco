@@ -60,4 +60,11 @@ class AccountTests {
         assertThat(oChainAccount.get().getLocked()).isZero();
     }
 
+    @Test
+    void shouldGetWorkerScore() {
+        Optional<Integer> oScore = iexecHubService.getWorkerScore(credentials.getAddress());
+        assertThat(oScore).isPresent();
+        assertThat(oScore.get()).isZero();
+    }
+
 }
