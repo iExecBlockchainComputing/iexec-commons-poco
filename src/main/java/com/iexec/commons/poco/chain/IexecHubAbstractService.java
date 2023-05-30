@@ -146,13 +146,13 @@ public abstract class IexecHubAbstractService {
      * @param contractGasProvider gas provider, useful for sending txs
      * @param chainId chain ID for EIP155 protection
      * @param watchAttempts number of attempts to get tx receipt
-     * @param watchFrequency frequency for getting tx receipt
+     * @param sleepDuration sleep duration in ms between 2 consecutive attempts
      * @return an IexecHubContract instance
      */
     private IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
                                             long chainId,
                                             int watchAttempts,
-                                            long watchFrequency) {
+                                            long sleepDuration) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load IexecHub " +
                         "contract from address " + iexecHubAddress);
@@ -161,11 +161,12 @@ public abstract class IexecHubAbstractService {
             try {
                 return IexecHubContract.load(iexecHubAddress,
                         web3jAbstractService.getWeb3j(),
-                        new RawTransactionManager(web3jAbstractService.getWeb3j(),
+                        new RawTransactionManager(
+                                web3jAbstractService.getWeb3j(),
                                 credentials,
                                 chainId,
                                 watchAttempts,
-                                watchFrequency),
+                                sleepDuration),
                         contractGasProvider);
             } catch (EnsResolutionException e) {
                 throw exceptionInInitializerError;
