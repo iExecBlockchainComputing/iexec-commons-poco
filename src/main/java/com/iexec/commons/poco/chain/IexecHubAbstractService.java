@@ -250,7 +250,7 @@ public abstract class IexecHubAbstractService {
         }
 
         WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getWritingContractGasProvider());
+                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
         if (workerpoolRegistry == null) {
             log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
             return "";
@@ -422,7 +422,7 @@ public abstract class IexecHubAbstractService {
         }
 
         AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getWritingContractGasProvider());
+            getAppRegistryContract(web3jAbstractService.getContractGasProvider());
         if (appRegistry == null) {
             log.error("Failed to get appRegistry" + paramsPrinter, owner, name);
             return "";
@@ -612,7 +612,7 @@ public abstract class IexecHubAbstractService {
         }
 
         DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getWritingContractGasProvider());
+                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
         if (datasetRegistry == null) {
             log.error("Failed to get datasetRegistry" + paramsPrinter,
                     owner, name, multiAddress, checksum);

@@ -274,7 +274,7 @@ public abstract class Web3jAbstractService {
         return BigInteger.valueOf(Math.min(wishedGasPrice, gasPriceCap));
     }
 
-    public ContractGasProvider getWritingContractGasProvider() {
+    private ContractGasProvider getWritingContractGasProvider() {
         return new ContractGasProvider() {
 
             @Override
