@@ -18,8 +18,11 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.Web3jAbstractService;
 
+import java.time.Duration;
+
 public class Web3jTestService extends Web3jAbstractService {
     public Web3jTestService(int chainServicePort) {
-        super(65535, "http://localhost:" + chainServicePort, 1.0f, 22_000_000_000L, true);
+        super(65535, "http://localhost:" + chainServicePort,
+                Duration.ofSeconds(5), 1.0f, 22_000_000_000L, true);
     }
 }

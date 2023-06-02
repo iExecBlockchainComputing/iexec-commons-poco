@@ -40,7 +40,6 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +51,6 @@ import static com.iexec.commons.poco.chain.ChainContributionStatus.CONTRIBUTED;
 import static com.iexec.commons.poco.chain.ChainContributionStatus.REVEALED;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
-import static org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
 
 
@@ -64,24 +62,24 @@ import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HA
 @Slf4j
 public abstract class IexecHubAbstractService {
 
-    public static final String PENDING_RECEIPT_STATUS = "pending";
-    private final Credentials credentials;
+    public static final int NB_BLOCKS_TO_WAIT_PER_RETRY = 6;
+    public static final int MAX_RETRIES = 3;
+
+    protected final Credentials credentials;
     private final String iexecHubAddress;
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus;
-    private final Duration blockTime;
     private final int nbBlocksToWaitPerRetry;
     private final long retryDelay;// ms
     private final int maxRetries;
-    // /!\ TODO remove expired task descriptions
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
 
     protected IexecHubAbstractService(
             Credentials credentials,
             Web3jAbstractService web3jAbstractService,
             String iexecHubAddress) {
-        this(credentials, web3jAbstractService, iexecHubAddress, Duration.ofMillis(DEFAULT_BLOCK_TIME), 6, 3);
+        this(credentials, web3jAbstractService, iexecHubAddress, NB_BLOCKS_TO_WAIT_PER_RETRY, MAX_RETRIES);
     }
 
     /**
@@ -89,7 +87,6 @@ public abstract class IexecHubAbstractService {
      * @param credentials credentials for sending transaction
      * @param web3jAbstractService custom web3j service
      * @param iexecHubAddress address of the iExec Hub contract
-     * @param blockTime block time as a duration
      * @param nbBlocksToWaitPerRetry nb block to wait per retry
      * @param maxRetries maximum reties
      */
@@ -97,29 +94,20 @@ public abstract class IexecHubAbstractService {
             Credentials credentials,
             Web3jAbstractService web3jAbstractService,
             String iexecHubAddress,
-            Duration blockTime,
             int nbBlocksToWaitPerRetry,
             int maxRetries) {
         this.credentials = credentials;
         this.web3jAbstractService = web3jAbstractService;
         this.iexecHubAddress = iexecHubAddress;
         this.nbBlocksToWaitPerRetry = nbBlocksToWaitPerRetry;
-        if (blockTime == null || blockTime.toMillis() <= 0) {
-            log.warn("Block time value is incorrect, using default value "
-                            + "[blockTime:{}, DEFAULT_BLOCK_TIME:{}]",
-                    blockTime, DEFAULT_BLOCK_TIME);
-            this.blockTime = Duration.ofMillis(DEFAULT_BLOCK_TIME);
-        } else {
-            this.blockTime = blockTime;
-        }
-        this.retryDelay = nbBlocksToWaitPerRetry * this.blockTime.toMillis();
+        this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
         iexecHubContract = getHubContract(
                 this.web3jAbstractService.getContractGasProvider(),
                 this.web3jAbstractService.getChainId(),
                 DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH,
-                this.blockTime.toMillis()
+                this.web3jAbstractService.getBlockTime().toMillis()
         );
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());

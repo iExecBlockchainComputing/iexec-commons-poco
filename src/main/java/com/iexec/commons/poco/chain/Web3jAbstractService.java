@@ -26,10 +26,12 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.utils.Async;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -38,16 +40,19 @@ import static com.iexec.commons.poco.contract.generated.AppRegistry.FUNC_CREATEA
 import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_CREATEWORKERPOOL;
+import static org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME;
 
 @Slf4j
 public abstract class Web3jAbstractService {
 
     static final long GAS_LIMIT_CAP = 1_000_000;
+
+    private final int chainId;
+    private final String chainNodeAddress;
+    private final Duration blockTime;
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
     private final boolean isSidechain;
-    private final int chainId;
-    private final String chainNodeAddress;
     private final Web3j web3j;
     private final ContractGasProvider contractGasProvider;
 
@@ -62,7 +67,9 @@ public abstract class Web3jAbstractService {
      * OkHttpClient which ensures a proper connection pool management
      * guaranteeing sockets are properly reused.
      *
+     * @param chainId ID of the blockchain network
      * @param chainNodeAddress address of the blockchain node
+     * @param blockTime block time as a duration
      * @param gasPriceMultiplier gas price multiplier
      * @param gasPriceCap gas price cap
      * @param isSidechain true if iExec native chain, false if iExec token chain
@@ -70,15 +77,23 @@ public abstract class Web3jAbstractService {
     protected Web3jAbstractService(
             int chainId,
             String chainNodeAddress,
+            Duration blockTime,
             float gasPriceMultiplier,
             long gasPriceCap,
             boolean isSidechain) {
         this.chainId = chainId;
         this.chainNodeAddress = chainNodeAddress;
+        if (blockTime == null || blockTime.toMillis() <= 0) {
+            log.warn("Block time value is incorrect, using default value [blockTime:{}, DEFAULT_BLOCK_TIME:{}]",
+                    blockTime, DEFAULT_BLOCK_TIME);
+            this.blockTime = Duration.ofMillis(DEFAULT_BLOCK_TIME);
+        } else {
+            this.blockTime = blockTime;
+        }
         this.gasPriceMultiplier = gasPriceMultiplier;
         this.gasPriceCap = gasPriceCap;
         this.isSidechain = isSidechain;
-        this.web3j = Web3j.build(new HttpService(chainNodeAddress));
+        this.web3j = Web3j.build(new HttpService(chainNodeAddress), this.blockTime.toMillis(), Async.defaultExecutorService());
         this.getWeb3j(true); //let's check eth node connection at boot
         this.contractGasProvider = getWritingContractGasProvider();
     }
@@ -108,6 +123,10 @@ public abstract class Web3jAbstractService {
 
     public int getChainId() {
         return chainId;
+    }
+
+    public Duration getBlockTime() {
+        return blockTime;
     }
 
     public Web3j getWeb3j() {
