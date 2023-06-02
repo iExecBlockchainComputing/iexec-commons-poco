@@ -40,7 +40,6 @@ import static com.iexec.commons.poco.contract.generated.AppRegistry.FUNC_CREATEA
 import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_CREATEWORKERPOOL;
-import static org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME;
 
 @Slf4j
 public abstract class Web3jAbstractService {
@@ -84,12 +83,11 @@ public abstract class Web3jAbstractService {
         this.chainId = chainId;
         this.chainNodeAddress = chainNodeAddress;
         if (blockTime == null || blockTime.toMillis() <= 0) {
-            log.warn("Block time value is incorrect, using default value [blockTime:{}, DEFAULT_BLOCK_TIME:{}]",
-                    blockTime, DEFAULT_BLOCK_TIME);
-            this.blockTime = Duration.ofMillis(DEFAULT_BLOCK_TIME);
-        } else {
-            this.blockTime = blockTime;
+            String message = "Block time value is incorrect, should be a positive integer [blockTime:" + blockTime + "]";
+            log.warn(message);
+            throw new IllegalArgumentException(message);
         }
+        this.blockTime = blockTime;
         this.gasPriceMultiplier = gasPriceMultiplier;
         this.gasPriceCap = gasPriceCap;
         this.isSidechain = isSidechain;
