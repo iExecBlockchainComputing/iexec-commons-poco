@@ -72,7 +72,7 @@ public abstract class IexecHubAbstractService {
     private long maxNbOfPeriodsForConsensus;
     private final Duration blockTime;
     private final int nbBlocksToWaitPerRetry;
-    private final int retryDelay;// ms
+    private final long retryDelay;// ms
     private final int maxRetries;
     // /!\ TODO remove expired task descriptions
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
@@ -112,7 +112,7 @@ public abstract class IexecHubAbstractService {
         } else {
             this.blockTime = blockTime;
         }
-        this.retryDelay = nbBlocksToWaitPerRetry * (int)this.blockTime.toMillis();
+        this.retryDelay = nbBlocksToWaitPerRetry * this.blockTime.toMillis();
         this.maxRetries = maxRetries;
 
         iexecHubContract = getHubContract(
@@ -770,7 +770,7 @@ public abstract class IexecHubAbstractService {
      * @return optional ChainDeal
      */
     public Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
-                                                  int retryDelay,
+                                                  long retryDelay,
                                                   int maxRetry) {
         return new Retryer<Optional<ChainDeal>>()
                 .repeatCall(() -> getChainDeal(chainDealId),
@@ -839,7 +839,7 @@ public abstract class IexecHubAbstractService {
      * @return optional ChainTask
      */
     public Optional<ChainTask> repeatGetChainTask(String chainTaskId,
-                                                  int retryDelay,
+                                                  long retryDelay,
                                                   int maxRetry) {
         return new Retryer<Optional<ChainTask>>()
                 .repeatCall(() -> getChainTask(chainTaskId),
@@ -1129,8 +1129,8 @@ public abstract class IexecHubAbstractService {
     }
 
     public Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
-                                                                     int retryDelay,
-                                                                     int maxRetry) {
+                                                                       long retryDelay,
+                                                                       int maxRetry) {
         if (retryDelay == 0){
             return Optional.empty();
         }
