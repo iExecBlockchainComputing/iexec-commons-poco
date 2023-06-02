@@ -40,7 +40,7 @@ public class Retryer<T> {
      */
     public T repeatCall(CheckedSupplier<T> supplier,
                             Predicate<T> retryIfPredicate,
-                            int retryDelay,
+                            long retryDelay,
                             int maxRetry,
                             String logContext) {
         String context = "\"" + logContext + "\"";
@@ -63,12 +63,12 @@ public class Retryer<T> {
                 .get(supplier);
     }
 
-    private void logWarnRetry(String context, int retryDelay, int maxRetry, int attempt) {
+    private void logWarnRetry(String context, long retryDelay, int maxRetry, int attempt) {
         log.warn("Failed to {}, about to retry [retryDelay:{}ms, maxRetry:{}" +
                 ", attempt:{}]", context, retryDelay, maxRetry, attempt);
     }
 
-    private void logErrorOnMaxRetry(String context, int retryDelay, int maxRetry) {
+    private void logErrorOnMaxRetry(String context, long retryDelay, int maxRetry) {
         log.error("Failed to {} after max retry [retryDelay:{}ms, maxRetry:{}]",
                 context, retryDelay, maxRetry);
     }
