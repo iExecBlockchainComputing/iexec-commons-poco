@@ -140,7 +140,6 @@ class MatchOrdersTests {
                 "2", "second-secret",
                 "3", "third-secret"));
         DealParams dealParams = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(true)
                 .iexecResultEncryption(true)
                 .iexecResultStorageProvider("ipfs")
                 .iexecResultStorageProxy("http://result-proxy:13200")
@@ -165,7 +164,7 @@ class MatchOrdersTests {
                 .build();
         RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
         assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0xdcb9d67a92d09362bf774dbf3259d04ea6d7e8e44b66db71cb03acc834c7955a515efb05afe9c461f25225f32b89972bffc05257c0662189c4edde014683859c1c");
+                .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
 
         TransactionReceipt receipt = iexecHubService
                 .getHubContract()
