@@ -81,45 +81,34 @@ class DealParamsTest {
         DealParams newParams =  DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
-                .ignoringFields("iexecInputFiles", "iexecSecrets")
                 .isEqualTo(params);
-        assertThat(params.getIexecInputFiles()).isNull();
         assertThat(newParams.getIexecInputFiles()).isEqualTo(Collections.emptyList());
-        assertThat(params.getIexecSecrets()).isNull();
         assertThat(newParams.getIexecSecrets()).isEqualTo(Collections.emptyMap());
     }
 
     @Test
     void testSerializationWithBooleanAsFalse() {
         DealParams params = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(false)
                 .iexecResultEncryption(false)
                 .build();
         DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
-                .ignoringFields("iexecInputFiles", "iexecSecrets")
                 .isEqualTo(params);
-        assertThat(params.getIexecInputFiles()).isNull();
         assertThat(newParams.getIexecInputFiles()).isEqualTo(Collections.emptyList());
-        assertThat(params.getIexecSecrets()).isNull();
         assertThat(newParams.getIexecSecrets()).isEqualTo(Collections.emptyMap());
     }
 
     @Test
     void testSerializationWithBooleanAsTrue() {
         DealParams params = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(true)
                 .iexecResultEncryption(true)
                 .build();
         DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
-                .ignoringFields("iexecInputFiles", "iexecSecrets")
                 .isEqualTo(params);
-        assertThat(params.getIexecInputFiles()).isNull();
         assertThat(newParams.getIexecInputFiles()).isEqualTo(Collections.emptyList());
-        assertThat(params.getIexecSecrets()).isNull();
         assertThat(newParams.getIexecSecrets()).isEqualTo(Collections.emptyMap());
     }
 
@@ -131,24 +120,24 @@ class DealParamsTest {
         DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(params)
                 .usingRecursiveComparison()
-                .ignoringFields("iexecSecrets")
                 .isEqualTo(newParams);
-        assertThat(params.getIexecSecrets()).isNull();
-        assertThat(newParams.getIexecSecrets()).isEmpty();
+        assertThat(newParams.getIexecSecrets())
+                .isNotNull()
+                .isEmpty();
     }
 
     @Test
-    void testSerializationForSecrets(){
+    void testSerializationForSecrets() {
         DealParams params = DealParams.builder()
                 .iexecSecrets(Map.of("0", "secretA", "3", "secretX"))
                 .build();
         DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(params)
                 .usingRecursiveComparison()
-                .ignoringFields("iexecInputFiles")
                 .isEqualTo(newParams);
-        assertThat(params.getIexecInputFiles()).isNull();
-        assertThat(newParams.getIexecInputFiles()).isEmpty();
+        assertThat(newParams.getIexecInputFiles())
+                .isNotNull()
+                .isEmpty();
     }
 
     @Test
@@ -190,7 +179,6 @@ class DealParamsTest {
                 .iexecArgs(ARGS)
                 .iexecInputFiles(List.of(FILE3, FILE2, FILE1))
                 .iexecSecrets(Map.of("1", "secretC", "2", "secretB", "3", "secretA"))
-                .iexecDeveloperLoggerEnabled(true)
                 .iexecResultEncryption(true)
                 .iexecResultStorageProvider(storageProvider)
                 .iexecResultStorageProxy("http://result-proxy.local:13200")

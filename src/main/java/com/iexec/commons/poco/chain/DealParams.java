@@ -16,10 +16,14 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -81,11 +85,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
  * </pre>
  */
 @Slf4j
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
-@Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(builder = DealParams.DealParamsBuilder.class)
 public class DealParams {
 
     public static final String IPFS_RESULT_STORAGE_PROVIDER = "ipfs";
@@ -93,34 +96,36 @@ public class DealParams {
 
     // Note to dev: the naming of the variables in the json file is important since it will be stored on-chain
     @JsonProperty("iexec_args")
-    private String iexecArgs;
+    String iexecArgs;
 
+    @Builder.Default
     @JsonProperty("iexec_input_files")
-    private List<String> iexecInputFiles;
-
-    @JsonProperty("iexec_developer_logger")
-    private boolean iexecDeveloperLoggerEnabled;
+    List<String> iexecInputFiles = Collections.emptyList();
 
     @JsonProperty("iexec_result_encryption")
-    private boolean iexecResultEncryption;
+    boolean iexecResultEncryption;
 
     @JsonProperty("iexec_result_storage_provider")
-    private String iexecResultStorageProvider;
+    String iexecResultStorageProvider;
 
     @JsonProperty("iexec_result_storage_proxy")
-    private String iexecResultStorageProxy;
+    String iexecResultStorageProxy;
 
     // Keys are app secrets indices, values are requester secrets indices
+    @Builder.Default
     @JsonProperty("iexec_secrets")
-    private Map<String, String> iexecSecrets;
+    Map<String, String> iexecSecrets = Collections.emptyMap();
 
     //Should be set by SDK
     @JsonProperty("iexec_tee_post_compute_image")
-    private String iexecTeePostComputeImage;
+    String iexecTeePostComputeImage;
 
     //Should be set by SDK
     @JsonProperty("iexec_tee_post_compute_fingerprint")
-    private String iexecTeePostComputeFingerprint;
+    String iexecTeePostComputeFingerprint;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class DealParamsBuilder{}
 
     /**
      * Creates an instance from a JSON string representation.
@@ -132,20 +137,12 @@ public class DealParams {
      */
     public static DealParams createFromString(String paramString) {
         try {
-            DealParams dealParams = new ObjectMapper().readValue(paramString, DealParams.class);
-            if (dealParams.getIexecInputFiles() == null) {
-                dealParams.setIexecInputFiles(Collections.emptyList());
-            }
-            if (dealParams.getIexecSecrets() == null) {
-                dealParams.setIexecSecrets(Collections.emptyMap());
-            }
-            return dealParams;
+            return new ObjectMapper().readValue(paramString, DealParams.class);
         } catch (IOException e) {
             //the requester want to execute one task with the whole string
             return DealParams.builder()
                     .iexecArgs(paramString)
                     .iexecInputFiles(Collections.emptyList())
-                    .iexecDeveloperLoggerEnabled(false)
                     .iexecSecrets(Collections.emptyMap())
                     .build();
         }
