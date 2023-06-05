@@ -16,7 +16,6 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,7 +86,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @Slf4j
 @Value
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(builder = DealParams.DealParamsBuilder.class)
 public class DealParams {
 
@@ -101,6 +99,9 @@ public class DealParams {
     @Builder.Default
     @JsonProperty("iexec_input_files")
     List<String> iexecInputFiles = Collections.emptyList();
+
+    @JsonProperty("iexec_developper_logger")
+    boolean iexecDeveloperLoggerEnabled;
 
     @JsonProperty("iexec_result_encryption")
     boolean iexecResultEncryption;
