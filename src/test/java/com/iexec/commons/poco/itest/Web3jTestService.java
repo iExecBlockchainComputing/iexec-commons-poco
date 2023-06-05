@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.iexec.commons.poco.chain;
+package com.iexec.commons.poco.itest;
 
-import lombok.Builder;
-import lombok.Value;
+import com.iexec.commons.poco.chain.Web3jAbstractService;
 
-@Value
-@Builder
-public class ChainDataset {
-    String chainDatasetId;
-    String owner;
-    String name;
-    String uri;
-    String checksum;
+import java.time.Duration;
+
+public class Web3jTestService extends Web3jAbstractService {
+    public Web3jTestService(int chainServicePort) {
+        super(65535, "http://localhost:" + chainServicePort,
+                Duration.ofSeconds(5), 1.0f, 22_000_000_000L, true);
+    }
 }

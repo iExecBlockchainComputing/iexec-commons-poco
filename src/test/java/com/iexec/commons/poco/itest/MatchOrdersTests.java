@@ -16,14 +16,16 @@
 
 package com.iexec.commons.poco.itest;
 
+import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.DealParams;
-import com.iexec.commons.poco.chain.IexecHubAbstractService;
-import com.iexec.commons.poco.chain.Web3jAbstractService;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.OrderSigner;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -37,9 +39,10 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @Tag("itest")
@@ -49,8 +52,8 @@ class MatchOrdersTests {
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
     private Credentials credentials;
-    private IexecHubService iexecHubService;
-    private Web3jService web3jService;
+    private IexecHubTestService iexecHubService;
+    private Web3jTestService web3jService;
     private OrderSigner signer;
 
     @Container
@@ -60,8 +63,8 @@ class MatchOrdersTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        web3jService = new Web3jService();
-        iexecHubService = new IexecHubService(credentials, web3jService);
+        web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
     }
 
@@ -137,7 +140,6 @@ class MatchOrdersTests {
                 "2", "second-secret",
                 "3", "third-secret"));
         DealParams dealParams = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(true)
                 .iexecResultEncryption(true)
                 .iexecResultStorageProvider("ipfs")
                 .iexecResultStorageProxy("http://result-proxy:13200")
@@ -162,10 +164,10 @@ class MatchOrdersTests {
                 .build();
         RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
         assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0xdcb9d67a92d09362bf774dbf3259d04ea6d7e8e44b66db71cb03acc834c7955a515efb05afe9c461f25225f32b89972bffc05257c0662189c4edde014683859c1c");
+                .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
 
         TransactionReceipt receipt = iexecHubService
-                .getHubContract(web3jService.getWritingContractGasProvider(), 65535L)
+                .getHubContract()
                 .matchOrders(
                         signedAppOrder.toHubContract(),
                         signedDatasetOrder.toHubContract(),
@@ -175,17 +177,13 @@ class MatchOrdersTests {
 
         assertThat(receipt).isNotNull();
         assertThat(receipt.isStatusOK()).isTrue();
+
+        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
+        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
+
+        String chainDealId = BytesUtils.bytesToString(dealid);
+        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
+        assertThat(oChainDeal).isPresent();
     }
 
-    static class IexecHubService extends IexecHubAbstractService {
-        public IexecHubService(Credentials credentials, Web3jAbstractService web3jAbstractService) {
-            super(credentials, web3jAbstractService, IEXEC_HUB_ADDRESS);
-        }
-    }
-
-    static class Web3jService extends Web3jAbstractService {
-        public Web3jService() {
-            super("http://localhost:" + environment.getServicePort("poco-chain", 8545), 1.0f, 22000000000L, true);
-        }
-    }
 }

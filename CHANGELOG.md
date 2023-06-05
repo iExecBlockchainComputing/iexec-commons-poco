@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[3.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.0) 2023-06-05
+
+### New Features
+- Call `IexecHubContract#viewDeal` instead of legacy ABI in `IexecHubAbstractService#getChainDeal`. (#24)
+- Representations of on-chain and off-chain objects are now immutable. (#24 #25 #26 #30 #34)
+### Bug Fixes
+- Do not cast `retryDelay` to `int` in `IexecHubAbstractService` and `Retryer`. (#32)
+- Move `blockTime` from `IexecHubAbstractService` to `Web3jAbstractService`. (#33)
+- Set some logs to `debug` level in `EIP712Entity`. (#33)
+### Quality
+- Move methods to get event blocks to `iexec-core`. (#28)
+- Add `IexecHubTestService` and `Web3jTestService` classes for tests. (#29)
+- Load `IexecHubContract` instance only once in `IexecHubAbstractService`. (#31)
+
 ## [[2.0.1]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v2.0.1) 2023-05-22
 
 ### New Features

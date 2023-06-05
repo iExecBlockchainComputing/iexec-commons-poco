@@ -16,31 +16,25 @@
 
 package com.iexec.commons.poco.chain;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 import org.web3j.tuples.generated.Tuple2;
 
 import java.math.BigInteger;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
 public class ChainAccount {
 
-    private long deposit;
-    private long locked;
-
-    public ChainAccount(BigInteger deposit, BigInteger locked) {
-        this.setDeposit(deposit.longValue());
-        this.setLocked(locked.longValue());
-    }
+    long deposit;
+    long locked;
 
     public static ChainAccount tuple2Account(Tuple2<BigInteger, BigInteger> account) {
         if (account != null) {
-            return new ChainAccount(account.component1(), account.component2());
+            return ChainAccount.builder()
+                    .deposit(account.component1().longValue())
+                    .locked(account.component2().longValue())
+                    .build();
         }
         return null;
     }

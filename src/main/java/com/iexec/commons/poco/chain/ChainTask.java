@@ -17,128 +17,50 @@
 package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.utils.BytesUtils;
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
 import org.web3j.tuples.generated.Tuple12;
 
 import java.math.BigInteger;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
-@Setter
 public class ChainTask {
 
-    private ChainTaskStatus status;
-    private String dealid;
-    private int idx;
-    private String chainTaskId;
-    private long maxExecutionTime;
-    private long contributionDeadline;
-    private long revealDeadline;
-    private long finalDeadline;
-    private String consensusValue;
-    private int revealCounter;
-    private int winnerCounter;
-    private List<String> contributors;
-    private String results;
-
-
-    public ChainTask(BigInteger status,
-                     byte[] dealid,
-                     BigInteger idx,
-                     BigInteger maxExecutionTime,
-                     BigInteger contributionDeadline,
-                     BigInteger revealDeadline,
-                     BigInteger finalDeadline,
-                     byte[] consensusValue,
-                     BigInteger revealCounter,
-                     BigInteger winnerCounter,
-                     List<String> contributors,
-                     byte[] results) {
-        this.setStatus(status);
-        this.setDealid(dealid);
-        this.setIdx(idx);
-        this.setMaxExecutionTime(maxExecutionTime);
-        this.setContributionDeadline(contributionDeadline);
-        this.setRevealDeadline(revealDeadline);
-        this.setFinalDeadline(finalDeadline);
-        this.setConsensusValue(consensusValue);
-        this.setRevealCounter(revealCounter);
-        this.setWinnerCounter(winnerCounter);
-        this.setContributors(contributors);
-        this.setResults(results);
-
-    }
+    ChainTaskStatus status;
+    String dealid;
+    int idx;
+    String chainTaskId;
+    long maxExecutionTime;
+    long contributionDeadline;
+    long revealDeadline;
+    long finalDeadline;
+    String consensusValue;
+    int revealCounter;
+    int winnerCounter;
+    List<String> contributors;
+    String results;
 
     public static ChainTask tuple2ChainTask(Tuple12<BigInteger, byte[], BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, byte[], BigInteger, BigInteger, List<String>, byte[]> chainTask) {
         if (chainTask != null) {
-            return new ChainTask(chainTask.component1(),
-                    chainTask.component2(),
-                    chainTask.component3(),
-                    chainTask.component4(),
-                    chainTask.component5(),
-                    chainTask.component6(),
-                    chainTask.component7(),
-                    chainTask.component8(),
-                    chainTask.component9(),
-                    chainTask.component10(),
-                    chainTask.component11(),
-                    chainTask.component12());
+            return ChainTask.builder()
+                    .status(ChainTaskStatus.getValue(chainTask.component1()))
+                    .dealid(BytesUtils.bytesToString(chainTask.component2()))
+                    .idx(chainTask.component3().intValue())
+                    .maxExecutionTime(chainTask.component4().longValue() * 1000L)
+                    .contributionDeadline(chainTask.component5().longValue() * 1000L)
+                    .revealDeadline(chainTask.component6().longValue() * 1000L)
+                    .finalDeadline(chainTask.component7().longValue() * 1000L)
+                    .consensusValue(BytesUtils.bytesToString(chainTask.component8()))
+                    .revealCounter(chainTask.component9().intValue())
+                    .winnerCounter(chainTask.component10().intValue())
+                    .contributors(chainTask.component11())
+                    .results(BytesUtils.bytesToString(chainTask.component12()))
+                    .chainTaskId(ChainUtils.generateChainTaskId(BytesUtils.bytesToString(chainTask.component2()), chainTask.component3().intValue()))
+                    .build();
         }
         return null;
     }
 
-    private void setStatus(BigInteger status) {
-        this.status = ChainTaskStatus.getValue(status);
-    }
-
-    private void setDealid(byte[] dealid) {
-        this.dealid = BytesUtils.bytesToString(dealid);
-    }
-
-    private void setIdx(BigInteger idx) {
-        this.idx = idx.intValue();
-    }
-
-    private void setMaxExecutionTime(BigInteger maxExecutionTime) {
-        this.maxExecutionTime = maxExecutionTime.longValue() * 1000L;
-    }
-
-    private void setContributionDeadline(BigInteger contributionDeadline) {
-        this.contributionDeadline = contributionDeadline.longValue() * 1000L;
-    }
-
-    private void setRevealDeadline(BigInteger revealDeadline) {
-        this.revealDeadline = revealDeadline.longValue() * 1000L;
-    }
-
-    private void setFinalDeadline(BigInteger finalDeadline) {
-        this.finalDeadline = finalDeadline.longValue() * 1000L;
-    }
-
-    private void setConsensusValue(byte[] consensusValue) {
-        this.consensusValue = BytesUtils.bytesToString(consensusValue);
-    }
-
-    private void setRevealCounter(BigInteger revealCounter) {
-        this.revealCounter = revealCounter.intValue();
-    }
-
-    private void setWinnerCounter(BigInteger winnerCounter) {
-        this.winnerCounter = winnerCounter.intValue();
-    }
-
-    public void setContributors(List<String> contributors) {
-        this.contributors = contributors;
-    }
-
-    private void setResults(byte[] results) {
-        this.results = BytesUtils.bytesToString(results);
-    }
-
-    public String getChainTaskId() {
-        return ChainUtils.generateChainTaskId(dealid, idx);
-    }
 }

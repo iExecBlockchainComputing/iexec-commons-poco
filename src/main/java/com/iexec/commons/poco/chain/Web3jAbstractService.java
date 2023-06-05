@@ -26,10 +26,12 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.utils.Async;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -43,11 +45,15 @@ import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_
 public abstract class Web3jAbstractService {
 
     static final long GAS_LIMIT_CAP = 1_000_000;
+
+    private final int chainId;
+    private final String chainNodeAddress;
+    private final Duration blockTime;
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
     private final boolean isSidechain;
-    private final String chainNodeAddress;
     private final Web3j web3j;
+    private final ContractGasProvider contractGasProvider;
 
     /**
      * Apart from initializing usual business entities, it initializes a single
@@ -60,22 +66,34 @@ public abstract class Web3jAbstractService {
      * OkHttpClient which ensures a proper connection pool management
      * guaranteeing sockets are properly reused.
      *
+     * @param chainId ID of the blockchain network
      * @param chainNodeAddress address of the blockchain node
+     * @param blockTime block time as a duration
      * @param gasPriceMultiplier gas price multiplier
      * @param gasPriceCap gas price cap
      * @param isSidechain true if iExec native chain, false if iExec token chain
      */
     protected Web3jAbstractService(
+            int chainId,
             String chainNodeAddress,
+            Duration blockTime,
             float gasPriceMultiplier,
             long gasPriceCap,
             boolean isSidechain) {
+        this.chainId = chainId;
         this.chainNodeAddress = chainNodeAddress;
+        if (blockTime == null || blockTime.toMillis() <= 0) {
+            String message = "Block time value is incorrect, should be a positive integer [blockTime:" + blockTime + "]";
+            log.warn(message);
+            throw new IllegalArgumentException(message);
+        }
+        this.blockTime = blockTime;
         this.gasPriceMultiplier = gasPriceMultiplier;
         this.gasPriceCap = gasPriceCap;
         this.isSidechain = isSidechain;
-        this.web3j = Web3j.build(new HttpService(chainNodeAddress));
+        this.web3j = Web3j.build(new HttpService(chainNodeAddress), this.blockTime.toMillis(), Async.defaultExecutorService());
         this.getWeb3j(true); //let's check eth node connection at boot
+        this.contractGasProvider = getWritingContractGasProvider();
     }
 
     public static BigInteger getMaxTxCost(long gasPriceCap) {
@@ -101,8 +119,20 @@ public abstract class Web3jAbstractService {
         return web3j;
     }
 
+    public int getChainId() {
+        return chainId;
+    }
+
+    public Duration getBlockTime() {
+        return blockTime;
+    }
+
     public Web3j getWeb3j() {
-        return getWeb3j(false);
+        return web3j;
+    }
+
+    public ContractGasProvider getContractGasProvider() {
+        return contractGasProvider;
     }
 
     public EthBlock.Block getLatestBlock() throws IOException {
@@ -261,36 +291,7 @@ public abstract class Web3jAbstractService {
         return BigInteger.valueOf(Math.min(wishedGasPrice, gasPriceCap));
     }
 
-    /*
-     * This is just a dummy stub for contract reader:
-     * gas price & gas limit is not required when querying (read) an eth node
-     *
-     */
-    public ContractGasProvider getReadingContractGasProvider() {
-        return new ContractGasProvider() {
-            @Override
-            public BigInteger getGasPrice(String contractFunc) {
-                return null;
-            }
-
-            @Override
-            public BigInteger getGasPrice() {
-                return null;
-            }
-
-            @Override
-            public BigInteger getGasLimit(String contractFunc) {
-                return null;
-            }
-
-            @Override
-            public BigInteger getGasLimit() {
-                return null;
-            }
-        };
-    }
-
-    public ContractGasProvider getWritingContractGasProvider() {
+    private ContractGasProvider getWritingContractGasProvider() {
         return new ContractGasProvider() {
 
             @Override

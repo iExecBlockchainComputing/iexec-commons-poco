@@ -63,13 +63,15 @@ public abstract class EIP712Entity<M> implements EIP712<M> {
     public String getHash() {
         String domainSeparator = getDomain().getDomainSeparator();
         String messageHash = getMessageHash();
-        log.info("domainSeparator {}", domainSeparator);
-        log.info("messageHash {}", messageHash);
         String hash = HashUtils.concatenateAndHash(
                 "0x1901",
                 domainSeparator,
                 messageHash);
-        log.info("hash {}", hash);
+        if (log.isDebugEnabled()) {
+            log.debug("domainSeparator {}", domainSeparator);
+            log.debug("messageHash {}", messageHash);
+            log.debug("hash {}", hash);
+        }
         return hash;
     }
 

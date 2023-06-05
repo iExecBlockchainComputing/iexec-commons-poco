@@ -25,19 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
-import org.web3j.abi.EventEncoder;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Event;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.RemoteFunctionCall;
-import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
-import org.web3j.tuples.generated.Tuple6;
-import org.web3j.tuples.generated.Tuple9;
 import org.web3j.tx.ChainIdLong;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -46,7 +40,6 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -56,10 +49,8 @@ import java.util.function.BiFunction;
 
 import static com.iexec.commons.poco.chain.ChainContributionStatus.CONTRIBUTED;
 import static com.iexec.commons.poco.chain.ChainContributionStatus.REVEALED;
-import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
-import static org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
 
 
@@ -71,23 +62,24 @@ import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HA
 @Slf4j
 public abstract class IexecHubAbstractService {
 
-    public static final String PENDING_RECEIPT_STATUS = "pending";
-    private final Credentials credentials;
+    public static final int NB_BLOCKS_TO_WAIT_PER_RETRY = 6;
+    public static final int MAX_RETRIES = 3;
+
+    protected final Credentials credentials;
     private final String iexecHubAddress;
+    protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus;
-    private final Duration blockTime;
     private final int nbBlocksToWaitPerRetry;
-    private final int retryDelay;// ms
+    private final long retryDelay;// ms
     private final int maxRetries;
-    // /!\ TODO remove expired task descriptions
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
 
     protected IexecHubAbstractService(
             Credentials credentials,
             Web3jAbstractService web3jAbstractService,
             String iexecHubAddress) {
-        this(credentials, web3jAbstractService, iexecHubAddress, Duration.ofMillis(DEFAULT_BLOCK_TIME), 6, 3);
+        this(credentials, web3jAbstractService, iexecHubAddress, NB_BLOCKS_TO_WAIT_PER_RETRY, MAX_RETRIES);
     }
 
     /**
@@ -95,7 +87,6 @@ public abstract class IexecHubAbstractService {
      * @param credentials credentials for sending transaction
      * @param web3jAbstractService custom web3j service
      * @param iexecHubAddress address of the iExec Hub contract
-     * @param blockTime block time as a duration
      * @param nbBlocksToWaitPerRetry nb block to wait per retry
      * @param maxRetries maximum reties
      */
@@ -103,33 +94,29 @@ public abstract class IexecHubAbstractService {
             Credentials credentials,
             Web3jAbstractService web3jAbstractService,
             String iexecHubAddress,
-            Duration blockTime,
             int nbBlocksToWaitPerRetry,
             int maxRetries) {
         this.credentials = credentials;
         this.web3jAbstractService = web3jAbstractService;
         this.iexecHubAddress = iexecHubAddress;
         this.nbBlocksToWaitPerRetry = nbBlocksToWaitPerRetry;
-        if (blockTime == null || blockTime.toMillis() <= 0) {
-            log.warn("Block time value is incorrect, using default value "
-                            + "[blockTime:{}, DEFAULT_BLOCK_TIME:{}]",
-                    blockTime, DEFAULT_BLOCK_TIME);
-            this.blockTime = Duration.ofMillis(DEFAULT_BLOCK_TIME);
-        } else {
-            this.blockTime = blockTime;
-        }
-        this.retryDelay = nbBlocksToWaitPerRetry * (int)this.blockTime.toMillis();
+        this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
-        String hubAddress = getHubContract().getContractAddress();
-        log.info("Abstract IexecHubService initialized (iexec proxy address) " +
-                "[hubAddress:{}]", hubAddress);
+        iexecHubContract = getHubContract(
+                this.web3jAbstractService.getContractGasProvider(),
+                this.web3jAbstractService.getChainId(),
+                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH,
+                this.web3jAbstractService.getBlockTime().toMillis()
+        );
+        log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
+                iexecHubContract.getContractAddress());
         setMaxNbOfPeriodsForConsensus();
     }
 
     @PostConstruct
     private void validateRemoteIexecHubSmartContract() {
-        if (!new IexecHubSmartContractValidator().validate(getHubContract())) {
+        if (!new IexecHubSmartContractValidator().validate(iexecHubContract)) {
             throw new IllegalArgumentException(
                     "IexecHub smart contract validation failed."
             );
@@ -141,38 +128,19 @@ public abstract class IexecHubAbstractService {
         return Math.max(workerScore / 3, 3) - 1;
     }
 
-    /*
-     * We wan't a fresh new instance of IexecHubContract on each call in order to get
-     * the last ContractGasProvider which depends on the gas price of the network
-     */
-    public IexecHubContract getHubContract(ContractGasProvider contractGasProvider) {
-        return getHubContract(contractGasProvider,
-                ChainIdLong.NONE,
-                (int)blockTime.toMillis(),
-                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
-    }
-
-    public IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
-                                           long chainId) {
-        return getHubContract(contractGasProvider,
-                chainId,
-                (int)blockTime.toMillis(),
-                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
-    }
-
     /**
      * Get an IexecHubContract instance.
      *
      * @param contractGasProvider gas provider, useful for sending txs
      * @param chainId chain ID for EIP155 protection
-     * @param watchFrequency frequency for getting tx receipt
      * @param watchAttempts number of attempts to get tx receipt
+     * @param sleepDuration sleep duration in ms between 2 consecutive attempts
      * @return an IexecHubContract instance
      */
-    public IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
-                                           long chainId,
-                                           int watchFrequency,
-                                           int watchAttempts) {
+    private IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
+                                            long chainId,
+                                            int watchAttempts,
+                                            long sleepDuration) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load IexecHub " +
                         "contract from address " + iexecHubAddress);
@@ -181,11 +149,12 @@ public abstract class IexecHubAbstractService {
             try {
                 return IexecHubContract.load(iexecHubAddress,
                         web3jAbstractService.getWeb3j(),
-                        new RawTransactionManager(web3jAbstractService.getWeb3j(),
+                        new RawTransactionManager(
+                                web3jAbstractService.getWeb3j(),
                                 credentials,
                                 chainId,
                                 watchAttempts,
-                                watchFrequency),
+                                sleepDuration),
                         contractGasProvider);
             } catch (EnsResolutionException e) {
                 throw exceptionInInitializerError;
@@ -199,7 +168,7 @@ public abstract class IexecHubAbstractService {
      * This method should only be used for reading
      */
     public IexecHubContract getHubContract() {
-        return getHubContract(new DefaultGasProvider());
+        return iexecHubContract;
     }
 
     // TODO move workerpool methods to their own class (e.g.: WorkerpoolManager)
@@ -232,7 +201,7 @@ public abstract class IexecHubAbstractService {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load WorkerpoolRegistry contract");
         try {
-            workerpoolRegistryAddress = getHubContract().workerpoolregistry().send();
+            workerpoolRegistryAddress = iexecHubContract.workerpoolregistry().send();
             if (workerpoolRegistryAddress == null || workerpoolRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
@@ -269,7 +238,7 @@ public abstract class IexecHubAbstractService {
         }
 
         WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getWritingContractGasProvider());
+                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
         if (workerpoolRegistry == null) {
             log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
             return "";
@@ -293,7 +262,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String workerpoolAddress = workerpoolRegistry.getTransferEvents(createWorkerpoolReceipt)
+        String workerpoolAddress = WorkerpoolRegistry.getTransferEvents(createWorkerpoolReceipt)
                 .stream()
                 .findFirst()
                 .map(event -> event.tokenId) // workerpool is an ERC721
@@ -353,7 +322,7 @@ public abstract class IexecHubAbstractService {
         }
 
         WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getReadingContractGasProvider());
+                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
         if (workerpoolRegistry == null) {
             log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
             return null;
@@ -399,7 +368,7 @@ public abstract class IexecHubAbstractService {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load AppRegistry contract");
         try {
-            appRegistryAddress = getHubContract().appregistry().send();
+            appRegistryAddress = iexecHubContract.appregistry().send();
             if (appRegistryAddress == null || appRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
@@ -441,7 +410,7 @@ public abstract class IexecHubAbstractService {
         }
 
         AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getWritingContractGasProvider());
+            getAppRegistryContract(web3jAbstractService.getContractGasProvider());
         if (appRegistry == null) {
             log.error("Failed to get appRegistry" + paramsPrinter, owner, name);
             return "";
@@ -468,7 +437,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String appAddress = appRegistry.getTransferEvents(createAppReceipt)
+        String appAddress = AppRegistry.getTransferEvents(createAppReceipt)
                 .stream()
                 .findFirst()
                 .map(event -> event.tokenId) // app is an ERC721
@@ -538,7 +507,7 @@ public abstract class IexecHubAbstractService {
         }
 
         AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getReadingContractGasProvider());
+                getAppRegistryContract(web3jAbstractService.getContractGasProvider());
         if (appRegistry == null) {
             log.error("Failed to get appRegistry" + paramsPrinter,
                     owner, name, multiAddress, checksum);
@@ -589,7 +558,7 @@ public abstract class IexecHubAbstractService {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load DatasetRegistry contract");
         try {
-            datasetRegistryAddress = getHubContract().datasetregistry().send();
+            datasetRegistryAddress = iexecHubContract.datasetregistry().send();
             if (datasetRegistryAddress == null || datasetRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
@@ -631,7 +600,7 @@ public abstract class IexecHubAbstractService {
         }
 
         DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getWritingContractGasProvider());
+                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
         if (datasetRegistry == null) {
             log.error("Failed to get datasetRegistry" + paramsPrinter,
                     owner, name, multiAddress, checksum);
@@ -660,7 +629,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String datasetAddress = datasetRegistry.getTransferEvents(createDatasetReceipt)
+        String datasetAddress = DatasetRegistry.getTransferEvents(createDatasetReceipt)
                 .stream()
                 .findFirst()
                 .map(event -> event.tokenId) // dataset is an ERC721
@@ -727,7 +696,7 @@ public abstract class IexecHubAbstractService {
         }
 
         DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getReadingContractGasProvider());
+                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
         if (datasetRegistry == null) {
             log.error("Failed to get datasetRegistry" + paramsPrinter,
                     owner, name, multiAddress, checksum);
@@ -789,7 +758,7 @@ public abstract class IexecHubAbstractService {
      * @return optional ChainDeal
      */
     public Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
-                                                  int retryDelay,
+                                                  long retryDelay,
                                                   int maxRetry) {
         return new Retryer<Optional<ChainDeal>>()
                 .repeatCall(() -> getChainDeal(chainDealId),
@@ -811,21 +780,13 @@ public abstract class IexecHubAbstractService {
      * @return deal object
      */
     public Optional<ChainDeal> getChainDeal(String chainDealId) {
-        IexecHubContract iexecHub = getHubContract(new DefaultGasProvider());
-
         byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
-            Tuple9<String, String, BigInteger, String, String, BigInteger, String, String, BigInteger> dealPt1 =
-                    iexecHub.viewDealABILegacy_pt1(chainDealIdBytes).send();
-            Tuple6<BigInteger, byte[], String, String, String, String> dealPt2 =
-                    iexecHub.viewDealABILegacy_pt2(chainDealIdBytes).send();
-            Tuple6<BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, BigInteger> config =
-                    iexecHub.viewConfigABILegacy(chainDealIdBytes).send();
+            IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
 
-
-            String appAddress = dealPt1.component1();
-            String datasetAddress = dealPt1.component4();
-            BigInteger categoryId = config.component1();
+            String appAddress = deal.app.pointer;
+            String datasetAddress = deal.dataset.pointer;
+            BigInteger categoryId = deal.category;
 
             Optional<ChainApp> chainApp = getChainApp(getAppContract(appAddress));
             if (chainApp.isEmpty()) {
@@ -841,7 +802,7 @@ public abstract class IexecHubAbstractService {
                     getChainDataset(getDatasetContract(datasetAddress));
             ChainDataset dataset = chainDataset.orElse(null);
 
-            ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, dealPt1, dealPt2, config, app, category, dataset);
+            ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
             if (chainDeal.getStartTime() == null
                     || chainDeal.getStartTime().longValue() <= 0) {
@@ -866,7 +827,7 @@ public abstract class IexecHubAbstractService {
      * @return optional ChainTask
      */
     public Optional<ChainTask> repeatGetChainTask(String chainTaskId,
-                                                  int retryDelay,
+                                                  long retryDelay,
                                                   int maxRetry) {
         return new Retryer<Optional<ChainTask>>()
                 .repeatCall(() -> getChainTask(chainTaskId),
@@ -878,7 +839,7 @@ public abstract class IexecHubAbstractService {
 
     public Optional<ChainTask> getChainTask(String chainTaskId) {
         try {
-            ChainTask chainTask = ChainTask.tuple2ChainTask(getHubContract()
+            ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
                     .viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)).send());
             String chainDealId = chainTask.getDealid();
             if (isNonZeroedBytes32(chainDealId)){
@@ -895,8 +856,8 @@ public abstract class IexecHubAbstractService {
 
     public Optional<ChainAccount> getChainAccount(String walletAddress) {
         try {
-            return Optional.of(ChainAccount.tuple2Account(getHubContract(new DefaultGasProvider())
-                    .viewAccountABILegacy(walletAddress).send()));
+            return Optional.of(ChainAccount.tuple2Account(
+                    iexecHubContract.viewAccountABILegacy(walletAddress).send()));
         } catch (Exception e) {
             log.error("Failed to get ChainAccount [walletAddress:{}]", walletAddress, e);
         }
@@ -906,9 +867,9 @@ public abstract class IexecHubAbstractService {
     public Optional<ChainContribution> getChainContribution(String chainTaskId,
                                                             String workerAddress) {
         try {
-            return Optional.of(ChainContribution.tuple2Contribution(getHubContract()
-                    .viewContributionABILegacy(BytesUtils
-                            .stringToBytes(chainTaskId), workerAddress).send()));
+            return Optional.of(ChainContribution.tuple2Contribution(
+                    iexecHubContract.viewContributionABILegacy(
+                            BytesUtils.stringToBytes(chainTaskId), workerAddress).send()));
         } catch (Exception e) {
             log.error("Failed to get ChainContribution [chainTaskId:{}" +
                     ", workerAddress:{}]", chainTaskId, workerAddress, e);
@@ -929,7 +890,7 @@ public abstract class IexecHubAbstractService {
      */
     public Optional<ChainCategory> getChainCategory(long id) {
         try {
-            Tuple3<String, String, BigInteger> category = getHubContract()
+            Tuple3<String, String, BigInteger> category = iexecHubContract
                     .viewCategoryABILegacy(BigInteger.valueOf(id)).send();
             ChainCategory chainCategory = ChainCategory.tuple2ChainCategory(id,
                     category.component1(),
@@ -971,15 +932,14 @@ public abstract class IexecHubAbstractService {
                 app.getContractAddress().equals(BytesUtils.EMPTY_ADDRESS)) {
             return Optional.empty();
         }
-        ChainApp chainApp;
+        ChainApp.ChainAppBuilder chainAppBuilder = ChainApp.builder();
         try {
-            chainApp = ChainApp.builder()
+            chainAppBuilder
                     .chainAppId(app.getContractAddress())
                     .name(app.m_appName().send())
                     .type(app.m_appType().send())
                     .uri(BytesUtils.bytesToString(app.m_appMultiaddr().send()))
-                    .checksum(BytesUtils.bytesToString(app.m_appChecksum().send()))
-                    .build();
+                    .checksum(BytesUtils.bytesToString(app.m_appChecksum().send()));
         } catch (Exception e) {
             log.error("Failed to get chain app [chainAppId:{}]",
                     app.getContractAddress(), e);
@@ -995,10 +955,10 @@ public abstract class IexecHubAbstractService {
         }
         if (StringUtils.isEmpty(mrEnclave)) {
             // Standard application
-            return Optional.of(chainApp);
+            return Optional.of(chainAppBuilder.build());
         }
         try {
-            chainApp.setEnclaveConfiguration(
+            chainAppBuilder.enclaveConfiguration(
                     buildEnclaveConfigurationFromJsonString(mrEnclave));
         } catch (Exception e) {
             log.error("Failed to get tee chain app enclave configuration " +
@@ -1006,7 +966,7 @@ public abstract class IexecHubAbstractService {
                     mrEnclave, e);
             return Optional.empty();
         }
-        return Optional.of(chainApp);
+        return Optional.of(chainAppBuilder.build());
     }
 
     public Optional<ChainDataset> getChainDataset(Dataset dataset) {
@@ -1030,7 +990,7 @@ public abstract class IexecHubAbstractService {
     public Optional<Integer> getWorkerScore(String address) {
         if (address != null && !address.isEmpty()) {
             try {
-                BigInteger workerScore = getHubContract().viewScore(address).send();
+                BigInteger workerScore = iexecHubContract.viewScore(address).send();
                 return Optional.of(workerScore.intValue());
             } catch (Exception e) {
                 log.error("Failed to getWorkerScore [address:{}]", address, e);
@@ -1098,7 +1058,7 @@ public abstract class IexecHubAbstractService {
 
     private void setMaxNbOfPeriodsForConsensus() {
         try {
-            this.maxNbOfPeriodsForConsensus = getHubContract()
+            this.maxNbOfPeriodsForConsensus = iexecHubContract
                     .contribution_deadline_ratio().send().longValue();
         } catch (Exception e) {
             log.error("Failed to get maxNbOfPeriodsForConsensus from the chain", e);
@@ -1157,8 +1117,8 @@ public abstract class IexecHubAbstractService {
     }
 
     public Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
-                                                                     int retryDelay,
-                                                                     int maxRetry) {
+                                                                       long retryDelay,
+                                                                       int maxRetry) {
         if (retryDelay == 0){
             return Optional.empty();
         }
@@ -1198,103 +1158,6 @@ public abstract class IexecHubAbstractService {
         }
 
         return oTaskDescription.get().isTeeTask();
-    }
-
-    public ChainReceipt getContributionBlock(String chainTaskId, String workerWallet,
-                                             long fromBlock) {
-        long latestBlock = web3jAbstractService.getLatestBlockNumber();
-        if (fromBlock > latestBlock) {
-            return ChainReceipt.builder().build();
-        }
-
-        IexecHubContract iexecHub = getHubContract();
-        EthFilter ethFilter = createContributeEthFilter(fromBlock, latestBlock);
-
-        // filter only taskContribute events for the chainTaskId and the worker's wallet
-        // and retrieve the block number of the event
-        return iexecHub.taskContributeEventFlowable(ethFilter)
-                .filter(eventResponse ->
-                        chainTaskId.equals(BytesUtils.bytesToString(eventResponse.taskid)) &&
-                                workerWallet.equals(eventResponse.worker)
-                )
-                .map(eventResponse -> ChainReceipt.builder()
-                        .blockNumber(eventResponse.log.getBlockNumber().longValue())
-                        .txHash(eventResponse.log.getTransactionHash())
-                        .build())
-                .blockingFirst();
-    }
-
-    public ChainReceipt getConsensusBlock(String chainTaskId, long fromBlock) {
-        long latestBlock = web3jAbstractService.getLatestBlockNumber();
-        if (fromBlock > latestBlock) {
-            return ChainReceipt.builder().build();
-        }
-        IexecHubContract iexecHub = getHubContract();
-        EthFilter ethFilter = createConsensusEthFilter(fromBlock, latestBlock);
-
-        // filter only taskConsensus events for the chainTaskId (there should be only one)
-        // and retrieve the block number of the event
-        return iexecHub.taskConsensusEventFlowable(ethFilter)
-                .filter(eventResponse -> chainTaskId.equals(BytesUtils.bytesToString(eventResponse.taskid)))
-                .map(eventResponse -> ChainReceipt.builder()
-                        .blockNumber(eventResponse.log.getBlockNumber().longValue())
-                        .txHash(eventResponse.log.getTransactionHash())
-                        .build())
-                .blockingFirst();
-    }
-
-    public ChainReceipt getRevealBlock(String chainTaskId, String workerWallet,
-                                       long fromBlock) {
-        long latestBlock = web3jAbstractService.getLatestBlockNumber();
-        if (fromBlock > latestBlock) {
-            return ChainReceipt.builder().build();
-        }
-
-        IexecHubContract iexecHub = getHubContract();
-        EthFilter ethFilter = createRevealEthFilter(fromBlock, latestBlock);
-
-        // filter only taskReveal events for the chainTaskId and the worker's wallet
-        // and retrieve the block number of the event
-        return iexecHub.taskRevealEventFlowable(ethFilter)
-                .filter(eventResponse ->
-                        chainTaskId.equals(BytesUtils.bytesToString(eventResponse.taskid)) &&
-                                workerWallet.equals(eventResponse.worker)
-                )
-                .map(eventResponse -> ChainReceipt.builder()
-                        .blockNumber(eventResponse.log.getBlockNumber().longValue())
-                        .txHash(eventResponse.log.getTransactionHash())
-                        .build())
-                .blockingFirst();
-    }
-
-    private EthFilter createContributeEthFilter(long fromBlock, long toBlock) {
-        return createEthFilter(fromBlock, toBlock, TASKCONTRIBUTE_EVENT);
-    }
-
-    private EthFilter createConsensusEthFilter(long fromBlock, long toBlock) {
-        return createEthFilter(fromBlock, toBlock, TASKCONSENSUS_EVENT);
-    }
-
-    private EthFilter createRevealEthFilter(long fromBlock, long toBlock) {
-        return createEthFilter(fromBlock, toBlock, TASKREVEAL_EVENT);
-    }
-
-    private EthFilter createEthFilter(long fromBlock, long toBlock, Event event) {
-        IexecHubContract iexecHub = getHubContract();
-        DefaultBlockParameter startBlock =
-                DefaultBlockParameter.valueOf(BigInteger.valueOf(fromBlock));
-        DefaultBlockParameter endBlock =
-                DefaultBlockParameter.valueOf(BigInteger.valueOf(toBlock));
-
-        // define the filter
-        EthFilter ethFilter = new EthFilter(
-                startBlock,
-                endBlock,
-                iexecHub.getContractAddress()
-        );
-        ethFilter.addSingleTopic(EventEncoder.encode(event));
-
-        return ethFilter;
     }
 
     public boolean repeatIsContributedTrue(String chainTaskId, String walletAddress) {

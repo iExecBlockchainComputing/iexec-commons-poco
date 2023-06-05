@@ -50,7 +50,6 @@ class TaskDescriptionTests {
     public static final int BOT_SIZE = 1;
     public static final int BOT_FIRST = 2;
     public static final int TASK_IDX = 3;
-    public static final boolean DEVELOPER_LOGGER_ENABLED = true;
     public static final String DATASET_ADDRESS = "datasetAddress";
     public static final String DATASET_URI = "https://datasetUri";
     public static final String DATASET_NAME = "datasetName";
@@ -81,7 +80,6 @@ class TaskDescriptionTests {
                 .botSize(BOT_SIZE)
                 .botFirstIndex(BOT_FIRST)
                 .botIndex(TASK_IDX)
-                .developerLoggerEnabled(DEVELOPER_LOGGER_ENABLED)
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
@@ -123,8 +121,6 @@ class TaskDescriptionTests {
                 task.getBotSize());
         Assertions.assertEquals(BOT_FIRST,
                 task.getBotFirstIndex());
-        Assertions.assertEquals(DEVELOPER_LOGGER_ENABLED,
-                task.isDeveloperLoggerEnabled());
         Assertions.assertEquals(DATASET_URI,
                 task.getDatasetUri());
         Assertions.assertEquals(DATASET_NAME,
@@ -167,7 +163,6 @@ class TaskDescriptionTests {
                 .params(DealParams.builder()
                         .iexecArgs(CMD)
                         .iexecInputFiles(INPUT_FILES)
-                        .iexecDeveloperLoggerEnabled(DEVELOPER_LOGGER_ENABLED)
                         .iexecResultStorageProvider(RESULT_STORAGE_PROVIDER)
                         .iexecResultStorageProxy(RESULT_STORAGE_PROXY)
                         .iexecResultEncryption(IS_RESULT_ENCRYPTION)
@@ -218,8 +213,6 @@ class TaskDescriptionTests {
                 task.getBotSize());
         Assertions.assertEquals(BOT_FIRST,
                 task.getBotFirstIndex());
-        Assertions.assertEquals(DEVELOPER_LOGGER_ENABLED,
-                task.isDeveloperLoggerEnabled());
         Assertions.assertEquals(DATASET_URI,
                 task.getDatasetUri());
         Assertions.assertEquals(DATASET_NAME,

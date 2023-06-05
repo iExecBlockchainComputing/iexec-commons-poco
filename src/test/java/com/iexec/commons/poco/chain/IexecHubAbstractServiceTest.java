@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.tuples.generated.Tuple12;
 
@@ -39,8 +40,8 @@ class IexecHubAbstractServiceTest {
 
     public static final int RETRY_DELAY = 10; //in ms
     public static final int MAX_RETRY = 3;
-    private final static String CHAIN_DEAL_ID = BytesUtils.toByte32HexString(0xa);
-    private static String CHAIN_TASK_ID;
+    private static final String CHAIN_DEAL_ID = BytesUtils.toByte32HexString(0xa);
+    private static final String CHAIN_TASK_ID = generateChainTaskId(CHAIN_DEAL_ID, 0);
 
     @Mock
     private IexecHubAbstractService iexecHubAbstractService;
@@ -48,7 +49,6 @@ class IexecHubAbstractServiceTest {
     @BeforeEach
     void beforeEach() {
         MockitoAnnotations.openMocks(this);
-        CHAIN_TASK_ID = generateChainTaskId(CHAIN_DEAL_ID, 0);
     }
 
     @Test
@@ -223,8 +223,7 @@ class IexecHubAbstractServiceTest {
 
     private void whenViewTaskReturnTaskTuple(String chainTaskId, String chainDealId) throws Exception {
         IexecHubContract iexecHubContract = mock(IexecHubContract.class);
-        when(iexecHubAbstractService.getHubContract())
-                .thenReturn(iexecHubContract);
+        ReflectionTestUtils.setField(iexecHubAbstractService, "iexecHubContract", iexecHubContract);
         RemoteFunctionCall getTaskRemoteFunctionCall = mock(RemoteFunctionCall.class);
         when(iexecHubContract.viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)))
                 .thenReturn(getTaskRemoteFunctionCall);
@@ -236,6 +235,7 @@ class IexecHubAbstractServiceTest {
         return ChainTask.builder()
                 .dealid(CHAIN_DEAL_ID)
                 .idx(0)
+                .chainTaskId(CHAIN_TASK_ID)
                 .build();
     }
 
