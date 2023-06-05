@@ -19,14 +19,29 @@ package com.iexec.commons.poco.chain;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.time.Duration;
 
 import static com.iexec.commons.poco.chain.Web3jAbstractService.GAS_LIMIT_CAP;
 import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 class Web3jAbstractServiceTest {
+
+    @Test
+    void shouldNotCreateInstanceWhenNullBlockTime() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Web3jAbstractService(65535, "nodeAddress", null, 1.0f, 1, true){});
+    }
+
+    @Test
+    void shouldNotCreateInstanceWhenNegativeBlockTime() {
+        Duration blockTime = Duration.ofSeconds(-1);
+        assertThrows(IllegalArgumentException.class,
+                () -> new Web3jAbstractService(65535, "nodeAddress", blockTime, 1.0f, 1, true){});
+    }
 
     @Test
     void getGasLimitForFunction() {

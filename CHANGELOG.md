@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - Representations of on-chain object are now immutable. (#24 #25 #26 #30)
 ### Bug Fixes
 - Do not cast `retryDelay` to `int` in `IexecHubAbstractService` and `Retryer`. (#32)
+- Move `blockTime` from `IexecHubAbstractService` to `Web3jAbstractService`. (#33)
+- Set some logs to `debug` level in `EIP712Entity`. (#33)
 ### Quality
 - Move methods to get event blocks to `iexec-core`. (#28)
 - Add `IexecHubTestService` and `Web3jTestService` classes for tests. (#29)
