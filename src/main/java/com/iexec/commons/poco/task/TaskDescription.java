@@ -16,6 +16,7 @@
 
 package com.iexec.commons.poco.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
@@ -23,49 +24,45 @@ import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.MultiAddressHelper;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskDescription {
 
-    private String chainTaskId;
-    private String requester;
-    private String beneficiary;
-    private String callback;
-    private DappType appType;
-    private String appUri;
-    private String appAddress;
-    private TeeEnclaveConfiguration appEnclaveConfiguration;
-    private String cmd;
-    private long maxExecutionTime;
-    private boolean isTeeTask;
-    private TeeFramework teeFramework;
-    private int botIndex;
-    private int botSize;
-    private int botFirstIndex;
-    private boolean developerLoggerEnabled;
-    private String datasetAddress;
-    private String datasetUri;
-    private String datasetName;
-    private String datasetChecksum;
-    private List<String> inputFiles;
-    private boolean isResultEncryption;
-    private String resultStorageProvider;
-    private String resultStorageProxy;
-    private String smsUrl;
-    private Map<String, String> secrets;
-    private String teePostComputeImage;
-    private String teePostComputeFingerprint;
+    String chainTaskId;
+    String requester;
+    String beneficiary;
+    String callback;
+    DappType appType;
+    String appUri;
+    String appAddress;
+    TeeEnclaveConfiguration appEnclaveConfiguration;
+    String cmd;
+    long maxExecutionTime;
+    boolean isTeeTask;
+    TeeFramework teeFramework;
+    int botIndex;
+    int botSize;
+    int botFirstIndex;
+    String datasetAddress;
+    String datasetUri;
+    String datasetName;
+    String datasetChecksum;
+    List<String> inputFiles;
+    boolean isResultEncryption;
+    String resultStorageProvider;
+    String resultStorageProxy;
+    String smsUrl;
+    Map<String, String> secrets;
+    String teePostComputeImage;
+    String teePostComputeFingerprint;
 
     /**
      * Check if this task includes a dataset or not. The task is considered
@@ -92,8 +89,7 @@ public class TaskDescription {
      * @return true if a callback address is found in the deal, false otherwise.
      */
     public boolean containsCallback() {
-        return !StringUtils.isEmpty(getCallback()) &&
-                !getCallback().equals(BytesUtils.EMPTY_ADDRESS);
+        return !StringUtils.isEmpty(callback) && !callback.equals(BytesUtils.EMPTY_ADDRESS);
     }
 
     /**
@@ -176,8 +172,6 @@ public class TaskDescription {
                         .isTeeTag(tag))
                 .teeFramework(TeeUtils
                         .getTeeFramework(tag))
-                .developerLoggerEnabled(chainDeal.getParams()
-                        .isIexecDeveloperLoggerEnabled())
                 .isResultEncryption(chainDeal.getParams()
                         .isIexecResultEncryption())
                 .resultStorageProvider(chainDeal.getParams()
