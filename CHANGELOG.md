@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Call `IexecHubContract#viewDeal` instead of legacy ABI in `IexecHubAbstractService#getChainDeal`. (#24)
-- Representations of on-chain object are now immutable. (#24 #25 #26 #30)
+- Representations of on-chain and off-chain objects are now immutable. (#24 #25 #26 #30 #34)
 ### Bug Fixes
 - Do not cast `retryDelay` to `int` in `IexecHubAbstractService` and `Retryer`. (#32)
 - Move `blockTime` from `IexecHubAbstractService` to `Web3jAbstractService`. (#33)
