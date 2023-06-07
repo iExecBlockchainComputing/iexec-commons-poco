@@ -69,6 +69,11 @@ class MatchOrdersTests {
     }
 
     @Test
+    void shouldBeConnectedToNode() {
+        assertThat(web3jService.isConnected()).isTrue();
+    }
+
+    @Test
     void shouldMatchOrder() throws Exception {
         String appAddress = iexecHubService.createApp(
                 "my-app",
