@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[3.0.1]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.1) 2023-06-07
+## [[3.0.2]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.2) 2023-06-07
 
 ### Bug Fixes
 - Do not check connection on blockchain node in `Web3jAbstractService` constructor. (#37)
