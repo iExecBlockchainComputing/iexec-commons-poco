@@ -28,6 +28,7 @@ import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Async;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -45,6 +46,7 @@ import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_
 public abstract class Web3jAbstractService {
 
     static final long GAS_LIMIT_CAP = 1_000_000;
+    private final int maxAttempts = 12;
 
     private final int chainId;
     private final String chainNodeAddress;
@@ -92,31 +94,38 @@ public abstract class Web3jAbstractService {
         this.gasPriceCap = gasPriceCap;
         this.isSidechain = isSidechain;
         this.web3j = Web3j.build(new HttpService(chainNodeAddress), this.blockTime.toMillis(), Async.defaultExecutorService());
-        this.getWeb3j(true); //let's check eth node connection at boot
         this.contractGasProvider = getWritingContractGasProvider();
+    }
+
+    @PostConstruct
+    public void checkConnection() {
+        final int fewSeconds = 5;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++ ) {
+            log.debug("Connection attempt {}", attempt);
+            if (isConnected()) {
+                return;
+            }
+            log.error("Failed to connect to ethereum node (will retry) [chainNodeAddress:{}, retryIn:{}]",
+                    chainNodeAddress, fewSeconds);
+            WaitUtils.sleep(fewSeconds);
+        }
+        throw new IllegalStateException("Failed to connect to the blockchain node after " + maxAttempts + " attempts");
+    }
+
+    public boolean isConnected() {
+        try {
+            if (web3j.web3ClientVersion().send().getWeb3ClientVersion() != null) {
+                log.info("Connected to Ethereum node [address:{}, version:{}]", chainNodeAddress, web3j.web3ClientVersion().send().getWeb3ClientVersion());
+                return true;
+            }
+        } catch (IOException e) {
+            log.error("Connection check failed", e);
+        }
+        return false;
     }
 
     public static BigInteger getMaxTxCost(long gasPriceCap) {
         return BigInteger.valueOf(GAS_LIMIT_CAP * gasPriceCap);
-    }
-
-    public Web3j getWeb3j(boolean shouldCheckConnection) {
-        if (shouldCheckConnection) {
-            try {
-                if (web3j.web3ClientVersion().send().getWeb3ClientVersion() != null) {
-                    log.info("Connected to Ethereum node [address:{}, version:{}]", chainNodeAddress, web3j.web3ClientVersion().send().getWeb3ClientVersion());
-                    return web3j;
-                }
-            } catch (IOException e) {
-                log.error("Connection check failed", e);
-            }
-            int fewSeconds = 5;
-            log.error("Failed to connect to ethereum node (will retry) [chainNodeAddress:{}, retryIn:{}]",
-                    chainNodeAddress, fewSeconds);
-            WaitUtils.sleep(fewSeconds);
-            return getWeb3j(shouldCheckConnection);
-        }
-        return web3j;
     }
 
     public int getChainId() {

@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @Slf4j
 @Tag("itest")
@@ -66,6 +67,12 @@ class MatchOrdersTests {
         web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
         iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
+    }
+
+    @Test
+    void shouldBeConnectedToNode() {
+        assertThat(web3jService.isConnected()).isTrue();
+        assertDoesNotThrow(() -> web3jService.checkConnection());
     }
 
     @Test
