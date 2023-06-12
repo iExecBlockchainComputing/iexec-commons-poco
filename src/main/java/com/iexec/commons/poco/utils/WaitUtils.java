@@ -30,6 +30,7 @@ public class WaitUtils {
             Thread.sleep(seconds * 1000L);
         } catch (InterruptedException e) {
             log.error("Failed to sleep [duration:{}, exception:{}]", seconds, e.getMessage());
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -38,6 +39,7 @@ public class WaitUtils {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
             log.error("Failed to sleepMs [duration:{}, exception:{}]", ms, e.getMessage());
+            Thread.currentThread().interrupt();
         }
     }
 
