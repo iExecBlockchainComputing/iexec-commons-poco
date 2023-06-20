@@ -30,6 +30,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
+import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +76,13 @@ class ChainTests {
                 .contains(new BigInteger("1000000000000000000000000000000000000000000"));
     }
 
+    @Test
+    void shouldGetBlockNumber() throws IOException {
+        final long blockNumber = web3jService.getLatestBlockNumber();
+        final EthBlock.Block block = web3jService.getLatestBlock();
+        assertThat(blockNumber).isNotZero();
+        assertThat(block.getNumber().longValue()).isBetween(blockNumber, blockNumber + 1);
+    }
 
     @ParameterizedTest
     @MethodSource("categoryProvider")
