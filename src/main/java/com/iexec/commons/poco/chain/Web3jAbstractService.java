@@ -145,20 +145,20 @@ public abstract class Web3jAbstractService {
     }
 
     public EthBlock.Block getLatestBlock() throws IOException {
-        return getWeb3j().ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
+        return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
     }
 
     public long getLatestBlockNumber() {
         try {
-            return getLatestBlock().getNumber().longValue();
+            return web3j.ethBlockNumber().send().getBlockNumber().longValue();
         } catch (IOException e) {
-            log.error("GetLastBlock failed", e);
+            log.error("ethBlockNumber call failed", e);
         }
         return 0;
     }
 
     private EthBlock.Block getBlock(long blockNumber) throws IOException {
-        return getWeb3j().ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
+        return web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
                 false).send().getBlock();
     }
 
@@ -262,15 +262,18 @@ public abstract class Web3jAbstractService {
 
     public Optional<BigInteger> getBalance(String address) {
         try {
-            return Optional.of(getWeb3j().ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance());
+            BigInteger balance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+            log.info("{} current balance is {}", address, balance);
+            return Optional.of(balance);
         } catch (IOException e) {
+            log.error("ethGetBalance call failed", e);
             return Optional.empty();
         }
     }
 
     /**
      * Request current gas price on the network.
-     *
+     * <p>
      * Note: Some nodes on particular Ethereum networks might reply with
      * versatile gas price values, like 8000000000@t then 0@t+1.
      *
@@ -278,7 +281,7 @@ public abstract class Web3jAbstractService {
      */
     public Optional<BigInteger> getNetworkGasPrice() {
         try {
-            BigInteger gasPrice = getWeb3j().ethGasPrice().send().getGasPrice();
+            BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
             if (gasPrice != null && gasPrice.signum() > 0){
                 return Optional.of(gasPrice);
             }
