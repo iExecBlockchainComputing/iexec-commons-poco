@@ -18,7 +18,7 @@ package com.iexec.commons.poco.utils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -32,8 +32,8 @@ class MultiAddressHelperTests {
     }
 
     @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = { "", " ", "https://ipfs.iex.ec/ipfs/QmUbh7ugQ9WVprTVYjzrCS4d9cCy73zUz4MMchsrqzzu1w"})
+    @NullAndEmptySource
+    @ValueSource(strings = { " ", "https://ipfs.iex.ec/ipfs/QmUbh7ugQ9WVprTVYjzrCS4d9cCy73zUz4MMchsrqzzu1w" })
     void shouldNotBeMultiAddress(String uri) {
         assertFalse(MultiAddressHelper.isMultiAddress(uri));
     }
