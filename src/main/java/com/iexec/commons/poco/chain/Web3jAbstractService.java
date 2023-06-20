@@ -157,7 +157,7 @@ public abstract class Web3jAbstractService {
         return 0;
     }
 
-    private EthBlock.Block getBlock(long blockNumber) throws IOException {
+    public EthBlock.Block getBlock(long blockNumber) throws IOException {
         return web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
                 false).send().getBlock();
     }
@@ -186,6 +186,7 @@ public abstract class Web3jAbstractService {
             }
         } catch (InterruptedException e) {
             log.error("Error when checking the latest block number", e);
+            Thread.currentThread().interrupt();
         }
 
         return false;

@@ -77,11 +77,24 @@ class ChainTests {
     }
 
     @Test
+    void shouldNotGetBalance() {
+        Web3jTestService web3jService = new Web3jTestService(8545);
+        assertThat(web3jService.getBalance(credentials.getAddress())).isEmpty();
+    }
+
+    @Test
     void shouldGetBlockNumber() throws IOException {
         final long blockNumber = web3jService.getLatestBlockNumber();
         final EthBlock.Block block = web3jService.getLatestBlock();
         assertThat(blockNumber).isNotZero();
         assertThat(block.getNumber().longValue()).isBetween(blockNumber, blockNumber + 1);
+        assertThat(web3jService.getBlock(block.getNumber().longValue())).isEqualTo(block);
+    }
+
+    @Test
+    void shouldNotGetBlockNumber() {
+        Web3jTestService web3jService = new Web3jTestService(8545);
+        assertThat(web3jService.getLatestBlockNumber()).isZero();
     }
 
     @ParameterizedTest
