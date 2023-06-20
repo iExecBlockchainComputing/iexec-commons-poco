@@ -17,9 +17,13 @@
 package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.ChainAccount;
+import com.iexec.commons.poco.chain.ChainCategory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -29,16 +33,19 @@ import org.web3j.crypto.WalletUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("itest")
 @Testcontainers
-class AccountTests {
+class ChainTests {
 
     private Credentials credentials;
     private IexecHubTestService iexecHubService;
+    private Web3jTestService web3jService;
 
     @Container
     static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
@@ -48,7 +55,7 @@ class AccountTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        Web3jTestService web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
         iexecHubService = new IexecHubTestService(credentials, web3jService);
     }
 
@@ -61,10 +68,42 @@ class AccountTests {
     }
 
     @Test
+    void shouldGetBalance() {
+        Optional<BigInteger> oBalance = web3jService.getBalance(credentials.getAddress());
+        assertThat(oBalance)
+                .isPresent()
+                .contains(new BigInteger("1000000000000000000000000000000000000000000"));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("categoryProvider")
+    void shouldGetCategory(long id, ChainCategory expectedCategory) {
+        Optional<ChainCategory> oChainCategory = iexecHubService.getChainCategory(id);
+        assertThat(oChainCategory)
+                .isPresent()
+                .contains(expectedCategory);
+    }
+
+    private static Stream<Arguments> categoryProvider() {
+        return Stream.of(
+                Arguments.of(0, ChainCategory.builder().id(0).name("XS").description("{}").maxExecutionTime(300_000L).build()),
+                Arguments.of(1, ChainCategory.builder().id(1).name("S").description("{}").maxExecutionTime(1_200_000L).build()),
+                Arguments.of(2, ChainCategory.builder().id(2).name("M").description("{}").maxExecutionTime(3_600_000L).build()),
+                Arguments.of(3, ChainCategory.builder().id(3).name("L").description("{}").maxExecutionTime(10_800_000L).build()),
+                Arguments.of(4, ChainCategory.builder().id(4).name("XL").description("{}").maxExecutionTime(36_000_000L).build())
+        );
+    }
+    @Test
     void shouldGetWorkerScore() {
         Optional<Integer> oScore = iexecHubService.getWorkerScore(credentials.getAddress());
         assertThat(oScore).isPresent();
         assertThat(oScore.get()).isZero();
+    }
+
+    @Test
+    void shouldHaveEnoughGas() {
+        assertThat(web3jService.hasEnoughGas(credentials.getAddress())).isTrue();
     }
 
 }
