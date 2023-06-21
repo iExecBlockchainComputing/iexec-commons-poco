@@ -264,7 +264,7 @@ public abstract class Web3jAbstractService {
     public Optional<BigInteger> getBalance(String address) {
         try {
             BigInteger balance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
-            log.info("{} current balance is {}", address, balance);
+            log.debug("{} current balance is {}", address, balance);
             return Optional.of(balance);
         } catch (IOException e) {
             log.error("ethGetBalance call failed", e);
