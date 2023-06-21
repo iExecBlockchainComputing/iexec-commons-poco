@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Add IPFS gateways list and replace `convertToURI` with `isMultiAddress` in `MultiAddressHelper`. (#40)
+### Quality
+- Improve `Web3jAbstractService` as well as its coverage. (#41)
 
 ## [[3.0.2]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.2) 2023-06-07
 
