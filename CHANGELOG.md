@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2023
+## [[3.0.3]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.3) 2023-06-22
 
 ### New Features
 - Add IPFS gateways list and replace `convertToURI` with `isMultiAddress` in `MultiAddressHelper`. (#40)
