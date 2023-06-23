@@ -100,7 +100,7 @@ public class DealParams {
     @JsonProperty("iexec_input_files")
     List<String> iexecInputFiles = Collections.emptyList();
 
-    @JsonProperty("iexec_developper_logger")
+    @JsonProperty("iexec_developer_logger")
     boolean iexecDeveloperLoggerEnabled;
 
     @JsonProperty("iexec_result_encryption")
