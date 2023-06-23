@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[3.0.4]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.4) 2023-06-23
+
+### Bug Fixes
+- Fix regression on `DealParams` deserialization. (#43)
+
 ## [[3.0.3]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.3) 2023-06-22
 
 ### New Features
