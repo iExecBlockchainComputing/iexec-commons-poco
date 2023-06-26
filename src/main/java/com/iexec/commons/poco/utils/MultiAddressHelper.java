@@ -18,6 +18,7 @@ package com.iexec.commons.poco.utils;
 
 import io.ipfs.multiaddr.MultiAddress;
 import org.apache.commons.lang3.StringUtils;
+import org.web3j.utils.Numeric;
 
 import java.util.List;
 
@@ -31,6 +32,25 @@ public class MultiAddressHelper {
 
     private MultiAddressHelper() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Converts the hexadecimal String stored in an on-chain deal to a human-readable format.
+     * <p>
+     * IPFS addresses are stored in a specific format and have to be converted with the {@link MultiAddress} constructor.
+     * If a {@link MultiAddress} instance can be constructed, the URI it represents has been successfully converted.
+     * In other cases, the value is considered to be a string encoded in hexadecimal and will be converted with
+     * {@link BytesUtils#hexStringToAscii(String)}.
+     *
+     * @param hexaString String to convert
+     * @return Conversion result
+     */
+    public static String convertToURI(String hexaString) {
+        try {
+            return new MultiAddress(Numeric.hexStringToByteArray(hexaString)).toString();
+        } catch (Exception e) {
+            return BytesUtils.hexStringToAscii(hexaString);
+        }
     }
 
     public static boolean isMultiAddress(String uri) {

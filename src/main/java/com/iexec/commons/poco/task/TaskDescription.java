@@ -23,6 +23,7 @@ import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
+import com.iexec.commons.poco.utils.MultiAddressHelper;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
@@ -141,7 +142,7 @@ public class TaskDescription {
         String datasetChecksum = "";
         if (chainDeal.containsDataset()) {
             datasetAddress = chainDeal.getChainDataset().getChainDatasetId();
-            datasetUri = BytesUtils.hexStringToAscii(
+            datasetUri = MultiAddressHelper.convertToURI(
                             chainDeal.getChainDataset().getUri());
             datasetName = chainDeal.getChainDataset().getName();
             datasetChecksum = chainDeal.getChainDataset().getChecksum();
