@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2023
 
+### Quality
+- Do not run tests in `itest` task to avoid executing them twice. (#47)
+
 ## [[3.0.5]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.5) 2023-06-26
 
 ### Bug Fixes
