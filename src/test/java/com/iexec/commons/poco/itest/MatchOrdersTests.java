@@ -23,9 +23,11 @@ import com.iexec.commons.poco.eip712.OrderSigner;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -34,6 +36,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,13 +44,16 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 @Tag("itest")
 @Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MatchOrdersTests {
 
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
@@ -57,16 +63,55 @@ class MatchOrdersTests {
     private Web3jTestService web3jService;
     private OrderSigner signer;
 
+    private String appAddress;
+    private String datasetAddress;
+    private String workerpoolAddress;
+
     @Container
     static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
             .withExposedService("poco-chain", 8545);
 
     @BeforeEach
-    void init() throws CipherException, IOException {
+    void init(TestInfo testInfo) throws CipherException, IOException {
+        log.info(">>> {}", testInfo.getDisplayName());
+        log.info("init {} {} {}", appAddress, datasetAddress, workerpoolAddress);
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
         web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
         iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
+        deployAssets();
+    }
+
+    void deployAssets() {
+        log.info("deployAssets {} {} {}", appAddress, datasetAddress, workerpoolAddress);
+        if (appAddress == null) {
+            log.info("deploying app");
+            appAddress = iexecHubService.createApp(
+                    "my-app",
+                    "multiAddress",
+                    "DOCKER",
+                    BytesUtils.EMPTY_HEX_STRING_32,
+                    "{}"
+            );
+            log.info("app deployed at {}", appAddress);
+        }
+
+        if (datasetAddress == null) {
+            log.info("deploying dataset");
+            datasetAddress = iexecHubService.createDataset(
+                    "my-dataset",
+                    "multiAddress",
+                    BytesUtils.EMPTY_HEX_STRING_32
+            );
+            log.info("dataset deployed at {}", datasetAddress);
+        }
+
+        if (workerpoolAddress == null) {
+            log.info("deploying workerpool");
+            workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool");
+            log.info("workerpool deployed at {}", workerpoolAddress);
+        }
+        log.info("deployAssets {} {} {}", appAddress, datasetAddress, workerpoolAddress);
     }
 
     @Test
@@ -75,103 +120,25 @@ class MatchOrdersTests {
         assertDoesNotThrow(() -> web3jService.checkConnection());
     }
 
-    @Test
-    void shouldMatchOrder() throws Exception {
-        String appAddress = iexecHubService.createApp(
-                "my-app",
-                "multiAddress",
-                "DOCKER",
-                BytesUtils.EMPTY_HEX_STRING_32,
-                "{}"
-        );
-        assertThat(appAddress).isEqualTo("0x0677c9ad40e1c3508b40bfb1c4749cc9bd63933f");
-
-        String datasetAddress = iexecHubService.createDataset(
-                "my-dataset",
-                "multiAddress",
-                BytesUtils.EMPTY_HEX_STRING_32
-        );
-        assertThat(datasetAddress).isEqualTo("0xe203f571c8d7d2abcf5e406d20965e3889662f5e");
-
-        String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool");
-        assertThat(workerpoolAddress).isEqualTo("0x74c6683f7bc258946e01e278b2842c99a0c7896a");
-
-        AppOrder appOrder = AppOrder.builder()
-                .app(appAddress)
-                .appprice(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
-                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
-                .build();
-
+    @ParameterizedTest
+    @MethodSource("provideValidTagsCombinations")
+    void shouldMatchOrders(
+            long workerpoolOrderTag,
+            long requestOrderTag,
+            long appOrderTag,
+            long datasetOrderTag) throws Exception {
+        AppOrder appOrder = createAppOrder(appOrderTag);
         AppOrder signedAppOrder = signer.signAppOrder(appOrder);
-        assertThat(signedAppOrder.getSign())
-                .isEqualTo("0x18e0f7a382513a74e90763dc755c0751121316073b0f4cb6a5481580696574ec3e0060c166bc1b764079d233236ff59e88bcb74bbe7c941d2cdf7204f5fc89061b");
 
-        DatasetOrder datasetOrder = DatasetOrder.builder()
-                .dataset(datasetAddress)
-                .datasetprice(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .apprestrict(BytesUtils.EMPTY_ADDRESS)
-                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
-                .build();
-
+        DatasetOrder datasetOrder = createDatasetOrder(datasetOrderTag);
         DatasetOrder signedDatasetOrder = signer.signDatasetOrder(datasetOrder);
-        assertThat(signedDatasetOrder.getSign())
-                .isEqualTo("0x529ea0d91a7f1cc373c34c7ec43cd132238b052abbf74c379f15d930fe0bf66d00907b58ba2bbe9e1f73aeb02e08da6a4e6915dba7ed4eb54a56b2d319ec987b1b");
 
-        WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
-                .workerpool(workerpoolAddress)
-                .workerpoolprice(BigInteger.TEN)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
-                .apprestrict(BytesUtils.EMPTY_ADDRESS)
-                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
-                .build();
+        WorkerpoolOrder workerpoolOrder = createWorkerpoolOrder(workerpoolOrderTag);
         WorkerpoolOrder signedWorkerpoolOrder = signer.signWorkerpoolOrder(workerpoolOrder);
-        assertThat(signedWorkerpoolOrder.getSign())
-                .isEqualTo("0x52ce5afec8e142ea9217bd818796c7b4b1ab1e1ebebf532b59ebc3ae15c56efb5c55e1b3c79fa3929ae1bf3895b926f47316dac8a7a484c8db05068d31e8038f1c");
 
-        TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
-                "1", "first-secret",
-                "2", "second-secret",
-                "3", "third-secret"));
-        DealParams dealParams = DealParams.builder()
-                .iexecResultEncryption(true)
-                .iexecResultStorageProvider("ipfs")
-                .iexecResultStorageProxy("http://result-proxy:13200")
-                .iexecSecrets(iexecSecrets)
-                .build();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .app(appOrder.getApp())
-                .appmaxprice(appOrder.getAppprice())
-                .dataset(datasetOrder.getDataset())
-                .datasetmaxprice(datasetOrder.getDatasetprice())
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .workerpoolmaxprice(workerpoolOrder.getWorkerpoolprice())
-                .requester(credentials.getAddress())
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
-                .beneficiary(credentials.getAddress())
-                .callback(BytesUtils.EMPTY_ADDRESS)
-                .params(dealParams.toJsonString())
-                .salt(Hash.sha3String("abcd"))
-                .build();
+        RequestOrder requestOrder = createRequestOrder(
+                requestOrderTag, appOrder, datasetOrder, workerpoolOrder);
         RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
-        assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
 
         TransactionReceipt receipt = iexecHubService
                 .getHubContract()
@@ -191,6 +158,139 @@ class MatchOrdersTests {
         String chainDealId = BytesUtils.bytesToString(dealid);
         Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
         assertThat(oChainDeal).isPresent();
+    }
+
+    private Stream<Arguments> provideValidTagsCombinations() {
+        return Stream.of(
+                Arguments.of(0x0, 0x0, 0x0, 0x0),
+                Arguments.of(0x3, 0x3, 0x3, 0x3),
+                Arguments.of(0x5, 0x5, 0x5, 0x5),
+                Arguments.of(0x3, 0x3, 0x3, 0x0),
+                Arguments.of(0x3, 0x0, 0x3, 0x0),
+                Arguments.of(0x3, 0x3, 0x3, 0x1),
+                Arguments.of(0x5, 0x5, 0x1, 0x0),
+                Arguments.of(0x7, 0x3, 0x5, 0x0)  // Match Scone request with Gramine app order and standard dataset
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidTagsCombinations")
+    void shouldNotMatchOrders(
+            long workerpoolOrderTag,
+            long requestOrderTag,
+            long appOrderTag,
+            long datasetOrderTag) {
+
+        AppOrder appOrder = createAppOrder(appOrderTag);
+        AppOrder signedAppOrder = signer.signAppOrder(appOrder);
+
+        DatasetOrder datasetOrder = createDatasetOrder(datasetOrderTag);
+        DatasetOrder signedDatasetOrder = signer.signDatasetOrder(datasetOrder);
+
+        WorkerpoolOrder workerpoolOrder = createWorkerpoolOrder(workerpoolOrderTag);
+        WorkerpoolOrder signedWorkerpoolOrder = signer.signWorkerpoolOrder(workerpoolOrder);
+
+        RequestOrder requestOrder = createRequestOrder(
+                requestOrderTag, appOrder, datasetOrder, workerpoolOrder);
+        RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
+
+        assertThrows(TransactionException.class, () -> iexecHubService
+                .getHubContract()
+                .matchOrders(
+                        signedAppOrder.toHubContract(),
+                        signedDatasetOrder.toHubContract(),
+                        signedWorkerpoolOrder.toHubContract(),
+                        signedRequestOrder.toHubContract()
+                ).send());
+    }
+
+    private Stream<Arguments> provideInvalidTagsCombinations() {
+        return Stream.of(
+                Arguments.of(0x0, 0x1, 0x1, 0x1),
+                Arguments.of(0x0, 0x1, 0x1, 0x1),
+                Arguments.of(0x0, 0x3, 0x3, 0x3),
+                Arguments.of(0x0, 0x5, 0x5, 0x5),
+                Arguments.of(0x1, 0x2, 0x1, 0x1), // Workerpool order does not match 0x3
+                Arguments.of(0x3, 0x3, 0x2, 0x3), // Missing TEE bit on app order tag
+                Arguments.of(0x5, 0x2, 0x5, 0x5), // Workerpool order does not match 0x7
+                Arguments.of(0x5, 0x3, 0x0, 0x0),
+                Arguments.of(0x3, 0x3, 0x0, 0x0)
+        );
+    }
+
+    AppOrder createAppOrder(long tag) {
+        return AppOrder.builder()
+                .app(appAddress)
+                .appprice(BigInteger.ZERO)
+                .volume(BigInteger.ONE)
+                .tag(BytesUtils.toByte32HexString(tag))
+                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .build();
+    }
+
+    DatasetOrder createDatasetOrder(long tag) {
+        return DatasetOrder.builder()
+                .dataset(datasetAddress)
+                .datasetprice(BigInteger.ZERO)
+                .volume(BigInteger.ONE)
+                .tag(BytesUtils.toByte32HexString(tag))
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .build();
+    }
+
+    WorkerpoolOrder createWorkerpoolOrder(long tag) {
+        return WorkerpoolOrder.builder()
+                .workerpool(workerpoolAddress)
+                .workerpoolprice(BigInteger.TEN)
+                .volume(BigInteger.ONE)
+                .tag(BytesUtils.toByte32HexString(tag))
+                .category(BigInteger.ZERO)
+                .trust(BigInteger.ONE)
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .build();
+    }
+
+    RequestOrder createRequestOrder(
+            long tag,
+            AppOrder appOrder,
+            DatasetOrder datasetOrder,
+            WorkerpoolOrder workerpoolOrder) {
+        TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
+                "1", "first-secret",
+                "2", "second-secret",
+                "3", "third-secret"));
+        DealParams dealParams = DealParams.builder()
+                .iexecResultEncryption(true)
+                .iexecResultStorageProvider("ipfs")
+                .iexecResultStorageProxy("http://result-proxy:13200")
+                .iexecSecrets(iexecSecrets)
+                .build();
+        return RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(appOrder.getAppprice())
+                .dataset(datasetOrder.getDataset())
+                .datasetmaxprice(datasetOrder.getDatasetprice())
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(workerpoolOrder.getWorkerpoolprice())
+                .requester(credentials.getAddress())
+                .volume(BigInteger.ONE)
+                .tag(BytesUtils.toByte32HexString(tag))
+                .category(BigInteger.ZERO)
+                .trust(BigInteger.ONE)
+                .beneficiary(credentials.getAddress())
+                .callback(BytesUtils.EMPTY_ADDRESS)
+                .params(dealParams.toJsonString())
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .build();
     }
 
 }
