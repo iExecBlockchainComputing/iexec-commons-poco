@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Quality
 - Do not run tests in `itest` task to avoid executing them twice. (#47)
+### Dependency Upgrades
+- Upgrade to Spring Boot 2.7.14. (#48)
 
 ## [[3.0.5]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.5) 2023-06-26
 
