@@ -8,6 +8,10 @@ plugins {
 
 group = 'com.iexec.commons'
 
+ext {
+    testContainersVersion = '1.19.0'
+}
+
 if (!project.hasProperty('gitBranch')) {
     ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
@@ -57,7 +61,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.assertj:assertj-core'
-    testImplementation 'org.testcontainers:junit-jupiter:1.17.2'
+    testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 
     // spring-test for ReflectionTestUtils
     testImplementation 'org.springframework:spring-test'
