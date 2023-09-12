@@ -69,7 +69,7 @@ public abstract class IexecHubAbstractService {
     private final String iexecHubAddress;
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
-    private long maxNbOfPeriodsForConsensus;
+    private long maxNbOfPeriodsForConsensus = -1;
     private final int nbBlocksToWaitPerRetry;
     private final long retryDelay;// ms
     private final int maxRetries;
@@ -111,7 +111,6 @@ public abstract class IexecHubAbstractService {
         );
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());
-        setMaxNbOfPeriodsForConsensus();
     }
 
     @PostConstruct
@@ -121,6 +120,7 @@ public abstract class IexecHubAbstractService {
                     "IexecHub smart contract validation failed."
             );
         }
+        setMaxNbOfPeriodsForConsensus();
     }
 
 
@@ -1058,11 +1058,10 @@ public abstract class IexecHubAbstractService {
 
     private void setMaxNbOfPeriodsForConsensus() {
         try {
-            this.maxNbOfPeriodsForConsensus = iexecHubContract
-                    .contribution_deadline_ratio().send().longValue();
+            maxNbOfPeriodsForConsensus = iexecHubContract.contribution_deadline_ratio().send().longValue();
         } catch (Exception e) {
             log.error("Failed to get maxNbOfPeriodsForConsensus from the chain", e);
-            this.maxNbOfPeriodsForConsensus = -1;
+            maxNbOfPeriodsForConsensus = -1;
         }
     }
 
