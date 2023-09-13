@@ -115,6 +115,13 @@ class ChainTests {
                 Arguments.of(4, ChainCategory.builder().id(4).name("XL").description("{}").maxExecutionTime(36_000_000L).build())
         );
     }
+
+    @Test
+    void shouldGetMaxNbOfPeriodsForConsensus() {
+        long maxNbOfPeriodsForConsensus = iexecHubService.getMaxNbOfPeriodsForConsensus();
+        assertThat(maxNbOfPeriodsForConsensus).isEqualTo(7L);
+    }
+
     @Test
     void shouldGetWorkerScore() {
         Optional<Integer> oScore = iexecHubService.getWorkerScore(credentials.getAddress());
