@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 - Upgrade to Spring Boot 2.7.14. (#48)
 - Upgrade to `testcontainers` 1.19.0. (#50)
+- Upgrade to `jenkins-library` 2.7.3. (#52)
 
 ## [[3.0.5]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.5) 2023-06-26
 
