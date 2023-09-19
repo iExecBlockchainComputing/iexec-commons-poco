@@ -199,9 +199,10 @@ public abstract class IexecHubAbstractService {
             if (workerpoolRegistryAddress == null || workerpoolRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
-            return WorkerpoolRegistry.load(workerpoolRegistryAddress,
+            return WorkerpoolRegistry.load(
+                    workerpoolRegistryAddress,
                     web3jAbstractService.getWeb3j(),
-                    credentials,
+                    txManager,
                     contractGasProvider);
         } catch (Exception e) {
             log.error("Failed to load WorkerpoolRegistry contract [address:{}]",
@@ -366,9 +367,10 @@ public abstract class IexecHubAbstractService {
             if (appRegistryAddress == null || appRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
-            return AppRegistry.load(appRegistryAddress,
+            return AppRegistry.load(
+                    appRegistryAddress,
                     web3jAbstractService.getWeb3j(),
-                    credentials,
+                    txManager,
                     contractGasProvider);
         } catch (Exception e) {
             log.error("Failed to load AppRegistry contract [address:{}]",
@@ -556,9 +558,10 @@ public abstract class IexecHubAbstractService {
             if (datasetRegistryAddress == null || datasetRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
-            return DatasetRegistry.load(datasetRegistryAddress,
+            return DatasetRegistry.load(
+                    datasetRegistryAddress,
                     web3jAbstractService.getWeb3j(),
-                    credentials,
+                    txManager,
                     contractGasProvider);
         } catch (Exception e) {
             log.error("Failed to load DatasetRegistry contract [address:{}]",
