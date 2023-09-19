@@ -67,6 +67,7 @@ public abstract class IexecHubAbstractService {
 
     protected final Credentials credentials;
     private final String iexecHubAddress;
+    private final RawTransactionManager txManager;
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus = -1;
@@ -103,12 +104,16 @@ public abstract class IexecHubAbstractService {
         this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
-        iexecHubContract = getHubContract(
-                this.web3jAbstractService.getContractGasProvider(),
-                this.web3jAbstractService.getChainId(),
+        txManager = new RawTransactionManager(
+                web3jAbstractService.getWeb3j(),
+                credentials,
+                web3jAbstractService.getChainId(),
                 DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH,
-                this.web3jAbstractService.getBlockTime().toMillis()
+                web3jAbstractService.getBlockTime().toMillis()
         );
+
+        iexecHubContract = getHubContract(web3jAbstractService.getContractGasProvider());
+
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());
     }
@@ -132,15 +137,9 @@ public abstract class IexecHubAbstractService {
      * Get an IexecHubContract instance.
      *
      * @param contractGasProvider gas provider, useful for sending txs
-     * @param chainId chain ID for EIP155 protection
-     * @param watchAttempts number of attempts to get tx receipt
-     * @param sleepDuration sleep duration in ms between 2 consecutive attempts
      * @return an IexecHubContract instance
      */
-    private IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
-                                            long chainId,
-                                            int watchAttempts,
-                                            long sleepDuration) {
+    private IexecHubContract getHubContract(ContractGasProvider contractGasProvider) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load IexecHub " +
                         "contract from address " + iexecHubAddress);
@@ -149,12 +148,7 @@ public abstract class IexecHubAbstractService {
             try {
                 return IexecHubContract.load(iexecHubAddress,
                         web3jAbstractService.getWeb3j(),
-                        new RawTransactionManager(
-                                web3jAbstractService.getWeb3j(),
-                                credentials,
-                                chainId,
-                                watchAttempts,
-                                sleepDuration),
+                        txManager,
                         contractGasProvider);
             } catch (EnsResolutionException e) {
                 throw exceptionInInitializerError;
