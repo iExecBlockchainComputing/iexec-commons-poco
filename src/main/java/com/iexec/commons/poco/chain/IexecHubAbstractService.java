@@ -718,37 +718,6 @@ public abstract class IexecHubAbstractService {
         return address;
     }
 
-    public Optional<String> getTaskBeneficiary(String chainTaskId, Integer chainId) {
-        Optional<ChainTask> chainTask = getChainTask(chainTaskId);
-        if (chainTask.isEmpty()) {
-            log.error("Failed to get Task Beneficiary as ChainTask not found" +
-                    " [chainTaskId:{}]", chainTaskId);
-            return Optional.empty();
-        }
-        Optional<ChainDeal> optionalChainDeal = getChainDeal(chainTask.get().getDealid());
-        return optionalChainDeal.map(chainDeal -> chainDeal.getBeneficiary().toLowerCase());
-    }
-
-    public boolean isPublicResult(String chainTaskId, Integer chainId) {
-        Optional<String> beneficiary = getTaskBeneficiary(chainTaskId, chainId);
-        if (beneficiary.isEmpty()) {
-            log.error("Failed to get beneficiary for isPublicResult() method" +
-                    " [chainTaskId:{}]", chainTaskId);
-            return false;
-        }
-        return beneficiary.get().equals(BytesUtils.EMPTY_ADDRESS);
-    }
-
-    public String getTaskResults(String chainTaskId, Integer chainId) {
-        Optional<ChainTask> chainTask = getChainTask(chainTaskId);
-        if (chainTask.isEmpty()) {
-            log.error("Failed to get Task Results as ChainTask not found" +
-                    " [chainTaskId:{}]", chainTaskId);
-            return "";
-        }
-        return chainTask.get().getResults();
-    }
-
     /**
      * Retrieves on-chain deal with a retryer
      *
