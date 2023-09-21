@@ -181,28 +181,6 @@ public abstract class Web3jAbstractService {
         return false;
     }
 
-    public long getMaxWaitingTimeWhenPendingReceipt() {
-        long maxWaitingTime = 2 * 60 * 1000L; // 2min
-
-        // max waiting Time should be roughly the time of 10 blocks
-        try {
-            EthBlock.Block latestBlock = getLatestBlock();
-
-            long latestBlockNumber = latestBlock.getNumber().longValue();
-
-            BigInteger latestBlockTimestamp = latestBlock.getTimestamp();
-            BigInteger tenBlocksAgoTimestamp = getBlock(latestBlockNumber - 10).getTimestamp();
-
-            maxWaitingTime = (latestBlockTimestamp.longValue() - tenBlocksAgoTimestamp.longValue()) * 1000;
-
-            log.info("[latestBlockTimestamp:{}, tenBlocksAgoTimestamp:{}, maxWaitingTime:{}]",
-                    latestBlockTimestamp, tenBlocksAgoTimestamp, maxWaitingTime);
-        } catch (IOException e) {
-            log.error("Error when computing max waiting time", e);
-        }
-        return maxWaitingTime;
-    }
-
     public long getAverageTimePerBlock() {//in ms
         long defaultTime = TransactionManager.DEFAULT_POLLING_FREQUENCY; // 15sec
         int NB_OF_BLOCKS = 10;
