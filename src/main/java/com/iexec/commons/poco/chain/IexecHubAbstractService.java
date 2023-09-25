@@ -1035,35 +1035,6 @@ public abstract class IexecHubAbstractService {
         return web3jAbstractService.hasEnoughGas(address);
     }
 
-
-    protected boolean isStatusValidOnChainAfterPendingReceipt(String chainTaskId,
-                                                              ChainStatus onchainStatus,
-                                                              BiFunction<String, ChainStatus, Boolean> isStatusValidOnChainFunction) {
-        long maxWaitingTime = web3jAbstractService.getMaxWaitingTimeWhenPendingReceipt();
-        log.info("Waiting for on-chain status after pending receipt " +
-                        "[chainTaskId:{}, status:{}, maxWaitingTime:{}]",
-                chainTaskId, onchainStatus, maxWaitingTime);
-
-        final long startTime = System.currentTimeMillis();
-        long duration = 0;
-        while (duration < maxWaitingTime) {
-            try {
-                if (isStatusValidOnChainFunction.apply(chainTaskId, onchainStatus)) {
-                    return true;
-                }
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                log.error("Error in checking the latest block number", e);
-            }
-            duration = System.currentTimeMillis() - startTime;
-        }
-
-        log.error("Timeout reached after waiting for on-chain status " +
-                        "[chainTaskId:{}, maxWaitingTime:{}]",
-                chainTaskId, maxWaitingTime);
-        return false;
-    }
-
     /*
      * Behaves as a cache to avoid always calling blockchain to retrieve task description
      *

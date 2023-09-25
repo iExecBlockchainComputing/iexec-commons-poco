@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - Do not run tests in `itest` task to avoid executing them twice. (#47)
 - Upgrade to Gradle 8.2.1 with up-to-date plugins. (#49)
 - Fetch contribution deadline ratio during `@PostConstruct` execution in `IexecHubAbstractService`. (#51)
-- Remove dead code in `IexecHubAbstractService`. (#54)
+- Remove dead code in `IexecHubAbstractService` and `Web3jAbstractService`. (#54 #55)
 ### Dependency Upgrades
 - Upgrade to Spring Boot 2.7.14. (#48)
 - Upgrade to `testcontainers` 1.19.0. (#50)
