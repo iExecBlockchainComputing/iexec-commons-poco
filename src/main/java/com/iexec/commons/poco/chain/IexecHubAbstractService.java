@@ -67,9 +67,10 @@ public abstract class IexecHubAbstractService {
 
     protected final Credentials credentials;
     private final String iexecHubAddress;
+    private final RawTransactionManager txManager;
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
-    private long maxNbOfPeriodsForConsensus;
+    private long maxNbOfPeriodsForConsensus = -1;
     private final int nbBlocksToWaitPerRetry;
     private final long retryDelay;// ms
     private final int maxRetries;
@@ -103,15 +104,18 @@ public abstract class IexecHubAbstractService {
         this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
-        iexecHubContract = getHubContract(
-                this.web3jAbstractService.getContractGasProvider(),
-                this.web3jAbstractService.getChainId(),
+        txManager = new RawTransactionManager(
+                web3jAbstractService.getWeb3j(),
+                credentials,
+                web3jAbstractService.getChainId(),
                 DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH,
-                this.web3jAbstractService.getBlockTime().toMillis()
+                web3jAbstractService.getBlockTime().toMillis()
         );
+
+        iexecHubContract = getHubContract(web3jAbstractService.getContractGasProvider());
+
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());
-        setMaxNbOfPeriodsForConsensus();
     }
 
     @PostConstruct
@@ -121,6 +125,7 @@ public abstract class IexecHubAbstractService {
                     "IexecHub smart contract validation failed."
             );
         }
+        setMaxNbOfPeriodsForConsensus();
     }
 
 
@@ -132,15 +137,9 @@ public abstract class IexecHubAbstractService {
      * Get an IexecHubContract instance.
      *
      * @param contractGasProvider gas provider, useful for sending txs
-     * @param chainId chain ID for EIP155 protection
-     * @param watchAttempts number of attempts to get tx receipt
-     * @param sleepDuration sleep duration in ms between 2 consecutive attempts
      * @return an IexecHubContract instance
      */
-    private IexecHubContract getHubContract(ContractGasProvider contractGasProvider,
-                                            long chainId,
-                                            int watchAttempts,
-                                            long sleepDuration) {
+    private IexecHubContract getHubContract(ContractGasProvider contractGasProvider) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load IexecHub " +
                         "contract from address " + iexecHubAddress);
@@ -149,12 +148,7 @@ public abstract class IexecHubAbstractService {
             try {
                 return IexecHubContract.load(iexecHubAddress,
                         web3jAbstractService.getWeb3j(),
-                        new RawTransactionManager(
-                                web3jAbstractService.getWeb3j(),
-                                credentials,
-                                chainId,
-                                watchAttempts,
-                                sleepDuration),
+                        txManager,
                         contractGasProvider);
             } catch (EnsResolutionException e) {
                 throw exceptionInInitializerError;
@@ -205,9 +199,10 @@ public abstract class IexecHubAbstractService {
             if (workerpoolRegistryAddress == null || workerpoolRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
-            return WorkerpoolRegistry.load(workerpoolRegistryAddress,
+            return WorkerpoolRegistry.load(
+                    workerpoolRegistryAddress,
                     web3jAbstractService.getWeb3j(),
-                    credentials,
+                    txManager,
                     contractGasProvider);
         } catch (Exception e) {
             log.error("Failed to load WorkerpoolRegistry contract [address:{}]",
@@ -372,9 +367,10 @@ public abstract class IexecHubAbstractService {
             if (appRegistryAddress == null || appRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
-            return AppRegistry.load(appRegistryAddress,
+            return AppRegistry.load(
+                    appRegistryAddress,
                     web3jAbstractService.getWeb3j(),
-                    credentials,
+                    txManager,
                     contractGasProvider);
         } catch (Exception e) {
             log.error("Failed to load AppRegistry contract [address:{}]",
@@ -562,9 +558,10 @@ public abstract class IexecHubAbstractService {
             if (datasetRegistryAddress == null || datasetRegistryAddress.isEmpty()) {
                 throw exceptionInInitializerError;
             }
-            return DatasetRegistry.load(datasetRegistryAddress,
+            return DatasetRegistry.load(
+                    datasetRegistryAddress,
                     web3jAbstractService.getWeb3j(),
-                    credentials,
+                    txManager,
                     contractGasProvider);
         } catch (Exception e) {
             log.error("Failed to load DatasetRegistry contract [address:{}]",
@@ -716,37 +713,6 @@ public abstract class IexecHubAbstractService {
                     owner, name, multiAddress, checksum, e);
         }
         return address;
-    }
-
-    public Optional<String> getTaskBeneficiary(String chainTaskId, Integer chainId) {
-        Optional<ChainTask> chainTask = getChainTask(chainTaskId);
-        if (chainTask.isEmpty()) {
-            log.error("Failed to get Task Beneficiary as ChainTask not found" +
-                    " [chainTaskId:{}]", chainTaskId);
-            return Optional.empty();
-        }
-        Optional<ChainDeal> optionalChainDeal = getChainDeal(chainTask.get().getDealid());
-        return optionalChainDeal.map(chainDeal -> chainDeal.getBeneficiary().toLowerCase());
-    }
-
-    public boolean isPublicResult(String chainTaskId, Integer chainId) {
-        Optional<String> beneficiary = getTaskBeneficiary(chainTaskId, chainId);
-        if (beneficiary.isEmpty()) {
-            log.error("Failed to get beneficiary for isPublicResult() method" +
-                    " [chainTaskId:{}]", chainTaskId);
-            return false;
-        }
-        return beneficiary.get().equals(BytesUtils.EMPTY_ADDRESS);
-    }
-
-    public String getTaskResults(String chainTaskId, Integer chainId) {
-        Optional<ChainTask> chainTask = getChainTask(chainTaskId);
-        if (chainTask.isEmpty()) {
-            log.error("Failed to get Task Results as ChainTask not found" +
-                    " [chainTaskId:{}]", chainTaskId);
-            return "";
-        }
-        return chainTask.get().getResults();
     }
 
     /**
@@ -1058,45 +1024,15 @@ public abstract class IexecHubAbstractService {
 
     private void setMaxNbOfPeriodsForConsensus() {
         try {
-            this.maxNbOfPeriodsForConsensus = iexecHubContract
-                    .contribution_deadline_ratio().send().longValue();
+            maxNbOfPeriodsForConsensus = iexecHubContract.contribution_deadline_ratio().send().longValue();
         } catch (Exception e) {
             log.error("Failed to get maxNbOfPeriodsForConsensus from the chain", e);
-            this.maxNbOfPeriodsForConsensus = -1;
+            maxNbOfPeriodsForConsensus = -1;
         }
     }
 
     public boolean hasEnoughGas(String address) {
         return web3jAbstractService.hasEnoughGas(address);
-    }
-
-
-    protected boolean isStatusValidOnChainAfterPendingReceipt(String chainTaskId,
-                                                              ChainStatus onchainStatus,
-                                                              BiFunction<String, ChainStatus, Boolean> isStatusValidOnChainFunction) {
-        long maxWaitingTime = web3jAbstractService.getMaxWaitingTimeWhenPendingReceipt();
-        log.info("Waiting for on-chain status after pending receipt " +
-                        "[chainTaskId:{}, status:{}, maxWaitingTime:{}]",
-                chainTaskId, onchainStatus, maxWaitingTime);
-
-        final long startTime = System.currentTimeMillis();
-        long duration = 0;
-        while (duration < maxWaitingTime) {
-            try {
-                if (isStatusValidOnChainFunction.apply(chainTaskId, onchainStatus)) {
-                    return true;
-                }
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                log.error("Error in checking the latest block number", e);
-            }
-            duration = System.currentTimeMillis() - startTime;
-        }
-
-        log.error("Timeout reached after waiting for on-chain status " +
-                        "[chainTaskId:{}, maxWaitingTime:{}]",
-                chainTaskId, maxWaitingTime);
-        return false;
     }
 
     /*

@@ -61,6 +61,7 @@ class TaskDescriptionTests {
     public static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
     public static final String TEE_POST_COMPUTE_IMAGE = "teePostComputeImage";
     public static final String TEE_POST_COMPUTE_FINGERPRINT = "teePostComputeFingerprint";
+    public static final BigInteger TRUST = BigInteger.ONE;
 
     @Test
     void shouldBuildAndGetTaskDescription() {
@@ -90,6 +91,7 @@ class TaskDescriptionTests {
                 .resultStorageProxy(RESULT_STORAGE_PROXY)
                 .teePostComputeImage(TEE_POST_COMPUTE_IMAGE)
                 .teePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
+                .trust(TRUST)
                 .build();
         Assertions.assertEquals(CHAIN_TASK_ID,
                 task.getChainTaskId());
@@ -141,6 +143,8 @@ class TaskDescriptionTests {
                 task.getTeePostComputeImage());
         Assertions.assertEquals(TEE_POST_COMPUTE_FINGERPRINT,
                 task.getTeePostComputeFingerprint());
+        Assertions.assertEquals(TRUST,
+                task.getTrust());
         Assertions.assertTrue(task.containsDataset());
     }
 
@@ -180,6 +184,7 @@ class TaskDescriptionTests {
                         .build())
                 .botFirst(BigInteger.valueOf(BOT_FIRST))
                 .botSize(BigInteger.valueOf(BOT_SIZE))
+                .trust(TRUST)
                 .build();
 
         TaskDescription task =
@@ -233,6 +238,8 @@ class TaskDescriptionTests {
                 task.getTeePostComputeImage());
         Assertions.assertEquals(TEE_POST_COMPUTE_FINGERPRINT,
                 task.getTeePostComputeFingerprint());
+        Assertions.assertEquals(TRUST,
+                task.getTrust());
     }
 
     @Test
@@ -358,4 +365,50 @@ class TaskDescriptionTests {
                 .build()
                 .containsPostCompute());
     }
+
+    // region isEligibleToContributeAndFinalize
+    @Test
+    void shouldBeEligibleToContributeAndFinalize() {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .isTeeTask(true)
+                .trust(BigInteger.ONE)
+                .callback("")
+                .build();
+
+        Assertions.assertTrue(taskDescription.isEligibleToContributeAndFinalize());
+    }
+
+    @Test
+    void shouldNotBeEligibleToContributeAndFinalizeSinceNotTee() {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .isTeeTask(false)
+                .trust(BigInteger.ONE)
+                .callback("")
+                .build();
+
+        Assertions.assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+    }
+
+    @Test
+    void shouldNotBeEligibleToContributeAndFinalizeSinceWrongTrust() {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .isTeeTask(true)
+                .trust(BigInteger.TEN)
+                .callback("")
+                .build();
+
+        Assertions.assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+    }
+
+    @Test
+    void shouldNotBeEligibleToContributeAndFinalizeSinceCallback() {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .isTeeTask(true)
+                .trust(BigInteger.ONE)
+                .callback(CALLBACK)
+                .build();
+
+        Assertions.assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+    }
+    // endregion
 }

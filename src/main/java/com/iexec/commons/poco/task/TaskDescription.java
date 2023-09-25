@@ -28,6 +28,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +64,7 @@ public class TaskDescription {
     Map<String, String> secrets;
     String teePostComputeImage;
     String teePostComputeFingerprint;
+    BigInteger trust;
 
     /**
      * Check if this task includes a dataset or not. The task is considered
@@ -119,6 +121,23 @@ public class TaskDescription {
             appArgs = appArgs + " " + cmd;
         }
         return appArgs;
+    }
+
+    /**
+     * A task is eligible to the Contribute And Finalize flow
+     * if it matches the following conditions:
+     * <ul>
+     *     <li>It is a TEE task
+     *     <li>Its trust is 1
+     *     <li>It does not contain a callback - bug in the PoCo, should be fixed
+     * </ul>
+     *
+     * @return {@literal true} if eligible, {@literal false} otherwise.
+     */
+    public boolean isEligibleToContributeAndFinalize() {
+        return isTeeTask
+                && BigInteger.ONE.equals(trust)
+                && !containsCallback();
     }
 
     /**
@@ -193,6 +212,7 @@ public class TaskDescription {
                 .botFirstIndex(chainDeal
                         .getBotFirst().intValue())
                 .botIndex(taskIdx)
+                .trust(chainDeal.getTrust())
                 .build();
     }
 }

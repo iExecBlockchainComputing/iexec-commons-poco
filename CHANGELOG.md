@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[3.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.1.0) 2023-09-25
+
+### New Features
+- Add `isEligibleToContributeAndFinalize` method to `TaskDescription`. (#53)
+- Use `RawTransactionManager` instance to create App, Dataset and Workerpool on-chain in one block. (#54)
+### Quality
+- Do not run tests in `itest` task to avoid executing them twice. (#47)
+- Upgrade to Gradle 8.2.1 with up-to-date plugins. (#49)
+- Fetch contribution deadline ratio during `@PostConstruct` execution in `IexecHubAbstractService`. (#51)
+- Remove dead code in `IexecHubAbstractService` and `Web3jAbstractService`. (#54 #55)
+### Dependency Upgrades
+- Upgrade to Spring Boot 2.7.14. (#48)
+- Upgrade to `testcontainers` 1.19.0. (#50)
+- Upgrade to `jenkins-library` 2.7.3. (#52)
+
 ## [[3.0.5]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.5) 2023-06-26
 
 ### Bug Fixes

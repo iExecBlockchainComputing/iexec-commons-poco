@@ -17,6 +17,7 @@
 package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.utils.WaitUtils;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.web3j.protocol.Web3j;
@@ -48,13 +49,17 @@ public abstract class Web3jAbstractService {
     static final long GAS_LIMIT_CAP = 1_000_000;
     private final int maxAttempts = 12;
 
+    @Getter
     private final int chainId;
     private final String chainNodeAddress;
+    @Getter
     private final Duration blockTime;
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
     private final boolean isSidechain;
+    @Getter
     private final Web3j web3j;
+    @Getter
     private final ContractGasProvider contractGasProvider;
 
     /**
@@ -128,22 +133,6 @@ public abstract class Web3jAbstractService {
         return BigInteger.valueOf(GAS_LIMIT_CAP * gasPriceCap);
     }
 
-    public int getChainId() {
-        return chainId;
-    }
-
-    public Duration getBlockTime() {
-        return blockTime;
-    }
-
-    public Web3j getWeb3j() {
-        return web3j;
-    }
-
-    public ContractGasProvider getContractGasProvider() {
-        return contractGasProvider;
-    }
-
     public EthBlock.Block getLatestBlock() throws IOException {
         return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
     }
@@ -190,28 +179,6 @@ public abstract class Web3jAbstractService {
         }
 
         return false;
-    }
-
-    public long getMaxWaitingTimeWhenPendingReceipt() {
-        long maxWaitingTime = 2 * 60 * 1000L; // 2min
-
-        // max waiting Time should be roughly the time of 10 blocks
-        try {
-            EthBlock.Block latestBlock = getLatestBlock();
-
-            long latestBlockNumber = latestBlock.getNumber().longValue();
-
-            BigInteger latestBlockTimestamp = latestBlock.getTimestamp();
-            BigInteger tenBlocksAgoTimestamp = getBlock(latestBlockNumber - 10).getTimestamp();
-
-            maxWaitingTime = (latestBlockTimestamp.longValue() - tenBlocksAgoTimestamp.longValue()) * 1000;
-
-            log.info("[latestBlockTimestamp:{}, tenBlocksAgoTimestamp:{}, maxWaitingTime:{}]",
-                    latestBlockTimestamp, tenBlocksAgoTimestamp, maxWaitingTime);
-        } catch (IOException e) {
-            log.error("Error when computing max waiting time", e);
-        }
-        return maxWaitingTime;
     }
 
     public long getAverageTimePerBlock() {//in ms
