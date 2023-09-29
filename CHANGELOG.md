@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2023
 
+## [[3.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.1.0) 2023-09-25
+
 ### New Features
 - Add `isEligibleToContributeAndFinalize` method to `TaskDescription`. (#53)
 - Use `RawTransactionManager` instance to create App, Dataset and Workerpool on-chain in one block. (#54)
