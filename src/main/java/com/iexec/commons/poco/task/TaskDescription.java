@@ -71,7 +71,7 @@ public class TaskDescription {
      * information since they, inevitably, break the workflow. In the case
      * where those datasets are ignored, the worker will contribute an
      * application error caused by the missing dataset file.
-     * 
+     *
      * @return true if all dataset fields are all non-null,
      * non-empty values, false otherwise.
      */
@@ -79,13 +79,12 @@ public class TaskDescription {
         return !StringUtils.isEmpty(datasetAddress) &&
                 !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS) &&
                 !StringUtils.isEmpty(datasetUri) &&
-                !StringUtils.isEmpty(datasetChecksum) &&
-                !StringUtils.isEmpty(datasetName);
+                !StringUtils.isEmpty(datasetChecksum);
     }
 
     /**
-     * Check if a callback is requested for this task. 
-     * 
+     * Check if a callback is requested for this task.
+     *
      * @return true if a callback address is found in the deal, false otherwise.
      */
     public boolean containsCallback() {
@@ -94,7 +93,7 @@ public class TaskDescription {
 
     /**
      * Check if this task includes some input files.
-     * 
+     *
      * @return true if at least one input file is present, false otherwise
      */
     public boolean containsInputFiles() {

@@ -237,6 +237,14 @@ class TaskDescriptionTests {
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
+
+        Assertions.assertTrue(TaskDescription.builder()
+                .datasetAddress(DATASET_ADDRESS)
+                .datasetUri(DATASET_URI)
+                // .datasetName(DATASET_NAME)
+                .datasetChecksum(DATASET_CHECKSUM)
+                .build()
+                .containsDataset());
     }
 
     @Test
@@ -253,14 +261,6 @@ class TaskDescriptionTests {
                 .datasetAddress(DATASET_ADDRESS)
                 // .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
-                .datasetChecksum(DATASET_CHECKSUM)
-                .build()
-                .containsDataset());
-
-        Assertions.assertFalse(TaskDescription.builder()
-                .datasetAddress(DATASET_ADDRESS)
-                .datasetUri(DATASET_URI)
-                // .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
