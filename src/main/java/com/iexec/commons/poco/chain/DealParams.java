@@ -100,6 +100,7 @@ public class DealParams {
     @JsonProperty("iexec_input_files")
     List<String> iexecInputFiles = Collections.emptyList();
 
+    @Deprecated(forRemoval = true)
     @JsonProperty("iexec_developer_logger")
     boolean iexecDeveloperLoggerEnabled;
 
@@ -116,6 +117,14 @@ public class DealParams {
     @Builder.Default
     @JsonProperty("iexec_secrets")
     Map<String, String> iexecSecrets = Collections.emptyMap();
+
+    @Deprecated(forRemoval = true)
+    @JsonProperty("iexec_tee_post_compute_image")
+    String iexecTeePostComputeImage;
+
+    @Deprecated(forRemoval = true)
+    @JsonProperty("iexec_tee_post_compute_fingerprint")
+    String iexecTeePostComputeFingerprint;
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class DealParamsBuilder {
