@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Remove unspported `post-compute` related fields from `DealParams` and `TaskDescription`. (#58)
+- Dataset names can be empty in Poco deals. (#59)
 
 ## [[3.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.1.0) 2023-09-25
 
