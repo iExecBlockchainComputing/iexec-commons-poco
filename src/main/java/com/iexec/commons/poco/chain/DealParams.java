@@ -100,6 +100,9 @@ public class DealParams {
     @JsonProperty("iexec_input_files")
     List<String> iexecInputFiles = Collections.emptyList();
 
+    /**
+     * @deprecated will be removed in next major version
+     */
     @Deprecated(forRemoval = true)
     @JsonProperty("iexec_developer_logger")
     boolean iexecDeveloperLoggerEnabled;
@@ -118,10 +121,16 @@ public class DealParams {
     @JsonProperty("iexec_secrets")
     Map<String, String> iexecSecrets = Collections.emptyMap();
 
+    /**
+     * @deprecated will be removed in next major version
+     */
     @Deprecated(forRemoval = true)
     @JsonProperty("iexec_tee_post_compute_image")
     String iexecTeePostComputeImage;
 
+    /**
+     * @deprecated will be removed in next major version
+     */
     @Deprecated(forRemoval = true)
     @JsonProperty("iexec_tee_post_compute_fingerprint")
     String iexecTeePostComputeFingerprint;
