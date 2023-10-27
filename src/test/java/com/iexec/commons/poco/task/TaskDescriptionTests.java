@@ -59,8 +59,6 @@ class TaskDescriptionTests {
     public static final boolean IS_RESULT_ENCRYPTION = true;
     public static final String RESULT_STORAGE_PROVIDER = "resultStorageProvider";
     public static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
-    public static final String TEE_POST_COMPUTE_IMAGE = "teePostComputeImage";
-    public static final String TEE_POST_COMPUTE_FINGERPRINT = "teePostComputeFingerprint";
     public static final BigInteger TRUST = BigInteger.ONE;
 
     @Test
@@ -89,8 +87,6 @@ class TaskDescriptionTests {
                 .isResultEncryption(IS_RESULT_ENCRYPTION)
                 .resultStorageProvider(RESULT_STORAGE_PROVIDER)
                 .resultStorageProxy(RESULT_STORAGE_PROXY)
-                .teePostComputeImage(TEE_POST_COMPUTE_IMAGE)
-                .teePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
                 .trust(TRUST)
                 .build();
         Assertions.assertEquals(CHAIN_TASK_ID,
@@ -139,10 +135,6 @@ class TaskDescriptionTests {
                 task.getResultStorageProvider());
         Assertions.assertEquals(RESULT_STORAGE_PROXY,
                 task.getResultStorageProxy());
-        Assertions.assertEquals(TEE_POST_COMPUTE_IMAGE,
-                task.getTeePostComputeImage());
-        Assertions.assertEquals(TEE_POST_COMPUTE_FINGERPRINT,
-                task.getTeePostComputeFingerprint());
         Assertions.assertEquals(TRUST,
                 task.getTrust());
         Assertions.assertTrue(task.containsDataset());
@@ -170,8 +162,6 @@ class TaskDescriptionTests {
                         .iexecResultStorageProvider(RESULT_STORAGE_PROVIDER)
                         .iexecResultStorageProxy(RESULT_STORAGE_PROXY)
                         .iexecResultEncryption(IS_RESULT_ENCRYPTION)
-                        .iexecTeePostComputeImage(TEE_POST_COMPUTE_IMAGE)
-                        .iexecTeePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
                         .build())
                 .chainDataset(ChainDataset.builder()
                         .chainDatasetId(DATASET_ADDRESS)
@@ -234,10 +224,6 @@ class TaskDescriptionTests {
                 task.getResultStorageProvider());
         Assertions.assertEquals(RESULT_STORAGE_PROXY,
                 task.getResultStorageProxy());
-        Assertions.assertEquals(TEE_POST_COMPUTE_IMAGE,
-                task.getTeePostComputeImage());
-        Assertions.assertEquals(TEE_POST_COMPUTE_FINGERPRINT,
-                task.getTeePostComputeFingerprint());
         Assertions.assertEquals(TRUST,
                 task.getTrust());
     }
@@ -324,46 +310,6 @@ class TaskDescriptionTests {
                 // .inputFiles(List.of("http://file1", "http://file2"))
                 .build()
                 .containsInputFiles());
-    }
-
-    @Test
-    void shouldContainPostCompute() {
-        Assertions.assertTrue(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .teePostComputeImage(TEE_POST_COMPUTE_IMAGE)
-                .teePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
-                .build()
-                .containsPostCompute());
-    }
-
-    @Test
-    void shouldNotContainPostComputeIfMissingImage() {
-        Assertions.assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                // .teePostComputeImage(TEE_POST_COMPUTE_IMAGE)
-                .teePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
-                .build()
-                .containsPostCompute());
-    }
-
-    @Test
-    void shouldNotContainPostComputeIfMissingFingerprint() {
-        Assertions.assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .teePostComputeImage(TEE_POST_COMPUTE_IMAGE)
-                // .teePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
-                .build()
-                .containsPostCompute());
-    }
-
-    @Test
-    void shouldNotContainPostComputeIfMissingBothImageAndFingerprint() {
-        Assertions.assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                // .teePostComputeImage(TEE_POST_COMPUTE_IMAGE)
-                // .teePostComputeFingerprint(TEE_POST_COMPUTE_FINGERPRINT)
-                .build()
-                .containsPostCompute());
     }
 
     // region isEligibleToContributeAndFinalize

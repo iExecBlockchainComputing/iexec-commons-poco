@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2023
 
+### Bug Fixes
+
+- Remove unspported `post-compute` related fields from `DealParams` and `TaskDescription`. (#58)
+
 ## [[3.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.1.0) 2023-09-25
 
 ### New Features

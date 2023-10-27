@@ -117,19 +117,13 @@ public class DealParams {
     @JsonProperty("iexec_secrets")
     Map<String, String> iexecSecrets = Collections.emptyMap();
 
-    //Should be set by SDK
-    @JsonProperty("iexec_tee_post_compute_image")
-    String iexecTeePostComputeImage;
-
-    //Should be set by SDK
-    @JsonProperty("iexec_tee_post_compute_fingerprint")
-    String iexecTeePostComputeFingerprint;
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static class DealParamsBuilder{}
+    public static class DealParamsBuilder {
+    }
 
     /**
      * Creates an instance from a JSON string representation.
+     *
      * @param paramString data to create a DealParams instance.
      *                    The value will be parsed if it is a valid JSON string,
      *                    it will be used as <b>iexecArgs</b> value otherwise.
@@ -151,6 +145,7 @@ public class DealParams {
 
     /**
      * Represents the instance as a JSON string that will be written on chain.
+     *
      * @return the JSON string representing the instance
      */
     public String toJsonString() {
