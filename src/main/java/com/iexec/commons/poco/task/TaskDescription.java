@@ -62,8 +62,6 @@ public class TaskDescription {
     String resultStorageProxy;
     String smsUrl;
     Map<String, String> secrets;
-    String teePostComputeImage;
-    String teePostComputeFingerprint;
     BigInteger trust;
 
     /**
@@ -101,17 +99,6 @@ public class TaskDescription {
      */
     public boolean containsInputFiles() {
         return inputFiles != null && !inputFiles.isEmpty();
-    }
-
-    /**
-     * Check if this task contains a post-compute image uri and its fingerprint.
-     * 
-     * @return true if and only if both image uri and fingerprint are present,
-     * false otherwise
-     */
-    public boolean containsPostCompute() {
-        return !StringUtils.isEmpty(teePostComputeImage) &&
-                !StringUtils.isEmpty(teePostComputeFingerprint);
     }
 
     public String getAppCommand() {
@@ -199,10 +186,6 @@ public class TaskDescription {
                         .getIexecResultStorageProxy())
                 .secrets(chainDeal.getParams()
                         .getIexecSecrets())
-                .teePostComputeImage(chainDeal.getParams()
-                        .getIexecTeePostComputeImage())
-                .teePostComputeFingerprint(chainDeal.getParams()
-                        .getIexecTeePostComputeFingerprint())
                 .datasetAddress(datasetAddress)
                 .datasetUri(datasetUri)
                 .datasetName(datasetName)
