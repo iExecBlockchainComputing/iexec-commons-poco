@@ -73,12 +73,12 @@ public abstract class Web3jAbstractService {
      * OkHttpClient which ensures a proper connection pool management
      * guaranteeing sockets are properly reused.
      *
-     * @param chainId ID of the blockchain network
-     * @param chainNodeAddress address of the blockchain node
-     * @param blockTime block time as a duration
+     * @param chainId            ID of the blockchain network
+     * @param chainNodeAddress   address of the blockchain node
+     * @param blockTime          block time as a duration
      * @param gasPriceMultiplier gas price multiplier
-     * @param gasPriceCap gas price cap
-     * @param isSidechain true if iExec native chain, false if iExec token chain
+     * @param gasPriceCap        gas price cap
+     * @param isSidechain        true if iExec native chain, false if iExec token chain
      */
     protected Web3jAbstractService(
             int chainId,
@@ -105,7 +105,7 @@ public abstract class Web3jAbstractService {
     @PostConstruct
     public void checkConnection() {
         final int fewSeconds = 5;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++ ) {
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             log.debug("Connection attempt {}", attempt);
             if (isConnected()) {
                 return;
@@ -137,13 +137,20 @@ public abstract class Web3jAbstractService {
         return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
     }
 
+    /**
+     * Gets the latest block number from the blockchain network.
+     * <p>
+     * All exceptions are caught in order to always provide a numerical result.
+     *
+     * @return the block number, {@literal 0L} otherwise.
+     */
     public long getLatestBlockNumber() {
         try {
             return web3j.ethBlockNumber().send().getBlockNumber().longValue();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("ethBlockNumber call failed", e);
         }
-        return 0;
+        return 0L;
     }
 
     public EthBlock.Block getBlock(long blockNumber) throws IOException {
@@ -155,7 +162,7 @@ public abstract class Web3jAbstractService {
     // blockNumber is different than 0 only for status the require a check on the blockchain, so the scheduler should
     // already have this block, otherwise it should wait for a maximum of 10 blocks.
     public boolean isBlockAvailable(long blockNumber) {
-        // if the blocknumer is already available then simply returns true
+        // if the block number is already available then simply returns true
         if (blockNumber <= getLatestBlockNumber()) {
             return true;
         }
@@ -250,7 +257,7 @@ public abstract class Web3jAbstractService {
     public Optional<BigInteger> getNetworkGasPrice() {
         try {
             BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
-            if (gasPrice != null && gasPrice.signum() > 0){
+            if (gasPrice != null && gasPrice.signum() > 0) {
                 return Optional.of(gasPrice);
             }
         } catch (IOException e) {
