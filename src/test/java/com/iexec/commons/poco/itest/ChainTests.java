@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.CipherException;
@@ -44,19 +44,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class ChainTests {
 
+    static final String SERVICE_NAME = "poco-chain";
+    static final int SERVICE_PORT = 8545;
+
     private Credentials credentials;
     private IexecHubTestService iexecHubService;
     private Web3jTestService web3jService;
 
     @Container
-    static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
+    static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
             .withExposedService("poco-chain", 8545);
 
 
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
+                environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
+        web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
     }
 
@@ -78,7 +83,7 @@ class ChainTests {
 
     @Test
     void shouldNotGetBalance() {
-        Web3jTestService web3jService = new Web3jTestService(8545);
+        Web3jTestService web3jService = new Web3jTestService("http://localhost:8545");
         assertThat(web3jService.getBalance(credentials.getAddress())).isEmpty();
     }
 
@@ -93,7 +98,7 @@ class ChainTests {
 
     @Test
     void shouldNotGetBlockNumber() {
-        Web3jTestService web3jService = new Web3jTestService(8545);
+        Web3jTestService web3jService = new Web3jTestService("http://localhost:8545");
         assertThat(web3jService.getLatestBlockNumber()).isZero();
     }
 
