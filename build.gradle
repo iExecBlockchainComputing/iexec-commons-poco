@@ -9,14 +9,14 @@ plugins {
 group = 'com.iexec.commons'
 
 ext {
-    testContainersVersion = '1.19.0'
+    testContainersVersion = '1.19.3'
 }
 
 if (!project.hasProperty('gitBranch')) {
     ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
-if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
+if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
     version += '-NEXT-SNAPSHOT'
 }
 
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.14')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.17')
 
     // web3j
     api 'org.web3j:core:4.9.7'
