@@ -69,7 +69,6 @@ public abstract class IexecHubAbstractService {
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus = -1;
-    private final int nbBlocksToWaitPerRetry;
     private final long retryDelay;// ms
     private final int maxRetries;
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
@@ -83,11 +82,12 @@ public abstract class IexecHubAbstractService {
 
     /**
      * Base constructor for the IexecHubAbstractService
-     * @param credentials credentials for sending transaction
-     * @param web3jAbstractService custom web3j service
-     * @param iexecHubAddress address of the iExec Hub contract
+     *
+     * @param credentials            credentials for sending transaction
+     * @param web3jAbstractService   custom web3j service
+     * @param iexecHubAddress        address of the iExec Hub contract
      * @param nbBlocksToWaitPerRetry nb block to wait per retry
-     * @param maxRetries maximum reties
+     * @param maxRetries             maximum reties
      */
     protected IexecHubAbstractService(
             Credentials credentials,
@@ -98,7 +98,6 @@ public abstract class IexecHubAbstractService {
         this.credentials = credentials;
         this.web3jAbstractService = web3jAbstractService;
         this.iexecHubAddress = iexecHubAddress;
-        this.nbBlocksToWaitPerRetry = nbBlocksToWaitPerRetry;
         this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
