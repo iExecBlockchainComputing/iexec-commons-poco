@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Remove unsupported `post-compute` related fields from `DealParams` and `TaskDescription`. (#58)
 - Dataset names can be empty in Poco deals. (#59)
 - Catch all exceptions when reading the latest block number on the blockchain network. (#60)
+- Remove methods from `IexecHubAbstractService`, they were unused or moved to `iexec-core`. (#63)
 
 ### Dependency Upgrades
 

@@ -47,8 +47,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-import static com.iexec.commons.poco.chain.ChainContributionStatus.CONTRIBUTED;
-import static com.iexec.commons.poco.chain.ChainContributionStatus.REVEALED;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
@@ -1094,46 +1092,6 @@ public abstract class IexecHubAbstractService {
         }
 
         return oTaskDescription.get().isTeeTask();
-    }
-
-    public boolean repeatIsContributedTrue(String chainTaskId, String walletAddress) {
-        return web3jAbstractService.repeatCheck(nbBlocksToWaitPerRetry, maxRetries,
-                "isContributedTrue", this::isContributedTrue, chainTaskId, walletAddress);
-    }
-
-    public boolean repeatIsRevealedTrue(String chainTaskId, String walletAddress) {
-        return web3jAbstractService.repeatCheck(nbBlocksToWaitPerRetry, maxRetries,
-                "isRevealedTrue", this::isRevealedTrue, chainTaskId, walletAddress);
-    }
-
-    private boolean isContributedTrue(String... args) {
-        return this.isStatusTrueOnChain(args[0], args[1], CONTRIBUTED);
-    }
-
-    private boolean isRevealedTrue(String... args) {
-        return this.isStatusTrueOnChain(args[0], args[1], REVEALED);
-    }
-
-    public boolean isStatusTrueOnChain(String chainTaskId, String walletAddress,
-                                       ChainContributionStatus wishedStatus) {
-        Optional<ChainContribution> optional =
-                getChainContribution(chainTaskId, walletAddress);
-        if (optional.isEmpty()) {
-            return false;
-        }
-
-        ChainContribution chainContribution = optional.get();
-        ChainContributionStatus chainStatus = chainContribution.getStatus();
-        switch (wishedStatus) {
-            case CONTRIBUTED:
-                // has at least contributed
-                return chainStatus.equals(CONTRIBUTED) || chainStatus.equals(REVEALED);
-            case REVEALED:
-                // has at least revealed
-                return chainStatus.equals(REVEALED);
-            default:
-                return false;
-        }
     }
 
     // region Purge
