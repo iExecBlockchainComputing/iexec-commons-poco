@@ -47,8 +47,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-import static com.iexec.commons.poco.chain.ChainContributionStatus.CONTRIBUTED;
-import static com.iexec.commons.poco.chain.ChainContributionStatus.REVEALED;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
@@ -71,7 +69,6 @@ public abstract class IexecHubAbstractService {
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus = -1;
-    private final int nbBlocksToWaitPerRetry;
     private final long retryDelay;// ms
     private final int maxRetries;
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
@@ -85,11 +82,12 @@ public abstract class IexecHubAbstractService {
 
     /**
      * Base constructor for the IexecHubAbstractService
-     * @param credentials credentials for sending transaction
-     * @param web3jAbstractService custom web3j service
-     * @param iexecHubAddress address of the iExec Hub contract
+     *
+     * @param credentials            credentials for sending transaction
+     * @param web3jAbstractService   custom web3j service
+     * @param iexecHubAddress        address of the iExec Hub contract
      * @param nbBlocksToWaitPerRetry nb block to wait per retry
-     * @param maxRetries maximum reties
+     * @param maxRetries             maximum reties
      */
     protected IexecHubAbstractService(
             Credentials credentials,
@@ -100,7 +98,6 @@ public abstract class IexecHubAbstractService {
         this.credentials = credentials;
         this.web3jAbstractService = web3jAbstractService;
         this.iexecHubAddress = iexecHubAddress;
-        this.nbBlocksToWaitPerRetry = nbBlocksToWaitPerRetry;
         this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
@@ -1094,46 +1091,6 @@ public abstract class IexecHubAbstractService {
         }
 
         return oTaskDescription.get().isTeeTask();
-    }
-
-    public boolean repeatIsContributedTrue(String chainTaskId, String walletAddress) {
-        return web3jAbstractService.repeatCheck(nbBlocksToWaitPerRetry, maxRetries,
-                "isContributedTrue", this::isContributedTrue, chainTaskId, walletAddress);
-    }
-
-    public boolean repeatIsRevealedTrue(String chainTaskId, String walletAddress) {
-        return web3jAbstractService.repeatCheck(nbBlocksToWaitPerRetry, maxRetries,
-                "isRevealedTrue", this::isRevealedTrue, chainTaskId, walletAddress);
-    }
-
-    private boolean isContributedTrue(String... args) {
-        return this.isStatusTrueOnChain(args[0], args[1], CONTRIBUTED);
-    }
-
-    private boolean isRevealedTrue(String... args) {
-        return this.isStatusTrueOnChain(args[0], args[1], REVEALED);
-    }
-
-    public boolean isStatusTrueOnChain(String chainTaskId, String walletAddress,
-                                       ChainContributionStatus wishedStatus) {
-        Optional<ChainContribution> optional =
-                getChainContribution(chainTaskId, walletAddress);
-        if (optional.isEmpty()) {
-            return false;
-        }
-
-        ChainContribution chainContribution = optional.get();
-        ChainContributionStatus chainStatus = chainContribution.getStatus();
-        switch (wishedStatus) {
-            case CONTRIBUTED:
-                // has at least contributed
-                return chainStatus.equals(CONTRIBUTED) || chainStatus.equals(REVEALED);
-            case REVEALED:
-                // has at least revealed
-                return chainStatus.equals(REVEALED);
-            default:
-                return false;
-        }
     }
 
     // region Purge
