@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Value;
 import org.web3j.utils.Numeric;
 
@@ -29,7 +28,6 @@ import java.math.BigInteger;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @JsonDeserialize(builder = DatasetOrder.DatasetOrderBuilder.class)
 public class DatasetOrder extends Order {
 
@@ -59,7 +57,8 @@ public class DatasetOrder extends Order {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class DatasetOrderBuilder{}
+    public static class DatasetOrderBuilder {
+    }
 
     public DatasetOrder withSignature(String signature) {
         return new DatasetOrder(
@@ -82,5 +81,14 @@ public class DatasetOrder extends Order {
                 Numeric.hexStringToByteArray(this.salt),
                 Numeric.hexStringToByteArray(this.sign)
         );
+    }
+
+    public String toString() {
+        return "DatasetOrder{dataset=" + dataset + ", datasetprice=" + datasetprice
+                + ", volume=" + volume + ", tag=" + tag
+                + ", apprestrict=" + apprestrict
+                + ", workerpoolrestrict=" + workerpoolrestrict
+                + ", requesterrestrict=" + requesterrestrict
+                + ", salt=" + salt + ", sign=" + sign + "}";
     }
 }

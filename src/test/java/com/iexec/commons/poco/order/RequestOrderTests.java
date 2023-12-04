@@ -42,6 +42,14 @@ class RequestOrderTests {
                 "\"requester\":\"\",\"category\":null,\"trust\":null,\"beneficiary\":\"\",\"callback\":\"\",\"params\":null}");
         RequestOrder parsedRequestOrder = mapper.readValue(jsonString, RequestOrder.class);
         assertThat(parsedRequestOrder).usingRecursiveComparison().isEqualTo(requestOrder);
+        assertThat(requestOrder).hasToString(
+                "RequestOrder{app=, appmaxprice=null"
+                        + ", dataset=, datasetmaxprice=null"
+                        + ", workerpool=, workerpoolmaxprice=null"
+                        + ", requester=, volume=null, tag=null, category=null, trust=null"
+                        + ", beneficiary=, callback=, params=null"
+                        + ", salt=null, sign=null}"
+        );
     }
 
     @Test
@@ -79,6 +87,15 @@ class RequestOrderTests {
         assertThat(web3jRequestOrder.callback).isEqualTo(requestOrder.getCallback());
         assertThat(web3jRequestOrder.params).isEqualTo(requestOrder.getParams());
         assertThat(web3jRequestOrder.salt).isEqualTo(Numeric.hexStringToByteArray(requestOrder.getSalt()));
+        assertThat(requestOrder).hasToString(
+                "RequestOrder{app=0x1, appmaxprice=10"
+                        + ", dataset=0x2, datasetmaxprice=10"
+                        + ", workerpool=0x3, workerpoolmaxprice=10"
+                        + ", requester=0x4, volume=1, tag=0x0000000000000000000000000000000000000000000000000000000000000000"
+                        + ", category=0, trust=1, beneficiary=0x5"
+                        + ", callback=0x0000000000000000000000000000000000000000, params=null"
+                        + ", salt=" + requestOrder.getSalt() + ", sign=0x0}"
+        );
     }
 
 }

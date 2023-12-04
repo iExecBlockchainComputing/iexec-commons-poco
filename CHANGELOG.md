@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Dataset names can be empty in Poco deals. (#59)
 - Catch all exceptions when reading the latest block number on the blockchain network. (#60)
 - Remove methods from `IexecHubAbstractService`, they were unused or moved to `iexec-core`. (#63)
+- Write PoCo orders classes `toString` implementations with compliant fields ordering. (#64)
 
 ### Dependency Upgrades
 

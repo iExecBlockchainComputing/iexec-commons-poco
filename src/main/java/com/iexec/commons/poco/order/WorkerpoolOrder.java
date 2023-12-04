@@ -65,7 +65,8 @@ public class WorkerpoolOrder extends Order {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class WorkerpoolOrderBuilder{}
+    public static class WorkerpoolOrderBuilder {
+    }
 
     @Override
     public WorkerpoolOrder withSignature(String signature) {
@@ -91,5 +92,15 @@ public class WorkerpoolOrder extends Order {
                 Numeric.hexStringToByteArray(this.salt),
                 Numeric.hexStringToByteArray(this.sign)
         );
+    }
+
+    public String toString() {
+        return "WorkerpoolOrder{workerpool=" + workerpool + ", workerpoolprice=" + workerpoolprice
+                + ", volume=" + volume + ", tag=" + tag
+                + ", category=" + category + ", trust=" + trust
+                + ", apprestrict=" + apprestrict
+                + ", datasetrestrict=" + datasetrestrict
+                + ", requesterrestrict=" + requesterrestrict
+                + ", salt=" + salt + ", sign=" + sign + "}";
     }
 }
