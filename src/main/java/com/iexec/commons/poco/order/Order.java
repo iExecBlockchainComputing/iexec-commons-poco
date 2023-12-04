@@ -39,6 +39,7 @@ public abstract class Order {
 
     /**
      * Converts all characters to Lowercase or returns empty
+     *
      * @param s String to convert
      * @return the String, converted to lowercase or an empty string
      */

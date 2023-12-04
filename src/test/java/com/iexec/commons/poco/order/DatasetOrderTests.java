@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
@@ -41,6 +42,10 @@ class DatasetOrderTests {
                 "\"dataset\":null,\"datasetprice\":null,\"apprestrict\":\"\",\"workerpoolrestrict\":\"\",\"requesterrestrict\":\"\"}");
         DatasetOrder parsedDatasetOrder = mapper.readValue(jsonString, DatasetOrder.class);
         assertThat(parsedDatasetOrder).usingRecursiveComparison().isEqualTo(datasetOrder);
+        Assertions.assertThat(datasetOrder).hasToString(
+                "DatasetOrder{dataset=null, datasetprice=null, volume=null, tag=null"
+                        + ", apprestrict=, workerpoolrestrict=, requesterrestrict=, salt=null, sign=null}"
+        );
     }
 
     @Test
@@ -65,6 +70,14 @@ class DatasetOrderTests {
         assertThat(web3jDatasetOrder.workerpoolrestrict).isEqualTo(datasetOrder.getWorkerpoolrestrict());
         assertThat(web3jDatasetOrder.requesterrestrict).isEqualTo(datasetOrder.getRequesterrestrict());
         assertThat(web3jDatasetOrder.salt).isEqualTo(Numeric.hexStringToByteArray(datasetOrder.getSalt()));
+        Assertions.assertThat(datasetOrder).hasToString(
+                "DatasetOrder{dataset=0x1, datasetprice=0"
+                        + ", volume=1, tag=0x0000000000000000000000000000000000000000000000000000000000000000"
+                        + ", apprestrict=0x0000000000000000000000000000000000000000"
+                        + ", workerpoolrestrict=0x0000000000000000000000000000000000000000"
+                        + ", requesterrestrict=0x0000000000000000000000000000000000000000"
+                        + ", salt=" + datasetOrder.getSalt() + ", sign=0x0}"
+        );
     }
 
 }

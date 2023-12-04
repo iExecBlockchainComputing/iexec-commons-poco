@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Value;
 import org.web3j.utils.Numeric;
 
@@ -29,7 +28,6 @@ import java.math.BigInteger;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @JsonDeserialize(builder = RequestOrder.RequestOrderBuilder.class)
 public class RequestOrder extends Order {
 
@@ -80,7 +78,8 @@ public class RequestOrder extends Order {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class RequestOrderBuilder{}
+    public static class RequestOrderBuilder {
+    }
 
     @Override
     public RequestOrder withSignature(String signature) {
@@ -112,5 +111,16 @@ public class RequestOrder extends Order {
                 Numeric.hexStringToByteArray(this.salt),
                 Numeric.hexStringToByteArray(this.sign)
         );
+    }
+
+    public String toString() {
+        return "RequestOrder{"
+                + "app=" + app + ", appmaxprice=" + appmaxprice
+                + ", dataset=" + dataset + ", datasetmaxprice=" + datasetmaxprice
+                + ", workerpool=" + workerpool + ", workerpoolmaxprice=" + workerpoolmaxprice
+                + ", requester=" + requester + ", volume=" + volume + ", tag=" + tag
+                + ", category=" + category + ", trust=" + trust
+                + ", beneficiary=" + beneficiary + ", callback=" + callback + ", params=" + params
+                + ", salt=" + salt + ", sign=" + sign + "}";
     }
 }
