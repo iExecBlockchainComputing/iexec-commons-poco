@@ -142,7 +142,7 @@ class TaskDescriptionTests {
 
     @Test
     void toTaskDescriptionWithNullDeal() {
-        Assertions.assertNull(TaskDescription.toTaskDescription("0x15", 5, null));
+        Assertions.assertNull(TaskDescription.toTaskDescription(null, null));
     }
 
     @Test
@@ -177,8 +177,14 @@ class TaskDescriptionTests {
                 .trust(TRUST)
                 .build();
 
+        ChainTask chainTask = ChainTask.builder()
+                .dealid(chainDeal.getChainDealId())
+                .chainTaskId(CHAIN_TASK_ID)
+                .idx(TASK_IDX)
+                .build();
+
         TaskDescription task =
-                TaskDescription.toTaskDescription(CHAIN_TASK_ID, TASK_IDX, chainDeal);
+                TaskDescription.toTaskDescription(chainDeal, chainTask);
 
         Assertions.assertEquals(CHAIN_TASK_ID,
                 task.getChainTaskId());
