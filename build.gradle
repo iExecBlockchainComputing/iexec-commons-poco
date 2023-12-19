@@ -9,14 +9,14 @@ plugins {
 group = 'com.iexec.commons'
 
 ext {
-    testContainersVersion = '1.19.0'
+    testContainersVersion = '1.19.3'
 }
 
 if (!project.hasProperty('gitBranch')) {
     ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
-if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
+if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
     version += '-NEXT-SNAPSHOT'
 }
 
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.14')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.17')
 
     // web3j
     api 'org.web3j:core:4.9.7'
@@ -44,15 +44,15 @@ dependencies {
 
     // multiaddresses (IPFS)
     implementation 'com.github.multiformats:java-multiaddr:v1.4.6'
-    
+
     // jaxb required with Java 11 DataTypeConverter in BytesUtils
     implementation 'javax.xml.bind:jaxb-api'
-    
+
     // failsafe
     implementation 'net.jodah:failsafe:2.4.4'
     //TODO Migrate from Awaitility to Failsafe everywhere
     implementation 'org.awaitility:awaitility'
-    
+
     // javax annotations like PostConstruct
     implementation 'javax.annotation:javax.annotation-api'
 
@@ -72,8 +72,10 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
     withJavadocJar()
     withSourcesJar()
 }
@@ -84,11 +86,6 @@ tasks.withType(Test).configureEach {
 }
 
 test {
-    doFirst {
-        exec {
-            commandLine 'docker', 'compose', 'pull', '-q'
-        }
-    }
     reports {
         junitXml.required = true
         html.required = true

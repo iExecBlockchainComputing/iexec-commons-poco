@@ -18,6 +18,7 @@ package com.iexec.commons.poco.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.iexec.commons.poco.chain.ChainDeal;
+import com.iexec.commons.poco.chain.ChainTask;
 import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
@@ -46,10 +47,8 @@ public class TaskDescription {
     String appAddress;
     TeeEnclaveConfiguration appEnclaveConfiguration;
     String cmd;
-    long maxExecutionTime;
     boolean isTeeTask;
     TeeFramework teeFramework;
-    int botIndex;
     int botSize;
     int botFirstIndex;
     String datasetAddress;
@@ -62,9 +61,12 @@ public class TaskDescription {
     String resultStorageProxy;
     String smsUrl;
     Map<String, String> secrets;
-    String teePostComputeImage;
-    String teePostComputeFingerprint;
     BigInteger trust;
+    // from task
+    int botIndex;
+    long maxExecutionTime; // timeref ?
+    long contributionDeadline;
+    long finalDeadline;
 
     /**
      * Check if this task includes a dataset or not. The task is considered
@@ -73,7 +75,7 @@ public class TaskDescription {
      * information since they, inevitably, break the workflow. In the case
      * where those datasets are ignored, the worker will contribute an
      * application error caused by the missing dataset file.
-     * 
+     *
      * @return true if all dataset fields are all non-null,
      * non-empty values, false otherwise.
      */
@@ -81,13 +83,12 @@ public class TaskDescription {
         return !StringUtils.isEmpty(datasetAddress) &&
                 !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS) &&
                 !StringUtils.isEmpty(datasetUri) &&
-                !StringUtils.isEmpty(datasetChecksum) &&
-                !StringUtils.isEmpty(datasetName);
+                !StringUtils.isEmpty(datasetChecksum);
     }
 
     /**
-     * Check if a callback is requested for this task. 
-     * 
+     * Check if a callback is requested for this task.
+     *
      * @return true if a callback address is found in the deal, false otherwise.
      */
     public boolean containsCallback() {
@@ -96,22 +97,11 @@ public class TaskDescription {
 
     /**
      * Check if this task includes some input files.
-     * 
+     *
      * @return true if at least one input file is present, false otherwise
      */
     public boolean containsInputFiles() {
         return inputFiles != null && !inputFiles.isEmpty();
-    }
-
-    /**
-     * Check if this task contains a post-compute image uri and its fingerprint.
-     * 
-     * @return true if and only if both image uri and fingerprint are present,
-     * false otherwise
-     */
-    public boolean containsPostCompute() {
-        return !StringUtils.isEmpty(teePostComputeImage) &&
-                !StringUtils.isEmpty(teePostComputeFingerprint);
     }
 
     public String getAppCommand() {
@@ -143,16 +133,13 @@ public class TaskDescription {
     /**
      * Create a {@link TaskDescription} from the provided chain deal. This method
      * if preferred to constructors or the builder method.
-     * 
-     * @param chainTaskId
-     * @param taskIdx
-     * @param chainDeal
+     *
+     * @param chainDeal On-chain deal from PoCo smart contracts
+     * @param chainTask On-chain task from PoCo smart contracts
      * @return the created taskDescription
      */
-    public static TaskDescription toTaskDescription(String chainTaskId,
-                                                    int taskIdx,
-                                                    ChainDeal chainDeal) {
-        if (chainDeal == null) {
+    public static TaskDescription toTaskDescription(ChainDeal chainDeal, ChainTask chainTask) {
+        if (chainDeal == null || chainTask == null) {
             return null;
         }
         String datasetAddress = "";
@@ -161,14 +148,13 @@ public class TaskDescription {
         String datasetChecksum = "";
         if (chainDeal.containsDataset()) {
             datasetAddress = chainDeal.getChainDataset().getChainDatasetId();
-            datasetUri = MultiAddressHelper.convertToURI(
-                            chainDeal.getChainDataset().getUri());
+            datasetUri = MultiAddressHelper.convertToURI(chainDeal.getChainDataset().getUri());
             datasetName = chainDeal.getChainDataset().getName();
             datasetChecksum = chainDeal.getChainDataset().getChecksum();
         }
         final String tag = chainDeal.getTag();
         return TaskDescription.builder()
-                .chainTaskId(chainTaskId)
+                .chainTaskId(chainTask.getChainTaskId())
                 .requester(chainDeal
                         .getRequester())
                 .beneficiary(chainDeal
@@ -185,8 +171,6 @@ public class TaskDescription {
                         .getIexecArgs())
                 .inputFiles(chainDeal.getParams()
                         .getIexecInputFiles())
-                .maxExecutionTime(chainDeal.getChainCategory()
-                        .getMaxExecutionTime())
                 .isTeeTask(TeeUtils
                         .isTeeTag(tag))
                 .teeFramework(TeeUtils
@@ -199,20 +183,18 @@ public class TaskDescription {
                         .getIexecResultStorageProxy())
                 .secrets(chainDeal.getParams()
                         .getIexecSecrets())
-                .teePostComputeImage(chainDeal.getParams()
-                        .getIexecTeePostComputeImage())
-                .teePostComputeFingerprint(chainDeal.getParams()
-                        .getIexecTeePostComputeFingerprint())
                 .datasetAddress(datasetAddress)
                 .datasetUri(datasetUri)
                 .datasetName(datasetName)
                 .datasetChecksum(datasetChecksum)
-                .botSize(chainDeal
-                        .getBotSize().intValue())
-                .botFirstIndex(chainDeal
-                        .getBotFirst().intValue())
-                .botIndex(taskIdx)
+                .botSize(chainDeal.getBotSize().intValue())
+                .botFirstIndex(chainDeal.getBotFirst().intValue())
                 .trust(chainDeal.getTrust())
+                // from task
+                .botIndex(chainTask.getIdx())
+                .maxExecutionTime(chainDeal.getChainCategory().getMaxExecutionTime()) // https://github.com/iExecBlockchainComputing/PoCo/blob/v5/contracts/modules/delegates/IexecPoco2Delegate.sol#L111
+                .contributionDeadline(chainTask.getContributionDeadline())
+                .finalDeadline(chainTask.getFinalDeadline())
                 .build();
     }
 }

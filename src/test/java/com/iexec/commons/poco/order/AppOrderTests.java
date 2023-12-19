@@ -43,6 +43,10 @@ class AppOrderTests {
                 "\"app\":null,\"appprice\":null,\"datasetrestrict\":\"\",\"workerpoolrestrict\":\"\",\"requesterrestrict\":\"\"}");
         AppOrder parsedAppOrder = mapper.readValue(jsonString, AppOrder.class);
         assertThat(parsedAppOrder).usingRecursiveComparison().isEqualTo(appOrder);
+        assertThat(appOrder).hasToString(
+                "AppOrder{app=null, appprice=null, volume=null, tag=null"
+                        + ", datasetrestrict=, workerpoolrestrict=, requesterrestrict=, salt=null, sign=null}"
+        );
     }
 
     @Test
@@ -67,6 +71,14 @@ class AppOrderTests {
         assertThat(web3jAppOrder.workerpoolrestrict).isEqualTo(appOrder.getWorkerpoolrestrict());
         assertThat(web3jAppOrder.requesterrestrict).isEqualTo(appOrder.getRequesterrestrict());
         assertThat(web3jAppOrder.salt).isEqualTo(Numeric.hexStringToByteArray(appOrder.getSalt()));
+        assertThat(appOrder).hasToString(
+                "AppOrder{app=0x1, appprice=0"
+                        + ", volume=1, tag=0x0000000000000000000000000000000000000000000000000000000000000000"
+                        + ", datasetrestrict=0x0000000000000000000000000000000000000000"
+                        + ", workerpoolrestrict=0x0000000000000000000000000000000000000000"
+                        + ", requesterrestrict=0x0000000000000000000000000000000000000000"
+                        + ", salt=" + appOrder.getSalt() + ", sign=0x0}"
+        );
     }
 
 }

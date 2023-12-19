@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.CipherException;
@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
+import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -58,13 +60,15 @@ class MatchOrdersTests {
     private OrderSigner signer;
 
     @Container
-    static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
+    static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
             .withExposedService("poco-chain", 8545);
 
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        web3jService = new Web3jTestService(environment.getServicePort("poco-chain", 8545));
+        String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
+                environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
+        web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
     }

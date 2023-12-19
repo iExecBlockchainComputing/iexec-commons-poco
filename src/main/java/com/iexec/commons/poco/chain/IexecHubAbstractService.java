@@ -47,8 +47,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-import static com.iexec.commons.poco.chain.ChainContributionStatus.CONTRIBUTED;
-import static com.iexec.commons.poco.chain.ChainContributionStatus.REVEALED;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
@@ -71,7 +69,6 @@ public abstract class IexecHubAbstractService {
     protected IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus = -1;
-    private final int nbBlocksToWaitPerRetry;
     private final long retryDelay;// ms
     private final int maxRetries;
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
@@ -85,11 +82,12 @@ public abstract class IexecHubAbstractService {
 
     /**
      * Base constructor for the IexecHubAbstractService
-     * @param credentials credentials for sending transaction
-     * @param web3jAbstractService custom web3j service
-     * @param iexecHubAddress address of the iExec Hub contract
+     *
+     * @param credentials            credentials for sending transaction
+     * @param web3jAbstractService   custom web3j service
+     * @param iexecHubAddress        address of the iExec Hub contract
      * @param nbBlocksToWaitPerRetry nb block to wait per retry
-     * @param maxRetries maximum reties
+     * @param maxRetries             maximum reties
      */
     protected IexecHubAbstractService(
             Credentials credentials,
@@ -100,7 +98,6 @@ public abstract class IexecHubAbstractService {
         this.credentials = credentials;
         this.web3jAbstractService = web3jAbstractService;
         this.iexecHubAddress = iexecHubAddress;
-        this.nbBlocksToWaitPerRetry = nbBlocksToWaitPerRetry;
         this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
@@ -165,12 +162,9 @@ public abstract class IexecHubAbstractService {
         return iexecHubContract;
     }
 
+    // region workerpool
+
     // TODO move workerpool methods to their own class (e.g.: WorkerpoolManager)
-
-    // ######################
-    // #    Workerpool      #
-    // ######################
-
     public Workerpool getWorkerpoolContract(String workerpoolAddress) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load Workerpool " +
@@ -323,7 +317,7 @@ public abstract class IexecHubAbstractService {
             return null;
         }
 
-        RemoteFunctionCall<String> call = workerpoolRegistry.predictWorkerpool(owner,name);
+        RemoteFunctionCall<String> call = workerpoolRegistry.predictWorkerpool(owner, name);
         String address = "";
         try {
             address = call.send();
@@ -333,12 +327,11 @@ public abstract class IexecHubAbstractService {
         return address;
     }
 
+    // endregion
+
+    // region app
+
     // TODO move app methods to its own class (e.g.: AppManager)
-
-    // ######################
-    // #        App         #
-    // ######################
-
     public App getAppContract(String appAddress) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load App " +
@@ -396,7 +389,7 @@ public abstract class IexecHubAbstractService {
      * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String createApp(String name, String multiAddress, String type,
-            String checksum, String mrEnclave, int secondsTimeout, int secondsPollingInterval) {
+                            String checksum, String mrEnclave, int secondsTimeout, int secondsPollingInterval) {
         String owner = credentials.getAddress();
         final String paramsPrinter = " [owner:{}, name:{}]";
 
@@ -406,7 +399,7 @@ public abstract class IexecHubAbstractService {
         }
 
         AppRegistry appRegistry =
-            getAppRegistryContract(web3jAbstractService.getContractGasProvider());
+                getAppRegistryContract(web3jAbstractService.getContractGasProvider());
         if (appRegistry == null) {
             log.error("Failed to get appRegistry" + paramsPrinter, owner, name);
             return "";
@@ -478,7 +471,7 @@ public abstract class IexecHubAbstractService {
      * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String createApp(String name, String multiAddress, String type,
-            String checksum, String mrEnclave) {
+                            String checksum, String mrEnclave) {
         return createApp(name, multiAddress, type, checksum, mrEnclave, 10 * 60, 5);
     }
 
@@ -492,7 +485,7 @@ public abstract class IexecHubAbstractService {
      * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String predictApp(String owner, String name, String multiAddress, String type,
-            String checksum, String mrEnclave) {
+                             String checksum, String mrEnclave) {
         final String paramsPrinter = " [owner:{}, name:{}, multiAddress:{}, checksum:{}]";
 
         if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)
@@ -524,12 +517,11 @@ public abstract class IexecHubAbstractService {
         return address;
     }
 
+    // endregion
+
+    // region dataset
+
     // TODO move dataset methods to its own class (e.g.: DatasetManager)
-
-    // ######################
-    // #      Dataset       #
-    // ######################
-
     public Dataset getDatasetContract(String datasetAddress) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load Dataset " +
@@ -715,6 +707,8 @@ public abstract class IexecHubAbstractService {
         return address;
     }
 
+    // endregion
+
     /**
      * Retrieves on-chain deal with a retryer
      *
@@ -808,7 +802,7 @@ public abstract class IexecHubAbstractService {
             ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
                     .viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)).send());
             String chainDealId = chainTask.getDealid();
-            if (isNonZeroedBytes32(chainDealId)){
+            if (isNonZeroedBytes32(chainDealId)) {
                 return Optional.of(chainTask);
             } else {
                 log.debug("Failed to get consistent ChainTask [chainTaskId:{}]",
@@ -927,9 +921,8 @@ public abstract class IexecHubAbstractService {
             chainAppBuilder.enclaveConfiguration(
                     buildEnclaveConfigurationFromJsonString(mrEnclave));
         } catch (Exception e) {
-            log.error("Failed to get tee chain app enclave configuration " +
-                    "[chainAppId:{}, mrEnclave:{}]", app.getContractAddress(),
-                    mrEnclave, e);
+            log.error("Failed to get tee chain app enclave configuration [chainAppId:{}, mrEnclave:{}]",
+                    app.getContractAddress(), mrEnclave, e);
             return Optional.empty();
         }
         return Optional.of(chainAppBuilder.build());
@@ -1040,7 +1033,7 @@ public abstract class IexecHubAbstractService {
      *
      */
     public TaskDescription getTaskDescription(String chainTaskId) {
-        if(!taskDescriptions.containsKey(chainTaskId)) {
+        if (!taskDescriptions.containsKey(chainTaskId)) {
             repeatGetTaskDescriptionFromChain(chainTaskId, retryDelay, maxRetries)
                     .ifPresent(taskDescription ->
                             taskDescriptions.putIfAbsent(chainTaskId, taskDescription));
@@ -1055,7 +1048,7 @@ public abstract class IexecHubAbstractService {
     public Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
                                                                        long retryDelay,
                                                                        int maxRetry) {
-        if (retryDelay == 0){
+        if (retryDelay == 0) {
             return Optional.empty();
         }
         Optional<ChainTask> optionalChainTask =
@@ -1077,9 +1070,7 @@ public abstract class IexecHubAbstractService {
         ChainDeal chainDeal = optionalChainDeal.get();
 
         TaskDescription taskDescription =
-                TaskDescription.toTaskDescription(chainTaskId,
-                        chainTask.getIdx(),
-                        chainDeal);
+                TaskDescription.toTaskDescription(chainDeal, chainTask);
         return taskDescription != null ? Optional.of(taskDescription) : Optional.empty();
     }
 
@@ -1096,47 +1087,8 @@ public abstract class IexecHubAbstractService {
         return oTaskDescription.get().isTeeTask();
     }
 
-    public boolean repeatIsContributedTrue(String chainTaskId, String walletAddress) {
-        return web3jAbstractService.repeatCheck(nbBlocksToWaitPerRetry, maxRetries,
-                "isContributedTrue", this::isContributedTrue, chainTaskId, walletAddress);
-    }
-
-    public boolean repeatIsRevealedTrue(String chainTaskId, String walletAddress) {
-        return web3jAbstractService.repeatCheck(nbBlocksToWaitPerRetry, maxRetries,
-                "isRevealedTrue", this::isRevealedTrue, chainTaskId, walletAddress);
-    }
-
-    private boolean isContributedTrue(String... args) {
-        return this.isStatusTrueOnChain(args[0], args[1], CONTRIBUTED);
-    }
-
-    private boolean isRevealedTrue(String... args) {
-        return this.isStatusTrueOnChain(args[0], args[1], REVEALED);
-    }
-
-    public boolean isStatusTrueOnChain(String chainTaskId, String walletAddress,
-                                       ChainContributionStatus wishedStatus) {
-        Optional<ChainContribution> optional =
-                getChainContribution(chainTaskId, walletAddress);
-        if (optional.isEmpty()) {
-            return false;
-        }
-
-        ChainContribution chainContribution = optional.get();
-        ChainContributionStatus chainStatus = chainContribution.getStatus();
-        switch (wishedStatus) {
-            case CONTRIBUTED:
-                // has at least contributed
-                return chainStatus.equals(CONTRIBUTED) || chainStatus.equals(REVEALED);
-            case REVEALED:
-                // has at least revealed
-                return chainStatus.equals(REVEALED);
-            default:
-                return false;
-        }
-    }
-
     // region Purge
+
     /**
      * Purge description of given task.
      *
@@ -1160,5 +1112,6 @@ public abstract class IexecHubAbstractService {
     protected void purgeAllTasksData() {
         taskDescriptions.clear();
     }
+
     // endregion
 }

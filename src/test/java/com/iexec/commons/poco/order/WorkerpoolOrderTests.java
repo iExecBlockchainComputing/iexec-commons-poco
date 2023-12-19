@@ -41,6 +41,11 @@ class WorkerpoolOrderTests {
                 "\"workerpool\":null,\"workerpoolprice\":null,\"trust\":null,\"category\":null,\"apprestrict\":\"\",\"datasetrestrict\":\"\",\"requesterrestrict\":\"\"}");
         WorkerpoolOrder parsedWorkerpoolOrder = mapper.readValue(jsonString, WorkerpoolOrder.class);
         assertThat(parsedWorkerpoolOrder).usingRecursiveComparison().isEqualTo(workerpoolOrder);
+        assertThat(workerpoolOrder).hasToString(
+                "WorkerpoolOrder{workerpool=null, workerpoolprice=null, volume=null, tag=null"
+                        + ", category=null, trust=null"
+                        + ", apprestrict=, datasetrestrict=, requesterrestrict=, salt=null, sign=null}"
+        );
     }
 
     @Test
@@ -69,6 +74,15 @@ class WorkerpoolOrderTests {
         assertThat(web3jWorkerpoolOrder.datasetrestrict).isEqualTo(workerpoolOrder.getDatasetrestrict());
         assertThat(web3jWorkerpoolOrder.requesterrestrict).isEqualTo(workerpoolOrder.getRequesterrestrict());
         assertThat(web3jWorkerpoolOrder.salt).isEqualTo(Numeric.hexStringToByteArray(workerpoolOrder.getSalt()));
+        assertThat(workerpoolOrder).hasToString(
+                "WorkerpoolOrder{workerpool=0x1, workerpoolprice=0"
+                        + ", volume=1, tag=0x0000000000000000000000000000000000000000000000000000000000000000"
+                        + ", category=0, trust=1"
+                        + ", apprestrict=0x0000000000000000000000000000000000000000"
+                        + ", datasetrestrict=0x0000000000000000000000000000000000000000"
+                        + ", requesterrestrict=0x0000000000000000000000000000000000000000"
+                        + ", salt=" + workerpoolOrder.getSalt() + ", sign=0x0}"
+        );
     }
 
 }
