@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2023
 
+## [[3.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.2.0) 2023-12-19
+
 ### New Features
 
 - Add `contributionDeadline` and `finalDeadline` fields to `TaskDescription`. (#65)
