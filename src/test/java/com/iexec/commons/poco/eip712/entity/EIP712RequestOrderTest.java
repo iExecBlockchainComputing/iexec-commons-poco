@@ -21,12 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.order.RequestOrder;
 import com.iexec.commons.poco.utils.BytesUtils;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
-import org.web3j.crypto.CipherException;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.WalletUtils;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,16 +79,11 @@ class EIP712RequestOrderTest {
                 .isEqualTo("0x611511fa5169dff40f7b4c0013e9f149e79dfddacd80a19852a1e9b42294eaef4329367f01eb48930f990a418befed0c5634e493809f2e9a6a60727137964df51c");
     }
 
+    @SneakyThrows
     private ECKeyPair getWallet() {
-        try {
-            return WalletUtils.loadCredentials(
-                    "whatever",
-                    "src/test/resources/wallet.json")
-                    .getEcKeyPair();
-        } catch (IOException | CipherException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return WalletUtils
+                .loadCredentials("whatever", "./src/test/resources/wallet.json")
+                .getEcKeyPair();
     }
 
 }
