@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2023
+## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2024
+
+### New features
+
+- Compile project with Java 17. (#70)
 
 ### Bug Fixes
 
@@ -11,6 +15,11 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Use `@SneakyThrows` lombok annotation in `EIP-712` related tests. (#69)
+- Generate contract wrappers with web3j-cli 1.5.0. (#70)
+
+### Dependency Upgrades
+
+- Upgrade to `web3j` 4.10.3. (#70)
 
 ## [[3.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.2.0) 2023-12-19
 
