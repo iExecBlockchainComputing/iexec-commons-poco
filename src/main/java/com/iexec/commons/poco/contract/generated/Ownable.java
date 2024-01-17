@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.iexec.commons.poco.contract.generated;
 
 import io.reactivex.Flowable;
-import io.reactivex.functions.Function;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +27,7 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -49,7 +49,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 1.4.2.
+ * <p>Generated with web3j version 1.5.0.
  */
 @SuppressWarnings("rawtypes")
 public class Ownable extends Contract {
@@ -102,18 +102,17 @@ public class Ownable extends Contract {
         return responses;
     }
 
+    public static OwnershipTransferredEventResponse getOwnershipTransferredEventFromLog(Log log) {
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(OWNERSHIPTRANSFERRED_EVENT, log);
+        OwnershipTransferredEventResponse typedResponse = new OwnershipTransferredEventResponse();
+        typedResponse.log = log;
+        typedResponse.previousOwner = (String) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.newOwner = (String) eventValues.getIndexedValues().get(1).getValue();
+        return typedResponse;
+    }
+
     public Flowable<OwnershipTransferredEventResponse> ownershipTransferredEventFlowable(EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(new Function<Log, OwnershipTransferredEventResponse>() {
-            @Override
-            public OwnershipTransferredEventResponse apply(Log log) {
-                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(OWNERSHIPTRANSFERRED_EVENT, log);
-                OwnershipTransferredEventResponse typedResponse = new OwnershipTransferredEventResponse();
-                typedResponse.log = log;
-                typedResponse.previousOwner = (String) eventValues.getIndexedValues().get(0).getValue();
-                typedResponse.newOwner = (String) eventValues.getIndexedValues().get(1).getValue();
-                return typedResponse;
-            }
-        });
+        return web3j.ethLogFlowable(filter).map(log -> getOwnershipTransferredEventFromLog(log));
     }
 
     public Flowable<OwnershipTransferredEventResponse> ownershipTransferredEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
@@ -123,14 +122,14 @@ public class Ownable extends Contract {
     }
 
     public RemoteFunctionCall<String> owner() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(FUNC_OWNER, 
+        final Function function = new Function(FUNC_OWNER, 
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<TransactionReceipt> renounceOwnership() {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_RENOUNCEOWNERSHIP, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
@@ -138,7 +137,7 @@ public class Ownable extends Contract {
     }
 
     public RemoteFunctionCall<TransactionReceipt> transferOwnership(String newOwner) {
-        final org.web3j.abi.datatypes.Function function = new org.web3j.abi.datatypes.Function(
+        final Function function = new Function(
                 FUNC_TRANSFEROWNERSHIP, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newOwner)), 
                 Collections.<TypeReference<?>>emptyList());
