@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 - Use `@SneakyThrows` lombok annotation in `EIP-712` related tests. (#69)
 - Generate contract wrappers with web3j-cli 1.5.0. (#70)
+- Migrate `EthAddress` utility class from `iexec-common`. (#71)
 
 ### Dependency Upgrades
 
