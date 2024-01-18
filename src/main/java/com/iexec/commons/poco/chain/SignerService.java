@@ -39,7 +39,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
 @Slf4j
-//@Getter
 public class SignerService {
 
     private final Credentials credentials;

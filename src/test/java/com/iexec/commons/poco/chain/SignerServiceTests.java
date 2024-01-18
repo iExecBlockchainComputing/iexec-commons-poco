@@ -40,6 +40,7 @@ class SignerServiceTests {
     @TempDir
     File tempDir;
 
+    private static final long CHAIN_ID = 65535L;
     private static final String WALLET_PASS = "wallet-pass";
     private static final Web3j WEB3J_CLIENT = Web3j.build(new HttpService("http://localhost:8545"));
 
@@ -47,13 +48,19 @@ class SignerServiceTests {
     @Test
     void shouldConstructFromCredentials() {
         Credentials credentials = Credentials.create(Hash.sha3(""));
-        SignerService signer = new SignerService(WEB3J_CLIENT, 65535L, credentials);
+        SignerService signer = new SignerService(WEB3J_CLIENT, CHAIN_ID, credentials);
         assertThat(signer.getAddress()).isEqualTo("0x9cce34f7ab185c7aba1b7c8140d620b4bda941d6");
     }
 
     @Test
+    void shouldConstructWithRandomWallet() throws Exception {
+        SignerService signer = new SignerService(WEB3J_CLIENT, CHAIN_ID);
+        assertThat(signer.getAddress()).isNotEmpty();
+    }
+
+    @Test
     void shouldNotConstructFromNullCredentials() {
-        assertThrows(ExceptionInInitializerError.class, () -> new SignerService(WEB3J_CLIENT, 65535L, null));
+        assertThrows(ExceptionInInitializerError.class, () -> new SignerService(WEB3J_CLIENT, CHAIN_ID, null));
     }
     // endregion
 
@@ -61,14 +68,14 @@ class SignerServiceTests {
     @Test
     void shouldLoadCorrectCredentials() throws Exception {
         String walletPath = createTempWallet();
-        SignerService signer = new SignerService(WEB3J_CLIENT, 65535L, WALLET_PASS, walletPath);
+        SignerService signer = new SignerService(WEB3J_CLIENT, CHAIN_ID, WALLET_PASS, walletPath);
         Credentials credentials = WalletUtils.loadCredentials(WALLET_PASS, walletPath);
         assertThat(signer.getAddress()).isEqualTo(credentials.getAddress());
     }
 
     @Test
     void shouldThrowIOExceptionSinceWalletFileNotFind() {
-        assertThrows(FileNotFoundException.class, () -> new SignerService(WEB3J_CLIENT, 65535L, WALLET_PASS, "dummy-path"));
+        assertThrows(FileNotFoundException.class, () -> new SignerService(WEB3J_CLIENT, CHAIN_ID, WALLET_PASS, "dummy-path"));
     }
 
     @Test
@@ -77,14 +84,14 @@ class SignerServiceTests {
         FileWriter fw = new FileWriter(walletPath);
         fw.write("{new: devilish corrupted content}");
         fw.close();
-        assertThrows(IOException.class, () -> new SignerService(WEB3J_CLIENT, 65535L, WALLET_PASS, walletPath));
+        assertThrows(IOException.class, () -> new SignerService(WEB3J_CLIENT, CHAIN_ID, WALLET_PASS, walletPath));
     }
 
     @Test
     void shouldThrowCipherExceptionSinceWrongPassword() throws Exception {
         String wrongPass = "wrong-pass";
         String walletPath = createTempWallet();
-        assertThrows(CipherException.class, () -> new SignerService(WEB3J_CLIENT, 65535L, wrongPass, walletPath));
+        assertThrows(CipherException.class, () -> new SignerService(WEB3J_CLIENT, CHAIN_ID, wrongPass, walletPath));
     }
     // endregion
 
