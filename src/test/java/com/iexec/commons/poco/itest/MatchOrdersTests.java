@@ -18,8 +18,10 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.DealParams;
+import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.OrderSigner;
+import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +43,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
@@ -52,9 +55,12 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 @Testcontainers
 class MatchOrdersTests {
 
+    private static final BigInteger GAS_LIMIT = BigInteger.valueOf(1_000_000L);
+    private static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
     private Credentials credentials;
+    private SignerService signerService;
     private IexecHubTestService iexecHubService;
     private Web3jTestService web3jService;
     private OrderSigner signer;
@@ -71,6 +77,7 @@ class MatchOrdersTests {
         web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
         signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
+        signerService = new SignerService(web3jService.getWeb3j(), web3jService.getChainId(), credentials);
     }
 
     @Test
@@ -100,7 +107,7 @@ class MatchOrdersTests {
         String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool");
         assertThat(workerpoolAddress).isEqualTo("0x74c6683f7bc258946e01e278b2842c99a0c7896a");
 
-        AppOrder appOrder = AppOrder.builder()
+        final AppOrder appOrder = AppOrder.builder()
                 .app(appAddress)
                 .appprice(BigInteger.ZERO)
                 .volume(BigInteger.ONE)
@@ -111,7 +118,7 @@ class MatchOrdersTests {
                 .salt(Hash.sha3String("abcd"))
                 .build();
 
-        AppOrder signedAppOrder = signer.signAppOrder(appOrder);
+        final AppOrder signedAppOrder = signer.signAppOrder(appOrder);
         assertThat(signedAppOrder.getSign())
                 .isEqualTo("0x18e0f7a382513a74e90763dc755c0751121316073b0f4cb6a5481580696574ec3e0060c166bc1b764079d233236ff59e88bcb74bbe7c941d2cdf7204f5fc89061b");
 
@@ -126,11 +133,11 @@ class MatchOrdersTests {
                 .salt(Hash.sha3String("abcd"))
                 .build();
 
-        DatasetOrder signedDatasetOrder = signer.signDatasetOrder(datasetOrder);
+        final DatasetOrder signedDatasetOrder = signer.signDatasetOrder(datasetOrder);
         assertThat(signedDatasetOrder.getSign())
                 .isEqualTo("0x529ea0d91a7f1cc373c34c7ec43cd132238b052abbf74c379f15d930fe0bf66d00907b58ba2bbe9e1f73aeb02e08da6a4e6915dba7ed4eb54a56b2d319ec987b1b");
 
-        WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
+        final WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
                 .workerpoolprice(BigInteger.TEN)
                 .volume(BigInteger.ONE)
@@ -142,7 +149,7 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        WorkerpoolOrder signedWorkerpoolOrder = signer.signWorkerpoolOrder(workerpoolOrder);
+        final WorkerpoolOrder signedWorkerpoolOrder = signer.signWorkerpoolOrder(workerpoolOrder);
         assertThat(signedWorkerpoolOrder.getSign())
                 .isEqualTo("0x52ce5afec8e142ea9217bd818796c7b4b1ab1e1ebebf532b59ebc3ae15c56efb5c55e1b3c79fa3929ae1bf3895b926f47316dac8a7a484c8db05068d31e8038f1c");
 
@@ -150,13 +157,13 @@ class MatchOrdersTests {
                 "1", "first-secret",
                 "2", "second-secret",
                 "3", "third-secret"));
-        DealParams dealParams = DealParams.builder()
+        final DealParams dealParams = DealParams.builder()
                 .iexecResultEncryption(true)
                 .iexecResultStorageProvider("ipfs")
                 .iexecResultStorageProxy("http://result-proxy:13200")
                 .iexecSecrets(iexecSecrets)
                 .build();
-        RequestOrder requestOrder = RequestOrder.builder()
+        final RequestOrder requestOrder = RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(appOrder.getAppprice())
                 .dataset(datasetOrder.getDataset())
@@ -173,18 +180,20 @@ class MatchOrdersTests {
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
+        final RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
         assertThat(signedRequestOrder.getSign())
                 .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
 
-        TransactionReceipt receipt = iexecHubService
-                .getHubContract()
-                .matchOrders(
-                        signedAppOrder.toHubContract(),
-                        signedDatasetOrder.toHubContract(),
-                        signedWorkerpoolOrder.toHubContract(),
-                        signedRequestOrder.toHubContract()
-                ).send();
+        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
+        String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        String matchOrdersTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
+        );
+        TransactionReceipt receipt = null;
+        while (receipt == null) {
+            TimeUnit.SECONDS.sleep(1);
+            receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
+        }
 
         assertThat(receipt).isNotNull();
         assertThat(receipt.isStatusOK()).isTrue();

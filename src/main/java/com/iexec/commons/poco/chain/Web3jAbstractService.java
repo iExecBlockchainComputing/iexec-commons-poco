@@ -24,6 +24,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -133,6 +134,7 @@ public abstract class Web3jAbstractService {
         return BigInteger.valueOf(GAS_LIMIT_CAP * gasPriceCap);
     }
 
+    // region JSON-RPC
     public EthBlock.Block getLatestBlock() throws IOException {
         return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
     }
@@ -157,6 +159,24 @@ public abstract class Web3jAbstractService {
         return web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
                 false).send().getBlock();
     }
+
+    public BigInteger getNonce(String address) {
+        try {
+            return web3j.ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)
+                    .send().getTransactionCount();
+        } catch (Exception e) {
+            return BigInteger.ZERO;
+        }
+    }
+
+    public TransactionReceipt getTransactionReceipt(String txHash) {
+        try {
+            return web3j.ethGetTransactionReceipt(txHash).send().getTransactionReceipt().orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    // endregion
 
     // check if the blockNumber is already available for the scheduler
     // blockNumber is different than 0 only for status the require a check on the blockchain, so the scheduler should
