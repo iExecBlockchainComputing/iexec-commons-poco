@@ -60,13 +60,13 @@ public class SignerService {
     }
 
     public SignerService(Web3j web3j, long chainId, Credentials credentials) {
-        this.credentials = credentials;
         if (credentials != null && EthAddress.validate(credentials.getAddress())) {
             log.info("Loaded wallet credentials [address:{}]",
                     credentials.getAddress());
         } else {
             throw new ExceptionInInitializerError("Cannot create credential service");
         }
+        this.credentials = credentials;
         this.txManager = new RawTransactionManager(
                 web3j, credentials, chainId, 10, 1000L);
         this.web3j = web3j;
@@ -128,11 +128,11 @@ public class SignerService {
     /**
      * Sign and send transaction for signer
      *
-     * @param nonce
-     * @param gasPrice
-     * @param gasLimit
-     * @param to
-     * @param data
+     * @param nonce    transaction counter of the account
+     * @param gasPrice price paid per gas unit consumed for the transaction
+     * @param gasLimit threshold limiting the gas quantity that can be spent on the transaction
+     * @param to       target ethereum address
+     * @param data     function selector with encoded arguments
      * @return transaction hash
      * @throws IOException if communication with the blockchain network failed
      */
