@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New features
 
 - Compile project with Java 17. (#70)
+- Add `SignerService` class. (#72)
 
 ### Bug Fixes
 
