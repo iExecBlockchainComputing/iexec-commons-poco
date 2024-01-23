@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Compile project with Java 17. (#70)
 - Add `SignerService` class. (#72)
-- Add `MatchOrdersDataEncoder` to allow sending `matchOrders` transactions with `SignerService`. (#73 #74)
+- Add encoders to allow sending `matchOrders` and asset deployment transactions with `SignerService`. (#73 #74 #75)
 
 ### Bug Fixes
 
