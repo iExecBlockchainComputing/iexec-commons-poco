@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,45 @@ class MatchOrdersTests {
         String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool");
         assertThat(workerpoolAddress).isEqualTo("0x74c6683f7bc258946e01e278b2842c99a0c7896a");
 
+        final AppOrder signedAppOrder = buildSignedAppOrder(appAddress);
+        assertThat(signedAppOrder.getSign())
+                .isEqualTo("0x18e0f7a382513a74e90763dc755c0751121316073b0f4cb6a5481580696574ec3e0060c166bc1b764079d233236ff59e88bcb74bbe7c941d2cdf7204f5fc89061b");
+
+        final DatasetOrder signedDatasetOrder = buildSignedDatasetOrder(datasetAddress);
+        assertThat(signedDatasetOrder.getSign())
+                .isEqualTo("0x529ea0d91a7f1cc373c34c7ec43cd132238b052abbf74c379f15d930fe0bf66d00907b58ba2bbe9e1f73aeb02e08da6a4e6915dba7ed4eb54a56b2d319ec987b1b");
+
+        final WorkerpoolOrder signedWorkerpoolOrder = buildSignedWorkerpoolOrder(workerpoolAddress);
+        assertThat(signedWorkerpoolOrder.getSign())
+                .isEqualTo("0x52ce5afec8e142ea9217bd818796c7b4b1ab1e1ebebf532b59ebc3ae15c56efb5c55e1b3c79fa3929ae1bf3895b926f47316dac8a7a484c8db05068d31e8038f1c");
+
+        final RequestOrder signedRequestOrder = buildSignedRequestOrder(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
+        assertThat(signedRequestOrder.getSign())
+                .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
+
+        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
+        String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        String matchOrdersTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
+        );
+        TransactionReceipt receipt = null;
+        while (receipt == null) {
+            TimeUnit.SECONDS.sleep(1);
+            receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
+        }
+
+        assertThat(receipt).isNotNull();
+        assertThat(receipt.isStatusOK()).isTrue();
+
+        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
+        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
+
+        String chainDealId = BytesUtils.bytesToString(dealid);
+        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
+        assertThat(oChainDeal).isPresent();
+    }
+
+    private AppOrder buildSignedAppOrder(String appAddress) {
         final AppOrder appOrder = AppOrder.builder()
                 .app(appAddress)
                 .appprice(BigInteger.ZERO)
@@ -117,12 +156,11 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
+        return signer.signAppOrder(appOrder);
+    }
 
-        final AppOrder signedAppOrder = signer.signAppOrder(appOrder);
-        assertThat(signedAppOrder.getSign())
-                .isEqualTo("0x18e0f7a382513a74e90763dc755c0751121316073b0f4cb6a5481580696574ec3e0060c166bc1b764079d233236ff59e88bcb74bbe7c941d2cdf7204f5fc89061b");
-
-        DatasetOrder datasetOrder = DatasetOrder.builder()
+    private DatasetOrder buildSignedDatasetOrder(String datasetAddress) {
+        final DatasetOrder datasetOrder = DatasetOrder.builder()
                 .dataset(datasetAddress)
                 .datasetprice(BigInteger.ZERO)
                 .volume(BigInteger.ONE)
@@ -132,11 +170,10 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
+        return signer.signDatasetOrder(datasetOrder);
+    }
 
-        final DatasetOrder signedDatasetOrder = signer.signDatasetOrder(datasetOrder);
-        assertThat(signedDatasetOrder.getSign())
-                .isEqualTo("0x529ea0d91a7f1cc373c34c7ec43cd132238b052abbf74c379f15d930fe0bf66d00907b58ba2bbe9e1f73aeb02e08da6a4e6915dba7ed4eb54a56b2d319ec987b1b");
-
+    private WorkerpoolOrder buildSignedWorkerpoolOrder(String workerpoolAddress) {
         final WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
                 .workerpoolprice(BigInteger.TEN)
@@ -149,11 +186,11 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        final WorkerpoolOrder signedWorkerpoolOrder = signer.signWorkerpoolOrder(workerpoolOrder);
-        assertThat(signedWorkerpoolOrder.getSign())
-                .isEqualTo("0x52ce5afec8e142ea9217bd818796c7b4b1ab1e1ebebf532b59ebc3ae15c56efb5c55e1b3c79fa3929ae1bf3895b926f47316dac8a7a484c8db05068d31e8038f1c");
+        return signer.signWorkerpoolOrder(workerpoolOrder);
+    }
 
-        TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
+    private RequestOrder buildSignedRequestOrder(AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder) {
+        final TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
                 "1", "first-secret",
                 "2", "second-secret",
                 "3", "third-secret"));
@@ -180,30 +217,7 @@ class MatchOrdersTests {
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        final RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
-        assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
-
-        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
-        String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
-        String matchOrdersTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
-        );
-        TransactionReceipt receipt = null;
-        while (receipt == null) {
-            TimeUnit.SECONDS.sleep(1);
-            receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
-        }
-
-        assertThat(receipt).isNotNull();
-        assertThat(receipt.isStatusOK()).isTrue();
-
-        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
-        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
-
-        String chainDealId = BytesUtils.bytesToString(dealid);
-        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
-        assertThat(oChainDeal).isPresent();
+        return signer.signRequestOrder(requestOrder);
     }
 
 }
