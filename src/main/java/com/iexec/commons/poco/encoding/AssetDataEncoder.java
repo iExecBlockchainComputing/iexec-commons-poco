@@ -72,7 +72,7 @@ public class AssetDataEncoder {
         sb.append(typeContrib);
         sb.append(multiaddrContrib);
         sb.append(mrenclaveContrib);
-        log.debug("app tx {}", sb);
+        log.debug("app tx [data:{}]", sb);
         return sb.toString();
     }
 
@@ -102,7 +102,7 @@ public class AssetDataEncoder {
         sb.append(checksum);
         sb.append(datasetNameContrib);
         sb.append(datasetAddrContrib);
-        log.debug("dataset tx {}", sb);
+        log.debug("dataset tx [data:{}]", sb);
         return sb.toString();
     }
 
@@ -120,7 +120,7 @@ public class AssetDataEncoder {
         sb.append(toHexString(BigInteger.valueOf(offset * 32)));
         String descriptionContrib = TypeEncoder.encode(new DynamicBytes(description.getBytes(StandardCharsets.UTF_8)));
         sb.append(descriptionContrib);
-        log.debug("workerpool tx {}", sb);
+        log.debug("workerpool tx [data:{}]", sb);
         return sb.toString();
     }
 }
