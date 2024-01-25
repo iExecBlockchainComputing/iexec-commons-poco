@@ -42,7 +42,7 @@ public class AssetDataEncoder {
      * @param name      App name
      * @param type      App type, unique supported value should be DOCKER
      * @param multiaddr Docker registry download address
-     * @param checksum  Docker image SAH256 checksum
+     * @param checksum  Docker image SHA-256 checksum
      * @param mrenclave TEE configuration if applicable, should be a valid JSON string of {@link com.iexec.commons.poco.tee.TeeEnclaveConfiguration}
      * @return encoded data
      */
@@ -82,26 +82,26 @@ public class AssetDataEncoder {
      * @param owner     Owner Ethereum address
      * @param name      Dataset name, can be empty
      * @param multiaddr Download address, can be a http link or an IPFS multiaddr
-     * @param checksum  SHA256 checksum of the dataset
+     * @param checksum  SHA-256 checksum of the dataset
      * @return encoded data
      */
     public static String encodeDataset(String owner, String name, String multiaddr, String checksum) {
         long offset = 4;
         StringBuilder sb = new StringBuilder(CREATE_DATASET_SELECTOR);
 
-        String datasetNameOffset = toHexString(BigInteger.valueOf(offset * 32));
-        String datasetNameContrib = TypeEncoder.encode(new DynamicBytes(name.getBytes(StandardCharsets.UTF_8)));
-        offset += datasetNameContrib.length() / 64;
+        String nameOffset = toHexString(BigInteger.valueOf(offset * 32));
+        String nameContrib = TypeEncoder.encode(new DynamicBytes(name.getBytes(StandardCharsets.UTF_8)));
+        offset += nameContrib.length() / 64;
 
-        String datasetAddrOffset = toHexString(BigInteger.valueOf(offset * 32));
-        String datasetAddrContrib = TypeEncoder.encode(new DynamicBytes(multiaddr.getBytes(StandardCharsets.UTF_8)));
+        String multiaddrOffset = toHexString(BigInteger.valueOf(offset * 32));
+        String multiaddrContrib = TypeEncoder.encode(new DynamicBytes(multiaddr.getBytes(StandardCharsets.UTF_8)));
 
         sb.append(toHexString(owner));
-        sb.append(datasetNameOffset);
-        sb.append(datasetAddrOffset);
+        sb.append(nameOffset);
+        sb.append(multiaddrOffset);
         sb.append(checksum);
-        sb.append(datasetNameContrib);
-        sb.append(datasetAddrContrib);
+        sb.append(nameContrib);
+        sb.append(multiaddrContrib);
         log.debug("dataset tx [data:{}]", sb);
         return sb.toString();
     }
