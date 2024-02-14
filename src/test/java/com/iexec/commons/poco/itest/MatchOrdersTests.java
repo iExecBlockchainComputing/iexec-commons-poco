@@ -20,7 +20,11 @@ import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.DealParams;
 import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
-import com.iexec.commons.poco.eip712.OrderSigner;
+import com.iexec.commons.poco.eip712.EIP712Domain;
+import com.iexec.commons.poco.eip712.entity.EIP712AppOrder;
+import com.iexec.commons.poco.eip712.entity.EIP712DatasetOrder;
+import com.iexec.commons.poco.eip712.entity.EIP712RequestOrder;
+import com.iexec.commons.poco.eip712.entity.EIP712WorkerpoolOrder;
 import com.iexec.commons.poco.encoding.AssetDataEncoder;
 import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.*;
@@ -61,11 +65,11 @@ class MatchOrdersTests {
     private static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
+    private final EIP712Domain domain = new EIP712Domain(65535L, IEXEC_HUB_ADDRESS);
     private Credentials credentials;
     private SignerService signerService;
     private IexecHubTestService iexecHubService;
     private Web3jTestService web3jService;
-    private OrderSigner signer;
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
@@ -78,7 +82,6 @@ class MatchOrdersTests {
                 environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
         web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
-        signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
         signerService = new SignerService(web3jService.getWeb3j(), web3jService.getChainId(), credentials);
     }
 
@@ -246,7 +249,8 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        return signer.signAppOrder(appOrder);
+        final String sig = signerService.signEIP712Entity(new EIP712AppOrder(domain, appOrder));
+        return appOrder.withSignature(sig);
     }
 
     private DatasetOrder buildSignedDatasetOrder(String datasetAddress) {
@@ -260,7 +264,8 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        return signer.signDatasetOrder(datasetOrder);
+        final String sig = signerService.signEIP712Entity(new EIP712DatasetOrder(domain, datasetOrder));
+        return datasetOrder.withSignature(sig);
     }
 
     private WorkerpoolOrder buildSignedWorkerpoolOrder(String workerpoolAddress) {
@@ -276,7 +281,8 @@ class MatchOrdersTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        return signer.signWorkerpoolOrder(workerpoolOrder);
+        final String sig = signerService.signEIP712Entity(new EIP712WorkerpoolOrder(domain, workerpoolOrder));
+        return workerpoolOrder.withSignature(sig);
     }
 
     private RequestOrder buildSignedRequestOrder(AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder) {
@@ -307,7 +313,8 @@ class MatchOrdersTests {
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String("abcd"))
                 .build();
-        return signer.signRequestOrder(requestOrder);
+        final String sig = signerService.signEIP712Entity(new EIP712RequestOrder(domain, requestOrder));
+        return requestOrder.withSignature(sig);
     }
 
     private String decodeReceipt(TransactionReceipt receipt) {

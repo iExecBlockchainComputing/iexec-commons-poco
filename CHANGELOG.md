@@ -8,14 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - Compile project with Java 17. (#70)
 - Add `SignerService` class. (#72)
-- Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75)
-
-### Bug Fixes
-
-- Remove unused `IexecLibOrders_v5` generated class. (#68)
+- Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75 #76)
 
 ### Quality
 
+- Remove unused `IexecLibOrders_v5` generated class. (#68)
 - Use `@SneakyThrows` lombok annotation in `EIP-712` related tests. (#69)
 - Generate contract wrappers with web3j-cli 1.5.0. (#70)
 - Migrate `EthAddress` utility class from `iexec-common`. (#71)
