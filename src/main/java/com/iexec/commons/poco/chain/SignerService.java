@@ -34,6 +34,7 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -45,7 +46,7 @@ public class SignerService {
     private final RawTransactionManager txManager;
     private final Web3j web3j;
 
-    public SignerService(Web3j web3j, long chainId) throws Exception {
+    public SignerService(Web3j web3j, long chainId) throws GeneralSecurityException {
         try {
             ECKeyPair ecKeyPair = Keys.createEcKeyPair();
             credentials = Credentials.create(ecKeyPair);
