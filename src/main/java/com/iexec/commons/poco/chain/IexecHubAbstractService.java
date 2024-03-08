@@ -47,6 +47,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
+import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
@@ -212,8 +213,8 @@ public abstract class IexecHubAbstractService {
      * ERC721 mint method to retrieve workerpool address
      * tokenId is the generic form of workerpoolAddress
      *
-     * @param name workerpool name
-     * @param secondsTimeout await workerpool deployment for couple seconds
+     * @param name                   workerpool name
+     * @param secondsTimeout         await workerpool deployment for couple seconds
      * @param secondsPollingInterval check if workerpool is deployed every couple seconds
      * @return workerpool address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
@@ -251,13 +252,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String workerpoolAddress = WorkerpoolRegistry.getTransferEvents(createWorkerpoolReceipt)
-                .stream()
-                .findFirst()
-                .map(event -> event.tokenId) // workerpool is an ERC721
-                .map(Address::new)
-                .map(Address::toString)
-                .orElse("");
+        String workerpoolAddress = getAssetAddressFromReceipt(createWorkerpoolReceipt);
 
         if (StringUtils.isEmpty(workerpoolAddress)) {
             log.error("Failed to extract workerpool address" + paramsPrinter,
@@ -299,7 +294,7 @@ public abstract class IexecHubAbstractService {
      * This method to predict workerpool address without deploying it
      *
      * @param owner workerpool owner
-     * @param name workerpool name
+     * @param name  workerpool name
      * @return workerpool address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String predictWorkerpool(String owner, String name) {
@@ -379,12 +374,12 @@ public abstract class IexecHubAbstractService {
      * ERC721 mint method to retrieve app address
      * tokenId is the generic form of appAddress
      *
-     * @param name app name
-     * @param multiAddress app url
-     * @param type app type
-     * @param checksum app sha256 checksum
-     * @param mrEnclave app mrEnclave
-     * @param secondsTimeout await app deployment for couple seconds
+     * @param name                   app name
+     * @param multiAddress           app url
+     * @param type                   app type
+     * @param checksum               app sha256 checksum
+     * @param mrEnclave              app mrEnclave
+     * @param secondsTimeout         await app deployment for couple seconds
      * @param secondsPollingInterval check if app is deployed every couple seconds
      * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
@@ -426,13 +421,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String appAddress = AppRegistry.getTransferEvents(createAppReceipt)
-                .stream()
-                .findFirst()
-                .map(event -> event.tokenId) // app is an ERC721
-                .map(Address::new)
-                .map(Address::toString)
-                .orElse("");
+        String appAddress = getAssetAddressFromReceipt(createAppReceipt);
 
         if (StringUtils.isEmpty(appAddress)) {
             log.error("Failed to extract app address" + paramsPrinter,
@@ -463,11 +452,11 @@ public abstract class IexecHubAbstractService {
     /**
      * Default method for creating app
      *
-     * @param name app name
+     * @param name         app name
      * @param multiAddress app url
-     * @param type app type
-     * @param checksum app sha256 checksum
-     * @param mrEnclave app mrEnclave
+     * @param type         app type
+     * @param checksum     app sha256 checksum
+     * @param mrEnclave    app mrEnclave
      * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String createApp(String name, String multiAddress, String type,
@@ -478,10 +467,10 @@ public abstract class IexecHubAbstractService {
     /**
      * This method to predict app address without deploying it
      *
-     * @param owner app owner
-     * @param name app name
+     * @param owner        app owner
+     * @param name         app name
      * @param multiAddress app url
-     * @param checksum app sha256 checksum
+     * @param checksum     app sha256 checksum
      * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String predictApp(String owner, String name, String multiAddress, String type,
@@ -569,10 +558,10 @@ public abstract class IexecHubAbstractService {
      * ERC721 mint method to retrieve dataset address
      * tokenId is the generic form of datasetAddress
      *
-     * @param name dataset name
-     * @param multiAddress dataset url
-     * @param checksum dataset sha256 checksum
-     * @param secondsTimeout await dataset deployment for couple seconds
+     * @param name                   dataset name
+     * @param multiAddress           dataset url
+     * @param checksum               dataset sha256 checksum
+     * @param secondsTimeout         await dataset deployment for couple seconds
      * @param secondsPollingInterval check if dataset is deployed every couple seconds
      * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
@@ -618,13 +607,7 @@ public abstract class IexecHubAbstractService {
             return "";
         }
 
-        String datasetAddress = DatasetRegistry.getTransferEvents(createDatasetReceipt)
-                .stream()
-                .findFirst()
-                .map(event -> event.tokenId) // dataset is an ERC721
-                .map(Address::new)
-                .map(Address::toString)
-                .orElse("");
+        String datasetAddress = getAssetAddressFromReceipt(createDatasetReceipt);
 
         if (StringUtils.isEmpty(datasetAddress)) {
             log.error("Failed to extract dataset address" + paramsPrinter,
@@ -655,9 +638,9 @@ public abstract class IexecHubAbstractService {
     /**
      * Default method for creating dataset
      *
-     * @param name dataset name
+     * @param name         dataset name
      * @param multiAddress dataset url
-     * @param checksum dataset sha256 checksum
+     * @param checksum     dataset sha256 checksum
      * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String createDataset(String name, String multiAddress, String checksum) {
@@ -667,10 +650,10 @@ public abstract class IexecHubAbstractService {
     /**
      * This method to predict dataset address without deploying it
      *
-     * @param owner dataset owner
-     * @param name dataset name
+     * @param owner        dataset owner
+     * @param name         dataset name
      * @param multiAddress dataset url
-     * @param checksum dataset sha256 checksum
+     * @param checksum     dataset sha256 checksum
      * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
      */
     public String predictDataset(String owner, String name, String multiAddress,
@@ -713,8 +696,8 @@ public abstract class IexecHubAbstractService {
      * Retrieves on-chain deal with a retryer
      *
      * @param chainDealId deal ID
-     * @param retryDelay delay between retries in ms
-     * @param maxRetry number of maximum retry
+     * @param retryDelay  delay between retries in ms
+     * @param maxRetry    number of maximum retry
      * @return optional ChainDeal
      */
     public Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
@@ -730,7 +713,7 @@ public abstract class IexecHubAbstractService {
 
     /**
      * Retrieves on-chain deal with its blockchain ID
-     *
+     * <p>
      * Note:
      * If `start time` is invalid, it is likely a blockchain issue. In this case,
      * in order to protect workflows based on top of it, the deal won't be
@@ -782,8 +765,8 @@ public abstract class IexecHubAbstractService {
      * Retrieve on-chain task with a retryer
      *
      * @param chainTaskId task ID
-     * @param retryDelay delay between retries in ms
-     * @param maxRetry number of maximum retry
+     * @param retryDelay  delay between retries in ms
+     * @param maxRetry    number of maximum retry
      * @return optional ChainTask
      */
     public Optional<ChainTask> repeatGetChainTask(String chainTaskId,
@@ -839,7 +822,7 @@ public abstract class IexecHubAbstractService {
 
     /**
      * Retrieves on-chain category with its blockchain ID
-     *
+     * <p>
      * Note:
      * If `max execution time` is invalid, it is likely a blockchain issue.
      * In this case,in order to protect workflows based on top of it, the category
@@ -859,7 +842,7 @@ public abstract class IexecHubAbstractService {
             );
             if (chainCategory.getMaxExecutionTime() <= 0) {
                 log.error("Category max execution time should be greater than zero " +
-                        "(likely a blockchain issue) [categoryId:{}, maxExecutionTime:{}]",
+                                "(likely a blockchain issue) [categoryId:{}, maxExecutionTime:{}]",
                         id, chainCategory.getMaxExecutionTime());
                 return Optional.empty();
             }

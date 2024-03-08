@@ -36,7 +36,6 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.crypto.exception.CipherException;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.utils.Numeric;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +43,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -155,9 +155,9 @@ class MatchOrdersTests {
         final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, "my-workerpool-2");
 
         TimeUnit.SECONDS.sleep(5L);
-        String appAddress = decodeReceipt(web3jService.getTransactionReceipt(appTxHash));
-        String datasetAddress = decodeReceipt(web3jService.getTransactionReceipt(datasetTxHash));
-        String workerpoolAddress = decodeReceipt(web3jService.getTransactionReceipt(workerpoolTxHash));
+        String appAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(appTxHash));
+        String datasetAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(datasetTxHash));
+        String workerpoolAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(workerpoolTxHash));
 
         assertThat(appAddress).isEqualTo("0x41eec3f01f579ac5975b6162566999a6f002b2ef");
         assertThat(datasetAddress).isEqualTo("0xb076cc627fb78ab33bb328f43e316547f6c26edc");
@@ -200,16 +200,6 @@ class MatchOrdersTests {
         String chainDealId = BytesUtils.bytesToString(dealid);
         Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
         assertThat(oChainDeal).isPresent();
-    }
-
-    private String decodeReceipt(TransactionReceipt receipt) {
-        log.info("receipt {}", receipt);
-        return receipt.getLogs().stream()
-                .findFirst()
-                .map(log -> log.getTopics().get(3)) // dataset is an ERC721
-                .map(Numeric::toBigInt)
-                .map(addressBigInt -> Numeric.toHexStringWithPrefixZeroPadded(addressBigInt, 40))
-                .orElse("");
     }
 
 }
