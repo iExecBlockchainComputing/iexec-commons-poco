@@ -21,6 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.abi.TypeEncoder;
 import org.web3j.abi.datatypes.DynamicBytes;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -34,6 +36,7 @@ public class AssetDataEncoder {
     private static final String CREATE_APP_SELECTOR = "0x3f7868ff";
     private static final String CREATE_DATASET_SELECTOR = "0x3354bcdb";
     private static final String CREATE_WORKERPOOL_SELECTOR = "0xe40238f4";
+    private static final String NFT_TRANSFER_EVENT = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
     /**
      * Encodes data for {@code createApp} transaction.
@@ -122,5 +125,14 @@ public class AssetDataEncoder {
         sb.append(descriptionContrib);
         log.debug("workerpool tx [data:{}]", sb);
         return sb.toString();
+    }
+
+    public static String getAssetAddressFromReceipt(TransactionReceipt receipt) {
+        return receipt.getLogs().stream()
+                .filter(log -> log.getTopics().contains(NFT_TRANSFER_EVENT))
+                .findFirst()
+                .map(log -> log.getTopics().get(3))
+                .map(address -> Numeric.toHexStringWithPrefixZeroPadded(Numeric.toBigInt(address), 40))
+                .orElse("");
     }
 }

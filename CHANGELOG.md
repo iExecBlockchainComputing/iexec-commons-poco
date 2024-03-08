@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Compile project with Java 17. (#70)
 - Add `SignerService` class. (#72)
 - Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75)
+- Add `getAssetAddressFromReceipt` method to `AssetDataEncoder`. (#78)
 
 ### Quality
 
