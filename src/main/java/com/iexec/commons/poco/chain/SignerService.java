@@ -25,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.web3j.crypto.*;
 import org.web3j.crypto.exception.CipherException;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -124,6 +126,30 @@ public class SignerService {
         final String hash = eip712Entity.getHash();
         final String signedMessage = signEIP712Entity(eip712Entity);
         return signedMessage == null ? null : String.join("_", hash, signedMessage, credentials.getAddress());
+    }
+
+    /**
+     * Sends an {@code eth_call} to an Ethereum address.
+     * <p>
+     * The call is synchronous and does not modify the blockchain state.
+     * <p>
+     * The {@code sendCall} method can throw runtime exceptions, specifically {@code ContractCallException}.
+     * Those exceptions must be caught and handled properly in the business code.
+     *
+     * @param to   Contract address to send the call to
+     * @param data Encoded data representing the method to call with its parameters
+     * @return A single value returned by the called method.
+     * @throws IOException in case of communication failure with the blockchain network.
+     * @see <a href="https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call">eth_call JSON-RPC API</a>
+     */
+    public String sendCall(String to, String data) throws IOException {
+        return sendCall(to, data, DefaultBlockParameterName.LATEST);
+    }
+
+    public String sendCall(String to, String data, DefaultBlockParameter defaultBlockParameter) throws IOException {
+        String value = txManager.sendCall(to, data, defaultBlockParameter);
+        log.debug("value {}", value);
+        return value;
     }
 
     /**

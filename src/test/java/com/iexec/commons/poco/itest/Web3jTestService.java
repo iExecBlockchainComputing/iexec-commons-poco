@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,43 @@
 package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.Web3jAbstractService;
+import com.iexec.commons.poco.encoding.AssetDataEncoder;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Web3jTestService extends Web3jAbstractService {
+    static long BLOCK_TIME = 5;
+
     public Web3jTestService(String chainNodeAddress) {
-        super(65535, chainNodeAddress, Duration.ofSeconds(5), 1.0f, 22_000_000_000L, true);
+        super(65535, chainNodeAddress, Duration.ofSeconds(BLOCK_TIME), 1.0f, 22_000_000_000L, true);
+    }
+
+    public boolean areTxMined(String... txHashes) {
+        return Stream.of(txHashes)
+                .map(this::getTransactionReceipt)
+                .map(Objects::nonNull)
+                .reduce(Boolean::logicalAnd)
+                .orElse(false);
+    }
+
+    public boolean areTxStatusOK(String... txHash) {
+        return Stream.of(txHash)
+                .map(this::getTransactionReceipt)
+                .filter(Objects::nonNull)
+                .map(TransactionReceipt::isStatusOK)
+                .reduce(Boolean::logicalAnd)
+                .orElse(false);
+    }
+
+    public List<String> getDeployedAssets(String... txHashes) {
+        return Stream.of(txHashes)
+                .map(this::getTransactionReceipt)
+                .map(AssetDataEncoder::getAssetAddressFromReceipt)
+                .collect(Collectors.toList());
     }
 }
