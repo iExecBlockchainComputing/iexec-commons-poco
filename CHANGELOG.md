@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Add `SignerService` class. (#72)
 - Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75)
 - Add `getAssetAddressFromReceipt` method to `AssetDataEncoder`. (#78)
+- Use `eth_call` Ethereum JSON-RPC API to predict assets on-chain address. (#79)
 
 ### Quality
 

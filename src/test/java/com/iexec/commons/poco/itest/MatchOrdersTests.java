@@ -16,7 +16,6 @@
 
 package com.iexec.commons.poco.itest;
 
-import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
@@ -40,23 +39,20 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
+import static com.iexec.commons.poco.itest.IexecHubTestService.*;
+import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @Slf4j
 @Tag("itest")
 @Testcontainers
 class MatchOrdersTests {
-
-    private static final BigInteger GAS_LIMIT = BigInteger.valueOf(1_000_000L);
-    private static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
-    private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
     private Credentials credentials;
     private SignerService signerService;
@@ -125,15 +121,14 @@ class MatchOrdersTests {
 
         BigInteger nonce = web3jService.getNonce(credentials.getAddress());
         String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        String predictedDealId = signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
         String matchOrdersTxHash = signerService.signAndSendTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
         );
-        TransactionReceipt receipt = null;
-        while (receipt == null) {
-            TimeUnit.SECONDS.sleep(1);
-            receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
-        }
+        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(matchOrdersTxHash));
 
+        final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
         assertThat(receipt).isNotNull();
         assertThat(receipt.isStatusOK()).isTrue();
 
@@ -141,65 +136,57 @@ class MatchOrdersTests {
         byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
 
         String chainDealId = BytesUtils.bytesToString(dealid);
-        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
-        assertThat(oChainDeal).isPresent();
+        assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+        assertThat(chainDealId).isEqualTo(predictedDealId);
     }
 
     @Test
     void shouldMatchOrdersWithSignerService() throws Exception {
+        final String predictedAppAddress = iexecHubService.callCreateApp("my-app-2");
+        final String predictedDatasetAddress = iexecHubService.callCreateDataset("my-dataset-2");
+        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool("my-workerpool-2");
         BigInteger nonce = web3jService.getNonce(credentials.getAddress());
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, "my-ap-2");
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, "my-app-2");
         nonce = nonce.add(BigInteger.ONE);
         final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, "my-dataset-2");
         nonce = nonce.add(BigInteger.ONE);
         final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, "my-workerpool-2");
 
-        TimeUnit.SECONDS.sleep(5L);
-        String appAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(appTxHash));
-        String datasetAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(datasetTxHash));
-        String workerpoolAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(workerpoolTxHash));
-
-        assertThat(appAddress).isEqualTo("0x41eec3f01f579ac5975b6162566999a6f002b2ef");
-        assertThat(datasetAddress).isEqualTo("0xb076cc627fb78ab33bb328f43e316547f6c26edc");
-        assertThat(workerpoolAddress).isEqualTo("0x0bec41f6e1424340f252b3687a3686a86134ebe3");
-
-        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(appAddress);
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(predictedAppAddress);
         assertThat(signedAppOrder.getSign())
-                .isEqualTo("0xa86bb2ea025db10e3ba70b8defcd3009a4afee6b39b95a357a62a7cf07b757db76fb0f6dbf4e409262e7a1a8f1695ecdcaca0b465cebd1c77d4b97a6f102a2201b");
+                .isEqualTo("0xc200bf4ac4170d3949831d0049a184b7ee612d74a54f4d12af62cfa734330b3523c1db3a57a4f91d03932313aed3c95200e7950d52cc2f98ee0e08cb0648cbf31c");
 
-        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(datasetAddress);
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(predictedDatasetAddress);
         assertThat(signedDatasetOrder.getSign())
                 .isEqualTo("0xfa2bf8bbfde7db118970aae8781dc78210bd9433111f1332f549aa003f7f28cc6c68c038aa35b5ddfc98242a8ede07ea8fa073f2b0e7f1247b8b97fadc4837c91c");
 
-        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(workerpoolAddress);
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(predictedWorkerpoolAddress);
         assertThat(signedWorkerpoolOrder.getSign())
                 .isEqualTo("0xf6474336a10e3ec12ff65e721fee6ba53763f937a1b54659332f61cf1770b4b26947df22ad89e8623aa985763e917e9f66670e51befc7195b16b0e8db365c13c1c");
 
         final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
                 signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
         assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0x6b38847f28bd7249823a7b99538ff6cca4a2cd952d5860f062be8142b3defcd13fad163a10e6de9e219981a333d3fbd554532be07263b7d77cbd48b2803413051c");
+                .isEqualTo("0x17d53276b2f125953d147af94381388ee20e6be80a6c76cf5359c8a1f04c0f0b670a3bd890fdca9307a11ef52927634b65399fa3a03fc6e89f17d5e3c383b4c31c");
 
         nonce = nonce.add(BigInteger.ONE);
-        String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
-        String matchOrdersTxHash = signerService.signAndSendTransaction(
+        final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        final String matchOrdersTxHash = signerService.signAndSendTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
         );
-        TransactionReceipt receipt = null;
-        while (receipt == null) {
-            TimeUnit.SECONDS.sleep(1);
-            receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
-        }
+        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash));
+        assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash)).isTrue();
 
-        assertThat(receipt).isNotNull();
-        assertThat(receipt.isStatusOK()).isTrue();
-
+        final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
         assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
-        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
 
+        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
         String chainDealId = BytesUtils.bytesToString(dealid);
-        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
-        assertThat(oChainDeal).isPresent();
+        assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+
+        assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
+                .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
     }
 
 }
