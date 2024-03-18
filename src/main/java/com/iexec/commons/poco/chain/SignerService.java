@@ -147,7 +147,7 @@ public class SignerService {
     }
 
     public String sendCall(String to, String data, DefaultBlockParameter defaultBlockParameter) throws IOException {
-        String value = txManager.sendCall(to, data, defaultBlockParameter);
+        final String value = txManager.sendCall(to, data, defaultBlockParameter);
         log.debug("value {}", value);
         return value;
     }
