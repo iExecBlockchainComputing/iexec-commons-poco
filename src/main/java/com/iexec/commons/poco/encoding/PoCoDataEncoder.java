@@ -41,11 +41,11 @@ public class PoCoDataEncoder {
     }
 
     public static String encodeContribute(String chainTaskId, String resultHash, String resultSeal, String enclaveChallenge, String enclaveSign, String authorizationSign) {
-        long enclaveSignOffset = 6 * 32L;
-        String enclaveSignContrib = TypeEncoder.encode(new DynamicBytes(Numeric.hexStringToByteArray(enclaveSign)));
+        final long enclaveSignOffset = 6 * 32L;
+        final String enclaveSignContrib = TypeEncoder.encode(new DynamicBytes(Numeric.hexStringToByteArray(enclaveSign)));
 
-        long authorizationOffset = enclaveSignOffset + enclaveSignContrib.length() / 64 * 32L;
-        String authorizationContrib = TypeEncoder.encode(new DynamicBytes(Numeric.hexStringToByteArray(authorizationSign)));
+        final long authorizationOffset = enclaveSignOffset + enclaveSignContrib.length() / 64 * 32L;
+        final String authorizationContrib = TypeEncoder.encode(new DynamicBytes(Numeric.hexStringToByteArray(authorizationSign)));
 
         return CONTRIBUTE_SELECTOR +
                 toHexString(chainTaskId) +
@@ -65,11 +65,11 @@ public class PoCoDataEncoder {
     }
 
     public static String encodeFinalize(String chainTaskId, byte[] results, byte[] resultsCallback) {
-        long resultsOffset = 3 * 32L;
-        String resultsContrib = TypeEncoder.encode(new DynamicBytes(results));
+        final long resultsOffset = 3 * 32L;
+        final String resultsContrib = TypeEncoder.encode(new DynamicBytes(results));
 
-        long resultsCallbackOffset = resultsOffset + resultsContrib.length() / 64 * 32L;
-        String resultsCallbackContrib = TypeEncoder.encode(new DynamicBytes(resultsCallback));
+        final long resultsCallbackOffset = resultsOffset + resultsContrib.length() / 64 * 32L;
+        final String resultsCallbackContrib = TypeEncoder.encode(new DynamicBytes(resultsCallback));
 
         return FINALIZE_SELECTOR +
                 toHexString(chainTaskId) +
