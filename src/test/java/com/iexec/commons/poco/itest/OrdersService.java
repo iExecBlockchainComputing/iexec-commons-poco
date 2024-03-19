@@ -23,18 +23,21 @@ import com.iexec.commons.poco.eip712.entity.EIP712AppOrder;
 import com.iexec.commons.poco.eip712.entity.EIP712DatasetOrder;
 import com.iexec.commons.poco.eip712.entity.EIP712RequestOrder;
 import com.iexec.commons.poco.eip712.entity.EIP712WorkerpoolOrder;
+import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.web3j.crypto.Hash;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static com.iexec.commons.poco.itest.IexecHubTestService.*;
+
 public class OrdersService {
 
     private static final long CHAIN_ID = 65535L;
-    private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
     private final EIP712Domain domain;
     private final SignerService signerService;
@@ -121,5 +124,24 @@ public class OrdersService {
                 .build();
         final String sig = signerService.signEIP712Entity(new EIP712RequestOrder(domain, requestOrder));
         return requestOrder.withSignature(sig);
+    }
+
+    public String callMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress) throws IOException {
+        final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
+        return signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
+    }
+
+    public String submitMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress, BigInteger nonce) throws IOException {
+        final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
+        return signerService.signAndSendTransaction(nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
+    }
+
+    private String encodeMathOrdersTxData(String appAddress, String datasetAddress, String workerpoolAddress) {
+        final AppOrder signedAppOrder = buildSignedAppOrder(appAddress);
+        final DatasetOrder signedDatasetOrder = buildSignedDatasetOrder(datasetAddress);
+        final WorkerpoolOrder signedWorkerpoolOrder = buildSignedWorkerpoolOrder(workerpoolAddress);
+        final RequestOrder signedRequestOrder = buildSignedRequestOrder(
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
+        return MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
     }
 }
