@@ -33,6 +33,7 @@ public class PoCoDataEncoder {
     private static final String CONTRIBUTE_SELECTOR = "0x34623484";
     private static final String REVEAL_SELECTOR = "0xfc334e8c";
     private static final String FINALIZE_SELECTOR = "0x8fc375e5";
+    private static final String CONTRIBUTE_AND_FINALIZE_SELECTOR = "0x5facd761";
 
     public static String encodeInitialize(String dealid, int idx) {
         return INITIALIZE_SELECTOR +
@@ -77,6 +78,33 @@ public class PoCoDataEncoder {
                 toHexString(BigInteger.valueOf(resultsCallbackOffset)) +
                 resultsContrib +
                 resultsCallbackContrib;
+    }
+
+    public static String encodeContributeAndFinalize(String chainTaskId, String resultDigest, byte[] results, byte[] resultsCallback, String enclaveChallenge, String enclaveSign, String authorizationSign) {
+        final long resultsOffset = 7 * 32L;
+        final String resultsContrib = TypeEncoder.encode(new DynamicBytes(results));
+
+        final long resultsCallbackOffset = resultsOffset + resultsContrib.length() / 64 * 32L;
+        final String resultsCallbackContrib = TypeEncoder.encode(new DynamicBytes(resultsCallback));
+
+        final long enclaveSignOffset = resultsCallbackOffset + resultsCallbackContrib.length() / 64 * 32L;
+        final String enclaveSignContrib = TypeEncoder.encode(new DynamicBytes(Numeric.hexStringToByteArray(enclaveSign)));
+
+        final long authorizationSignOffset = enclaveSignOffset + enclaveSignContrib.length() / 64 * 32L;
+        final String authorizationSignContrib = TypeEncoder.encode(new DynamicBytes(Numeric.hexStringToByteArray(authorizationSign)));
+
+        return CONTRIBUTE_AND_FINALIZE_SELECTOR +
+                toHexString(chainTaskId) +
+                toHexString(resultDigest) +
+                toHexString(BigInteger.valueOf(resultsOffset)) +
+                toHexString(BigInteger.valueOf(resultsCallbackOffset)) +
+                toHexString(enclaveChallenge) +
+                toHexString(BigInteger.valueOf(enclaveSignOffset)) +
+                toHexString(BigInteger.valueOf(authorizationSignOffset)) +
+                resultsContrib +
+                resultsCallbackContrib +
+                enclaveSignContrib +
+                authorizationSignContrib;
     }
 
 }
