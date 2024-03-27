@@ -37,6 +37,10 @@ import static com.iexec.commons.poco.itest.IexecHubTestService.*;
 
 public class OrdersService {
 
+    static final String APP_NAME = "my-app";
+    static final String DATASET_NAME = "my-dataset";
+    static final String WORKERPOOL_NAME = "my-workerpool";
+
     private static final long CHAIN_ID = 65535L;
 
     private final EIP712Domain domain;
@@ -129,6 +133,11 @@ public class OrdersService {
     public String callMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress) throws IOException {
         final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
         return signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
+    }
+
+    public BigInteger estimateMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress) throws IOException {
+        final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
+        return signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData);
     }
 
     public String submitMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress, BigInteger nonce) throws IOException {

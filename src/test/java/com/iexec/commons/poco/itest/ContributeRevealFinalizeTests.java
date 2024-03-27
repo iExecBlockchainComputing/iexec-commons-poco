@@ -38,6 +38,7 @@ import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
+import static com.iexec.commons.poco.itest.OrdersService.*;
 import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -70,15 +71,18 @@ class ContributeRevealFinalizeTests {
 
     @Test
     void shouldContributeRevealFinalize() throws Exception {
-        final String predictedAppAddress = iexecHubService.callCreateApp("my-app");
-        final String predictedDatasetAddress = iexecHubService.callCreateDataset("my-dataset");
-        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool("my-workerpool");
+        final String predictedAppAddress = iexecHubService.callCreateApp(APP_NAME);
+        final String predictedDatasetAddress = iexecHubService.callCreateDataset(DATASET_NAME);
+        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(WORKERPOOL_NAME);
+        final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(APP_NAME);
+        final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(DATASET_NAME);
+        final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(WORKERPOOL_NAME);
         BigInteger nonce = web3jService.getNonce(signerService.getAddress());
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, "my-app");
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, APP_NAME);
         nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, "my-dataset");
+        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, DATASET_NAME);
         nonce = nonce.add(BigInteger.ONE);
-        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, "my-workerpool");
+        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, estimatedCreateWorkerpoolGas, WORKERPOOL_NAME);
 
         // Wait for assets deployment to be able to call MatchOrders
         await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
@@ -87,6 +91,8 @@ class ContributeRevealFinalizeTests {
         final String predictedDealId = ordersService.callMatchOrders(
                 predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
         final String predictedChainTaskId = ChainUtils.generateChainTaskId(predictedDealId, 0);
+        final BigInteger estimatedMatchOrdersGas = ordersService.estimateMatchOrders(
+                predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
 
         // deal id
         nonce = nonce.add(BigInteger.ONE);
@@ -139,6 +145,12 @@ class ContributeRevealFinalizeTests {
                 .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
         assertThat(iexecHubService.getChainDeal(predictedDealId)).isPresent();
         assertThat(iexecHubService.getChainTask(predictedChainTaskId)).isPresent();
+
+        // Gas
+        web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
+        web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
+        web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
+        web3jService.displayGas("matchOrders", estimatedMatchOrdersGas, matchOrdersTxHash);
     }
 
 }

@@ -18,14 +18,17 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.Web3jAbstractService;
 import com.iexec.commons.poco.encoding.AssetDataEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.math.BigInteger;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class Web3jTestService extends Web3jAbstractService {
     static long BLOCK_TIME = 5;
 
@@ -48,6 +51,11 @@ public class Web3jTestService extends Web3jAbstractService {
                 .map(TransactionReceipt::isStatusOK)
                 .reduce(Boolean::logicalAnd)
                 .orElse(false);
+    }
+
+    void displayGas(String method, BigInteger estimated, String txHash) {
+        final TransactionReceipt receipt = getTransactionReceipt(txHash);
+        log.info("Gas used [method:{}, estimated:{}, consumed:{}]", method, estimated, receipt.getGasUsed());
     }
 
     public List<String> getDeployedAssets(String... txHashes) {
