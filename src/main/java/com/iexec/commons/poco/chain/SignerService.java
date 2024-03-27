@@ -28,6 +28,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response;
+import org.web3j.protocol.core.methods.response.EthEstimateGas;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.exceptions.JsonRpcError;
@@ -150,6 +151,22 @@ public class SignerService {
         final String value = txManager.sendCall(to, data, defaultBlockParameter);
         log.debug("value {}", value);
         return value;
+    }
+
+    /**
+     * Estimates Gas amount to be used to mine the transaction described by the given payload.
+     *
+     * @param to   Contract address to send the call to
+     * @param data Encoded data representing the method to estimate with its parameters
+     * @return The estimated Gas amount needed to mine the transaction
+     * @throws IOException in case of communication failure with the blockchain network
+     * @see <a href="https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_estimategas">eth_estimateGas JSON RPC-API</a>
+     */
+    public BigInteger estimateGas(String to, String data) throws IOException {
+        final EthEstimateGas estimateGas = this.web3j.ethEstimateGas(org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
+                credentials.getAddress(), to, data)).send();
+        log.debug("estimateGas [amountUsed:{}]", estimateGas.getAmountUsed());
+        return estimateGas.getAmountUsed();
     }
 
     /**

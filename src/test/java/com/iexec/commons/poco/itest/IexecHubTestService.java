@@ -45,98 +45,125 @@ public class IexecHubTestService extends IexecHubAbstractService {
                 web3jAbstractService.getWeb3j(), web3jAbstractService.getChainId(), credentials);
     }
 
+    // region createApp
     public String callCreateApp(String name) throws IOException {
         log.info("callCreateApp");
         final String appRegistryAddress = toEthereumAddress(
                 signerService.sendCall(IEXEC_HUB_ADDRESS, APP_REGISTRY_SELECTOR));
-        final String appTxData = AssetDataEncoder.encodeApp(
-                signerService.getAddress(),
-                name,
-                "DOCKER",
-                "multiAddress",
-                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64),
-                "{}"
-        );
+        final String appTxData = createAppTxData(name);
         return toEthereumAddress(signerService.sendCall(appRegistryAddress, appTxData));
     }
 
-    public String submitCreateAppTx(BigInteger nonce, String name) throws IOException {
+    public BigInteger estimateCreateApp(String name) throws IOException {
+        log.info("estimateCreateApp");
+        final String appRegistryAddress = toEthereumAddress(
+                signerService.sendCall(IEXEC_HUB_ADDRESS, APP_REGISTRY_SELECTOR));
+        final String appTxData = createAppTxData(name);
+        return signerService.estimateGas(appRegistryAddress, appTxData);
+    }
+
+    public String submitCreateAppTx(BigInteger nonce, BigInteger gasLimit, String name) throws IOException {
         log.info("submitCreateAppTx");
         final String appRegistryAddress = toEthereumAddress(
                 signerService.sendCall(IEXEC_HUB_ADDRESS, APP_REGISTRY_SELECTOR));
         log.info("app registry address {}", appRegistryAddress);
-        final String appTxData = AssetDataEncoder.encodeApp(
-                signerService.getAddress(),
-                name,
-                "DOCKER",
-                "multiAddress",
-                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64),
-                "{}"
-        );
+        final String appTxData = createAppTxData(name);
         final String appTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, appRegistryAddress, appTxData
+                nonce, GAS_PRICE, gasLimit, appRegistryAddress, appTxData
         );
         log.info("app tx hash {}", appTxHash);
         return appTxHash;
     }
 
+    private String createAppTxData(String name) {
+        return AssetDataEncoder.encodeApp(
+                signerService.getAddress(),
+                name,
+                "DOCKER",
+                "multiAddress",
+                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64),
+                "{}"
+        );
+    }
+    // endregion
+
+    // region createDataset
     public String callCreateDataset(String name) throws IOException {
         log.info("callCreateDataset");
         final String datasetRegistryAddress = toEthereumAddress(
                 signerService.sendCall(IEXEC_HUB_ADDRESS, DATASET_REGISTRY_SELECTOR));
-        final String datasetTxData = AssetDataEncoder.encodeDataset(
-                signerService.getAddress(),
-                name,
-                "multiAddress",
-                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64)
-        );
+        final String datasetTxData = createDatasetTxData(name);
         return toEthereumAddress(signerService.sendCall(datasetRegistryAddress, datasetTxData));
     }
 
-    public String submitCreateDatasetTx(BigInteger nonce, String name) throws IOException {
+    public BigInteger estimateCreateDataset(String name) throws IOException {
+        log.info("callCreateDataset");
+        final String datasetRegistryAddress = toEthereumAddress(
+                signerService.sendCall(IEXEC_HUB_ADDRESS, DATASET_REGISTRY_SELECTOR));
+        final String datasetTxData = createDatasetTxData(name);
+        return signerService.estimateGas(datasetRegistryAddress, datasetTxData);
+    }
+
+    public String submitCreateDatasetTx(BigInteger nonce, BigInteger gasLimit, String name) throws IOException {
         log.info("submitCreateDatasetTx");
         final String datasetRegistryAddress = toEthereumAddress(
                 signerService.sendCall(IEXEC_HUB_ADDRESS, DATASET_REGISTRY_SELECTOR));
         log.info("dataset registry address {}", datasetRegistryAddress);
-        final String datasetTxData = AssetDataEncoder.encodeDataset(
-                signerService.getAddress(),
-                name,
-                "multiAddress",
-                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64)
-        );
+        final String datasetTxData = createDatasetTxData(name);
         final String datasetTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, datasetRegistryAddress, datasetTxData
+                nonce, GAS_PRICE, gasLimit, datasetRegistryAddress, datasetTxData
         );
         log.info("dataset tx hash {}", datasetTxHash);
         return datasetTxHash;
     }
 
+    private String createDatasetTxData(String name) {
+        return AssetDataEncoder.encodeDataset(
+                signerService.getAddress(),
+                name,
+                "multiAddress",
+                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64)
+        );
+    }
+    // enderegion
+
+    // region createWorkerpool
     public String callCreateWorkerpool(String name) throws Exception {
         log.info("callCreateWorkerpool");
         final String workerpoolRegistryAddress = toEthereumAddress(
                 signerService.sendCall(IEXEC_HUB_ADDRESS, WORKERPOOL_REGISTRY_SELECTOR));
-        final String workerpoolTxData = AssetDataEncoder.encodeWorkerpool(
-                signerService.getAddress(),
-                name
-        );
+        final String workerpoolTxData = createWorkerpoolTxData(name);
         return toEthereumAddress(signerService.sendCall(workerpoolRegistryAddress, workerpoolTxData));
     }
 
-    public String submitCreateWorkerpoolTx(BigInteger nonce, String name) throws IOException {
+    public BigInteger estimateCreateWorkerpool(String name) throws Exception {
+        log.info("callCreateWorkerpool");
+        final String workerpoolRegistryAddress = toEthereumAddress(
+                signerService.sendCall(IEXEC_HUB_ADDRESS, WORKERPOOL_REGISTRY_SELECTOR));
+        final String workerpoolTxData = createWorkerpoolTxData(name);
+        return signerService.estimateGas(workerpoolRegistryAddress, workerpoolTxData);
+    }
+
+    public String submitCreateWorkerpoolTx(BigInteger nonce, BigInteger gasLimit, String name) throws IOException {
         log.info("submitCreateWorkerpoolTx");
         final String workerpoolRegistryAddress = toEthereumAddress(
                 signerService.sendCall(IEXEC_HUB_ADDRESS, WORKERPOOL_REGISTRY_SELECTOR));
         log.info("workerpool registry address {}", workerpoolRegistryAddress);
-        final String workerpoolTxData = AssetDataEncoder.encodeWorkerpool(
-                signerService.getAddress(),
-                name
-        );
+        final String workerpoolTxData = createWorkerpoolTxData(name);
         final String workerpoolTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, workerpoolRegistryAddress, workerpoolTxData
+                nonce, GAS_PRICE, gasLimit, workerpoolRegistryAddress, workerpoolTxData
         );
         log.info("workerpool tx hash {}", workerpoolTxHash);
         return workerpoolTxHash;
     }
+
+    private String createWorkerpoolTxData(String name) {
+        return AssetDataEncoder.encodeWorkerpool(
+                signerService.getAddress(),
+                name
+        );
+    }
+    // endregion
 
     private String toEthereumAddress(String hexaString) {
         return Numeric.toHexStringWithPrefixZeroPadded(

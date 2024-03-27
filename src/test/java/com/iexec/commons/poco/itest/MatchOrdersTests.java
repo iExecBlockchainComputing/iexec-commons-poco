@@ -142,15 +142,21 @@ class MatchOrdersTests {
 
     @Test
     void shouldMatchOrdersWithSignerService() throws Exception {
-        final String predictedAppAddress = iexecHubService.callCreateApp("my-app-2");
-        final String predictedDatasetAddress = iexecHubService.callCreateDataset("my-dataset-2");
-        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool("my-workerpool-2");
+        final String appName = "my-app-2";
+        final String datasetName = "my-dataset-2";
+        final String workerpoolName = "my-workerpool-2";
+        final String predictedAppAddress = iexecHubService.callCreateApp(appName);
+        final String predictedDatasetAddress = iexecHubService.callCreateDataset(datasetName);
+        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(workerpoolName);
+        final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(appName);
+        final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(datasetName);
+        final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(workerpoolName);
         BigInteger nonce = web3jService.getNonce(credentials.getAddress());
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, "my-app-2");
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, appName);
         nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, "my-dataset-2");
+        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, datasetName);
         nonce = nonce.add(BigInteger.ONE);
-        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, "my-workerpool-2");
+        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, estimatedCreateWorkerpoolGas, workerpoolName);
 
         final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(predictedAppAddress);
         assertThat(signedAppOrder.getSign())
@@ -172,8 +178,8 @@ class MatchOrdersTests {
         nonce = nonce.add(BigInteger.ONE);
         final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
         final String matchOrdersTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
-        );
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
+
         await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
                 .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash));
         assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash)).isTrue();
@@ -181,12 +187,17 @@ class MatchOrdersTests {
         final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
         assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
 
-        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
-        String chainDealId = BytesUtils.bytesToString(dealid);
+        final byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
+        final String chainDealId = BytesUtils.bytesToString(dealid);
         assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
 
         assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
                 .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
+
+        // Gas
+        web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
+        web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
+        web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
     }
 
 }

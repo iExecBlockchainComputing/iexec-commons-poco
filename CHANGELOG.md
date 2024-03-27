@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Add `getAssetAddressFromReceipt` method to `AssetDataEncoder`. (#78)
 - Use `eth_call` Ethereum JSON-RPC API to predict assets on-chain address. (#79)
 - Add `PoCoDataEncoder` with `initialize`, `contribute`, `reveal`, `finalize` and `contributeAndFinalize` support. (#80 #81)
+- Add `eth_estimateGas` Ethereum JSON-RPC API support. (#82)
 
 ### Quality
 
