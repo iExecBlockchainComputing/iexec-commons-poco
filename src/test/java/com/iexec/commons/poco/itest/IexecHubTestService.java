@@ -85,6 +85,14 @@ public class IexecHubTestService extends IexecHubAbstractService {
                 "{}"
         );
     }
+
+    public boolean isAppPresent(String address) throws IOException {
+        log.info("isAppPresent");
+        final String appRegistryAddress = toEthereumAddress(
+                signerService.sendCall(IEXEC_HUB_ADDRESS, APP_REGISTRY_SELECTOR));
+        final String appTxData = AssetDataEncoder.encodeIsRegistered(address);
+        return Numeric.toBigInt(signerService.sendCall(appRegistryAddress, appTxData)).equals(BigInteger.ONE);
+    }
     // endregion
 
     // region createDataset
@@ -125,6 +133,14 @@ public class IexecHubTestService extends IexecHubAbstractService {
                 Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64)
         );
     }
+
+    public boolean isDatasetPresent(String address) throws IOException {
+        log.info("isDatasetPresent");
+        final String appRegistryAddress = toEthereumAddress(
+                signerService.sendCall(IEXEC_HUB_ADDRESS, DATASET_REGISTRY_SELECTOR));
+        final String appTxData = AssetDataEncoder.encodeIsRegistered(address);
+        return Numeric.toBigInt(signerService.sendCall(appRegistryAddress, appTxData)).equals(BigInteger.ONE);
+    }
     // enderegion
 
     // region createWorkerpool
@@ -162,6 +178,14 @@ public class IexecHubTestService extends IexecHubAbstractService {
                 signerService.getAddress(),
                 name
         );
+    }
+
+    public boolean isWorkerpoolPresent(String address) throws IOException {
+        log.info("isWorkerpoolPresent");
+        final String appRegistryAddress = toEthereumAddress(
+                signerService.sendCall(IEXEC_HUB_ADDRESS, WORKERPOOL_REGISTRY_SELECTOR));
+        final String appTxData = AssetDataEncoder.encodeIsRegistered(address);
+        return Numeric.toBigInt(signerService.sendCall(appRegistryAddress, appTxData)).equals(BigInteger.ONE);
     }
     // endregion
 
