@@ -194,6 +194,17 @@ class MatchOrdersTests {
         assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
                 .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
 
+        // Assets deployment
+        assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue();
+        assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse();
+        assertThat(iexecHubService.isAppPresent(predictedWorkerpoolAddress)).isFalse();
+        assertThat(iexecHubService.isDatasetPresent(predictedAppAddress)).isFalse();
+        assertThat(iexecHubService.isDatasetPresent(predictedDatasetAddress)).isTrue();
+        assertThat(iexecHubService.isDatasetPresent(predictedWorkerpoolAddress)).isFalse();
+        assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse();
+        assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
+        assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
+
         // Gas
         web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
         web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);

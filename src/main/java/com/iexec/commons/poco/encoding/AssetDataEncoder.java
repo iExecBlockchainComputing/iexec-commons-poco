@@ -36,6 +36,7 @@ public class AssetDataEncoder {
     private static final String CREATE_APP_SELECTOR = "0x3f7868ff";
     private static final String CREATE_DATASET_SELECTOR = "0x3354bcdb";
     private static final String CREATE_WORKERPOOL_SELECTOR = "0xe40238f4";
+    private static final String IS_REGISTERED_SELECTOR = "0xc3c5a547";
     private static final String NFT_TRANSFER_EVENT = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
     /**
@@ -127,6 +128,24 @@ public class AssetDataEncoder {
         return sb.toString();
     }
 
+    /**
+     * Encodes data for {@code isRegistered} transaction.
+     *
+     * @param address Ethereum address to check
+     * @return encoded data
+     */
+    public static String encodeIsRegistered(String address) {
+        return IS_REGISTERED_SELECTOR + toHexString(address);
+    }
+
+    /**
+     * Retrieves the NFT address of a deployed asset from its transaction receipt.
+     * <p>
+     * The address is extracted from an emitted {@code Transfer} event
+     *
+     * @param receipt The transaction receipt retrieved on the blockchain
+     * @return The NFT address as a 20-byte String
+     */
     public static String getAssetAddressFromReceipt(TransactionReceipt receipt) {
         return receipt.getLogs().stream()
                 .filter(log -> log.getTopics().contains(NFT_TRANSFER_EVENT))
