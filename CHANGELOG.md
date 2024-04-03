@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Add `PoCoDataEncoder` with `initialize`, `contribute`, `reveal`, `finalize` and `contributeAndFinalize` support. (#80 #81)
 - Add `eth_estimateGas` Ethereum JSON-RPC API support. (#82)
 - Add transaction data encoder to support `isRegistered` method call. (#83)
+- Add decoder to display log topcis with human readable names. (#84)
 
 ### Quality
 

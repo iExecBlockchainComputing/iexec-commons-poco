@@ -39,6 +39,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
@@ -62,7 +63,7 @@ class MatchOrdersTests {
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
-            .withExposedService("poco-chain", 8545);
+            .withExposedService(SERVICE_NAME, SERVICE_PORT);
 
     @BeforeEach
     void init() throws CipherException, IOException {
@@ -209,6 +210,13 @@ class MatchOrdersTests {
         web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
         web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
         web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
+
+        // Logs
+        assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(datasetTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(workerpoolTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
+                .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
     }
 
 }
