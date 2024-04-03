@@ -18,14 +18,16 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.IexecHubAbstractService;
 import com.iexec.commons.poco.chain.SignerService;
-import com.iexec.commons.poco.chain.Web3jAbstractService;
 import com.iexec.commons.poco.encoding.AssetDataEncoder;
+import com.iexec.commons.poco.encoding.LogTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.crypto.Credentials;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class IexecHubTestService extends IexecHubAbstractService {
@@ -38,11 +40,13 @@ public class IexecHubTestService extends IexecHubAbstractService {
     private static final String WORKERPOOL_REGISTRY_SELECTOR = "0x90a0f546";
 
     private final SignerService signerService;
+    private final Web3jTestService web3jTestService;
 
-    public IexecHubTestService(Credentials credentials, Web3jAbstractService web3jAbstractService) {
-        super(credentials, web3jAbstractService, IEXEC_HUB_ADDRESS);
+    public IexecHubTestService(Credentials credentials, Web3jTestService web3jTestService) {
+        super(credentials, web3jTestService, IEXEC_HUB_ADDRESS);
         signerService = new SignerService(
-                web3jAbstractService.getWeb3j(), web3jAbstractService.getChainId(), credentials);
+                web3jTestService.getWeb3j(), web3jTestService.getChainId(), credentials);
+        this.web3jTestService = web3jTestService;
     }
 
     // region createApp
@@ -141,7 +145,7 @@ public class IexecHubTestService extends IexecHubAbstractService {
         final String appTxData = AssetDataEncoder.encodeIsRegistered(address);
         return Numeric.toBigInt(signerService.sendCall(appRegistryAddress, appTxData)).equals(BigInteger.ONE);
     }
-    // enderegion
+    // endregion
 
     // region createWorkerpool
     public String callCreateWorkerpool(String name) throws Exception {
@@ -188,6 +192,15 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return Numeric.toBigInt(signerService.sendCall(appRegistryAddress, appTxData)).equals(BigInteger.ONE);
     }
     // endregion
+
+    public List<String> fetchLogTopics(String txHash) {
+        return web3jTestService.getTransactionReceipt(txHash)
+                .getLogs()
+                .stream()
+                .map(log -> log.getTopics().get(0))
+                .map(LogTopic::decode)
+                .collect(Collectors.toList());
+    }
 
     private String toEthereumAddress(String hexaString) {
         return Numeric.toHexStringWithPrefixZeroPadded(

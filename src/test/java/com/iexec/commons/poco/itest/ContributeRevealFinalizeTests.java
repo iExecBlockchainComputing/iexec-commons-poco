@@ -35,8 +35,11 @@ import org.web3j.crypto.exception.CipherException;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
+import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
 import static com.iexec.commons.poco.itest.OrdersService.*;
 import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
@@ -56,13 +59,13 @@ class ContributeRevealFinalizeTests {
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
             .withPull(true)
-            .withExposedService("poco-chain", 8545);
+            .withExposedService(SERVICE_NAME, SERVICE_PORT);
 
     @BeforeEach
     void init() throws CipherException, IOException {
         final Credentials credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        final String chainNodeAddress = "http://" + environment.getServiceHost("poco-chain", 8545) + ":" +
-                environment.getServicePort("poco-chain", 8545);
+        final String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
+                environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
         web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
         signerService = new SignerService(web3jService.getWeb3j(), web3jService.getChainId(), credentials);
@@ -162,6 +165,18 @@ class ContributeRevealFinalizeTests {
         web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
         web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
         web3jService.displayGas("matchOrders", estimatedMatchOrdersGas, matchOrdersTxHash);
+
+        // Logs
+        assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(datasetTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(workerpoolTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
+                .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
+        assertThat(iexecHubService.fetchLogTopics(initializeTxHash)).isEqualTo(List.of("TaskInitialize"));
+        assertThat(iexecHubService.fetchLogTopics(contributeTxHash)).isEqualTo(List.of("Transfer", "Lock", "TaskContribute", "TaskConsensus"));
+        assertThat(iexecHubService.fetchLogTopics(revealTxHash)).isEqualTo(List.of("TaskReveal"));
+        assertThat(iexecHubService.fetchLogTopics(finalizeTxHash))
+                .isEqualTo(List.of("Seize", "Transfer", "Unlock", "Transfer", "Unlock", "Transfer", "Reward", "Transfer", "Reward", "TaskFinalize"));
     }
 
 }
