@@ -37,7 +37,7 @@ dependencies {
     implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.17')
 
     // web3j
-    api 'org.web3j:core:4.10.3'
+    api 'org.web3j:core:4.9.7'
 
     // apache commons.lang3
     implementation 'org.apache.commons:commons-lang3'
@@ -74,8 +74,8 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
-    sourceCompatibility = "17"
-    targetCompatibility = "17"
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
     withJavadocJar()
     withSourcesJar()
 }
