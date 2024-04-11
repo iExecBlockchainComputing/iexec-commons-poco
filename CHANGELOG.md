@@ -6,7 +6,6 @@ All notable changes to this project will be documented in this file.
 
 ### New features
 
-- Compile project with Java 17. (#70)
 - Add `SignerService` class. (#72)
 - Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75)
 - Add `getAssetAddressFromReceipt` method to `AssetDataEncoder`. (#78)
@@ -24,14 +23,9 @@ All notable changes to this project will be documented in this file.
 
 - Remove unused `IexecLibOrders_v5` generated class. (#68)
 - Use `@SneakyThrows` lombok annotation in `EIP-712` related tests. (#69)
-- Generate contract wrappers with web3j-cli 1.5.0. (#70)
 - Migrate `EthAddress` utility class from `iexec-common`. (#71)
 - Replace `OrderSigner` with `SignerService` in `MatchOrdersTests`. (#76)
 - Add methods to `IexecHubTestService` and add `OrdersService` for tests. (#77)
-
-### Dependency Upgrades
-
-- Upgrade to `web3j` 4.10.3. (#70)
 
 ## [[3.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.2.0) 2023-12-19
 
