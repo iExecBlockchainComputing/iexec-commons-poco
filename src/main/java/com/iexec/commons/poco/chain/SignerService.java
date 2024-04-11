@@ -18,6 +18,7 @@ package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.eip712.EIP712Entity;
 import com.iexec.commons.poco.security.Signature;
+import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.EthAddress;
 import com.iexec.commons.poco.utils.SignatureUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -207,7 +208,11 @@ public class SignerService {
      * @param txHash hash of the transaction
      * @return {@literal true} if the transaction was found, {@literal false} otherwise
      */
-    public boolean verifyTransaction(final String txHash) {
+    boolean verifyTransaction(final String txHash) {
+        if (!BytesUtils.isNonZeroedBytes32(txHash)) {
+            log.warn("Invalid transaction hash [txHash:{}]", txHash);
+            return false;
+        }
         try {
             log.debug("Verifying transaction is in mem-pool [txHash:{}]", txHash);
             return web3j.ethGetTransactionByHash(txHash).send()
@@ -216,7 +221,7 @@ public class SignerService {
                     .orElse("")
                     .equalsIgnoreCase(txHash);
         } catch (Exception e) {
-            log.warn("Transaction verification failed [txHahs:{}]", txHash, e);
+            log.warn("Transaction verification failed [txHash:{}]", txHash, e);
         }
         return false;
     }
