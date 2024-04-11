@@ -18,6 +18,7 @@ package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.eip712.EIP712Entity;
 import com.iexec.commons.poco.security.Signature;
+import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.EthAddress;
 import com.iexec.commons.poco.utils.SignatureUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -170,31 +171,58 @@ public class SignerService {
     }
 
     /**
-     * Sign and send transaction for signer
+     * Sign and send a new transaction for signer on the blockchain network
      *
      * @param nonce    transaction counter of the account
      * @param gasPrice price paid per gas unit consumed for the transaction
      * @param gasLimit threshold limiting the gas quantity that can be spent on the transaction
      * @param to       target ethereum address
      * @param data     function selector with encoded arguments
-     * @return transaction hash
+     * @return the submitted transaction hash
      * @throws IOException if communication with the blockchain network failed
      */
     public String signAndSendTransaction(BigInteger nonce, BigInteger gasPrice, BigInteger gasLimit, String to, String data) throws IOException {
-        RawTransaction rawTx = RawTransaction.createTransaction(
+        final RawTransaction rawTx = RawTransaction.createTransaction(
                 nonce, gasPrice, gasLimit, to, BigInteger.ZERO, data);
-        EthSendTransaction transactionResponse = txManager.signAndSend(rawTx);
+        final EthSendTransaction transactionResponse = txManager.signAndSend(rawTx);
         if (transactionResponse.hasError()) {
             final Response.Error responseError = transactionResponse.getError();
             log.error("transaction failed [message:{}, code:{}, data:{}]",
                     responseError.getMessage(), responseError.getCode(), responseError.getData());
             throw new JsonRpcError(responseError);
         }
-        String expectedTxHash = transactionResponse.getTransactionHash();
-        log.debug("verifying tx is in mem-pool {}", expectedTxHash);
-        return web3j.ethGetTransactionByHash(expectedTxHash).send()
-                .getTransaction()
-                .map(Transaction::getHash)
-                .orElse("");
+        final String txHash = transactionResponse.getTransactionHash();
+        log.info("Transaction submitted [txHash:{}]", txHash);
+        for (int i = 0; i < 5; i++) {
+            if (verifyTransaction(txHash)) {
+                return txHash;
+            }
+        }
+        log.warn("Could not verify transaction by hash [txHash:{}]", txHash);
+        return txHash;
+    }
+
+    /**
+     * Verifies a transaction is found on-chain by its hash
+     *
+     * @param txHash hash of the transaction
+     * @return {@literal true} if the transaction was found, {@literal false} otherwise
+     */
+    boolean verifyTransaction(final String txHash) {
+        if (!BytesUtils.isNonZeroedBytes32(txHash)) {
+            log.warn("Invalid transaction hash [txHash:{}]", txHash);
+            return false;
+        }
+        try {
+            log.debug("Verifying transaction is in mem-pool [txHash:{}]", txHash);
+            return web3j.ethGetTransactionByHash(txHash).send()
+                    .getTransaction()
+                    .map(Transaction::getHash)
+                    .orElse("")
+                    .equalsIgnoreCase(txHash);
+        } catch (Exception e) {
+            log.warn("Transaction verification failed [txHash:{}]", txHash, e);
+        }
+        return false;
     }
 }
