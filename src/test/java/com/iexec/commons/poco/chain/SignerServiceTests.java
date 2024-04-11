@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -127,6 +128,20 @@ class SignerServiceTests {
     }
     // endregion
 
+    // region verifyTransaction
+    @Test
+    void shouldNotVerifyTransactionFromEmptyHash() throws GeneralSecurityException {
+        final SignerService signerService = new SignerService(WEB3J_CLIENT, CHAIN_ID);
+        assertThat(signerService.verifyTransaction("")).isFalse();
+    }
+
+    @Test
+    void shouldNotVerifyTransactionFromNonExistingHash() throws GeneralSecurityException {
+        final String txHash = "0xb5df719c46c49fd92152f5e445d63843b14d573d605b73f597fe571200427b53";
+        final SignerService signerService = new SignerService(WEB3J_CLIENT, CHAIN_ID);
+        assertThat(signerService.verifyTransaction(txHash)).isFalse();
+    }
+    // endregion
 
     String createTempWallet() throws Exception {
         String walletFilename = WalletUtils.generateFullNewWalletFile(WALLET_PASS, tempDir);
