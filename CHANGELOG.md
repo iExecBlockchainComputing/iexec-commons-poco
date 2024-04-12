@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[4.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.0.0) 2024-04-12
+
+### New features
+
+- Add `SignerService` class. (#72)
+- Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75)
+- Add `getAssetAddressFromReceipt` method to `AssetDataEncoder`. (#78)
+- Use `eth_call` Ethereum JSON-RPC API to predict assets on-chain address. (#79)
+- Add `PoCoDataEncoder` with `initialize`, `contribute`, `reveal`, `finalize` and `contributeAndFinalize` support. (#80 #81)
+- Add `eth_estimateGas` Ethereum JSON-RPC API support. (#82)
+- Add transaction data encoder to support `isRegistered` method call. (#83)
+- Add decoder to display log topics with human readable names. (#84)
+
+### Bug Fixes
+
+- Log a message if a transaction could not be verified on-chain, always return its hash. (#85)
+
+### Quality
+
+- Remove unused `IexecLibOrders_v5` generated class. (#68)
+- Use `@SneakyThrows` lombok annotation in `EIP-712` related tests. (#69)
+- Migrate `EthAddress` utility class from `iexec-common`. (#71)
+- Replace `OrderSigner` with `SignerService` in `MatchOrdersTests`. (#76)
+- Add methods to `IexecHubTestService` and add `OrdersService` for tests. (#77)
+
 ## [[3.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.2.0) 2023-12-19
 
 ### New Features

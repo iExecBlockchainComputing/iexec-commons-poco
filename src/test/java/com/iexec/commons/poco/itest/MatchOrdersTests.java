@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package com.iexec.commons.poco.itest;
 
-import com.iexec.commons.poco.chain.ChainDeal;
-import com.iexec.commons.poco.chain.DealParams;
+import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
-import com.iexec.commons.poco.eip712.OrderSigner;
-import com.iexec.commons.poco.order.*;
+import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
+import com.iexec.commons.poco.order.AppOrder;
+import com.iexec.commons.poco.order.DatasetOrder;
+import com.iexec.commons.poco.order.RequestOrder;
+import com.iexec.commons.poco.order.WorkerpoolOrder;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,20 +33,21 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
-import org.web3j.crypto.Hash;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
+import static com.iexec.commons.poco.itest.IexecHubTestService.*;
+import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @Slf4j
@@ -52,16 +55,15 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 @Testcontainers
 class MatchOrdersTests {
 
-    private static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
-
     private Credentials credentials;
+    private SignerService signerService;
     private IexecHubTestService iexecHubService;
     private Web3jTestService web3jService;
-    private OrderSigner signer;
+    private OrdersService ordersService;
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
-            .withExposedService("poco-chain", 8545);
+            .withExposedService(SERVICE_NAME, SERVICE_PORT);
 
     @BeforeEach
     void init() throws CipherException, IOException {
@@ -70,7 +72,8 @@ class MatchOrdersTests {
                 environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
         web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
-        signer = new OrderSigner(65535, IEXEC_HUB_ADDRESS, credentials.getEcKeyPair());
+        signerService = new SignerService(web3jService.getWeb3j(), web3jService.getChainId(), credentials);
+        ordersService = new OrdersService(signerService);
     }
 
     @Test
@@ -80,112 +83,53 @@ class MatchOrdersTests {
     }
 
     @Test
-    void shouldMatchOrder() throws Exception {
+    void shouldMatchOrdersWithIexecHubService() throws Exception {
         String appAddress = iexecHubService.createApp(
-                "my-app",
+                "my-app-1",
                 "multiAddress",
                 "DOCKER",
                 BytesUtils.EMPTY_HEX_STRING_32,
                 "{}"
         );
-        assertThat(appAddress).isEqualTo("0x0677c9ad40e1c3508b40bfb1c4749cc9bd63933f");
+        assertThat(appAddress).isEqualTo("0x564ef252a271ff68a74266e8f574ed827297caf4");
 
         String datasetAddress = iexecHubService.createDataset(
-                "my-dataset",
+                "my-dataset-1",
                 "multiAddress",
                 BytesUtils.EMPTY_HEX_STRING_32
         );
-        assertThat(datasetAddress).isEqualTo("0xe203f571c8d7d2abcf5e406d20965e3889662f5e");
+        assertThat(datasetAddress).isEqualTo("0x8e0c3441b788fe2bafb29a729c59d9e9a9ca5483");
 
-        String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool");
-        assertThat(workerpoolAddress).isEqualTo("0x74c6683f7bc258946e01e278b2842c99a0c7896a");
+        String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool-1");
+        assertThat(workerpoolAddress).isEqualTo("0x1d9340e5c33c6d289250df3b1ce31bc3ac6b16c0");
 
-        AppOrder appOrder = AppOrder.builder()
-                .app(appAddress)
-                .appprice(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
-                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
-                .build();
-
-        AppOrder signedAppOrder = signer.signAppOrder(appOrder);
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(appAddress);
         assertThat(signedAppOrder.getSign())
-                .isEqualTo("0x18e0f7a382513a74e90763dc755c0751121316073b0f4cb6a5481580696574ec3e0060c166bc1b764079d233236ff59e88bcb74bbe7c941d2cdf7204f5fc89061b");
+                .isEqualTo("0xbcb64941a9e7162f6f3a2b9e636596eec1bee8d420556469e11641905b45c7785691c310e4cce295311ebf6439acf2a6a943fb8d5db87a1971f979a83e6ea34d1b");
 
-        DatasetOrder datasetOrder = DatasetOrder.builder()
-                .dataset(datasetAddress)
-                .datasetprice(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .apprestrict(BytesUtils.EMPTY_ADDRESS)
-                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
-                .build();
-
-        DatasetOrder signedDatasetOrder = signer.signDatasetOrder(datasetOrder);
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(datasetAddress);
         assertThat(signedDatasetOrder.getSign())
-                .isEqualTo("0x529ea0d91a7f1cc373c34c7ec43cd132238b052abbf74c379f15d930fe0bf66d00907b58ba2bbe9e1f73aeb02e08da6a4e6915dba7ed4eb54a56b2d319ec987b1b");
+                .isEqualTo("0x014011344b5684761605fd34ecdcebd34b1efc249658a1f975d8c2a26a7adc5b68dcda7bd298cc578aea99877b5ae4e7b0f3cacd307cd4fdfb382d87a0fdc5e11c");
 
-        WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
-                .workerpool(workerpoolAddress)
-                .workerpoolprice(BigInteger.TEN)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
-                .apprestrict(BytesUtils.EMPTY_ADDRESS)
-                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
-                .build();
-        WorkerpoolOrder signedWorkerpoolOrder = signer.signWorkerpoolOrder(workerpoolOrder);
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(workerpoolAddress);
         assertThat(signedWorkerpoolOrder.getSign())
-                .isEqualTo("0x52ce5afec8e142ea9217bd818796c7b4b1ab1e1ebebf532b59ebc3ae15c56efb5c55e1b3c79fa3929ae1bf3895b926f47316dac8a7a484c8db05068d31e8038f1c");
+                .isEqualTo("0xb3b4cc51859bf106562baecf6261bfa8e168a11e06dcc82b91d0ccfbe16be14c414526c4a2e0908ef61eae6a91ec96a8d977fda4b204ac06d1b7e477abe8ea8d1b");
 
-        TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
-                "1", "first-secret",
-                "2", "second-secret",
-                "3", "third-secret"));
-        DealParams dealParams = DealParams.builder()
-                .iexecResultEncryption(true)
-                .iexecResultStorageProvider("ipfs")
-                .iexecResultStorageProxy("http://result-proxy:13200")
-                .iexecSecrets(iexecSecrets)
-                .build();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .app(appOrder.getApp())
-                .appmaxprice(appOrder.getAppprice())
-                .dataset(datasetOrder.getDataset())
-                .datasetmaxprice(datasetOrder.getDatasetprice())
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .workerpoolmaxprice(workerpoolOrder.getWorkerpoolprice())
-                .requester(credentials.getAddress())
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
-                .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
-                .beneficiary(credentials.getAddress())
-                .callback(BytesUtils.EMPTY_ADDRESS)
-                .params(dealParams.toJsonString())
-                .salt(Hash.sha3String("abcd"))
-                .build();
-        RequestOrder signedRequestOrder = signer.signRequestOrder(requestOrder);
+        final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
         assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0x4738fe5e4b7fc501a82a1de2a5faaf64608049e87a15508d72dcee16e61c543a25b87c4ed6f47a16a3befea950a90a8e6ace7f3029a4c152765c0e67a1cb2e651b");
+                .isEqualTo("0xa6a6eea2c49c7df388d8a265926f19bf4cac049f73875f1dbbe813ce088a7e833a2552cb33a14927b350c858349d3bcedbe23286edf912ad585dc102a1249e751c");
 
-        TransactionReceipt receipt = iexecHubService
-                .getHubContract()
-                .matchOrders(
-                        signedAppOrder.toHubContract(),
-                        signedDatasetOrder.toHubContract(),
-                        signedWorkerpoolOrder.toHubContract(),
-                        signedRequestOrder.toHubContract()
-                ).send();
+        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
+        String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        String predictedDealId = signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
+        String matchOrdersTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
+        );
+        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(matchOrdersTxHash));
 
+        final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
         assertThat(receipt).isNotNull();
         assertThat(receipt.isStatusOK()).isTrue();
 
@@ -193,8 +137,86 @@ class MatchOrdersTests {
         byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
 
         String chainDealId = BytesUtils.bytesToString(dealid);
-        Optional<ChainDeal> oChainDeal = iexecHubService.getChainDeal(chainDealId);
-        assertThat(oChainDeal).isPresent();
+        assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+        assertThat(chainDealId).isEqualTo(predictedDealId);
+    }
+
+    @Test
+    void shouldMatchOrdersWithSignerService() throws Exception {
+        final String appName = "my-app-2";
+        final String datasetName = "my-dataset-2";
+        final String workerpoolName = "my-workerpool-2";
+        final String predictedAppAddress = iexecHubService.callCreateApp(appName);
+        final String predictedDatasetAddress = iexecHubService.callCreateDataset(datasetName);
+        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(workerpoolName);
+        final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(appName);
+        final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(datasetName);
+        final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(workerpoolName);
+        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, appName);
+        nonce = nonce.add(BigInteger.ONE);
+        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, datasetName);
+        nonce = nonce.add(BigInteger.ONE);
+        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, estimatedCreateWorkerpoolGas, workerpoolName);
+
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(predictedAppAddress);
+        assertThat(signedAppOrder.getSign())
+                .isEqualTo("0xc200bf4ac4170d3949831d0049a184b7ee612d74a54f4d12af62cfa734330b3523c1db3a57a4f91d03932313aed3c95200e7950d52cc2f98ee0e08cb0648cbf31c");
+
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(predictedDatasetAddress);
+        assertThat(signedDatasetOrder.getSign())
+                .isEqualTo("0xfa2bf8bbfde7db118970aae8781dc78210bd9433111f1332f549aa003f7f28cc6c68c038aa35b5ddfc98242a8ede07ea8fa073f2b0e7f1247b8b97fadc4837c91c");
+
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(predictedWorkerpoolAddress);
+        assertThat(signedWorkerpoolOrder.getSign())
+                .isEqualTo("0xf6474336a10e3ec12ff65e721fee6ba53763f937a1b54659332f61cf1770b4b26947df22ad89e8623aa985763e917e9f66670e51befc7195b16b0e8db365c13c1c");
+
+        final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
+        assertThat(signedRequestOrder.getSign())
+                .isEqualTo("0x17d53276b2f125953d147af94381388ee20e6be80a6c76cf5359c8a1f04c0f0b670a3bd890fdca9307a11ef52927634b65399fa3a03fc6e89f17d5e3c383b4c31c");
+
+        nonce = nonce.add(BigInteger.ONE);
+        final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        final String matchOrdersTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
+
+        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash));
+        assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash)).isTrue();
+
+        final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
+        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
+
+        final byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
+        final String chainDealId = BytesUtils.bytesToString(dealid);
+        assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+
+        assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
+                .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
+
+        // Assets deployment
+        assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue();
+        assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse();
+        assertThat(iexecHubService.isAppPresent(predictedWorkerpoolAddress)).isFalse();
+        assertThat(iexecHubService.isDatasetPresent(predictedAppAddress)).isFalse();
+        assertThat(iexecHubService.isDatasetPresent(predictedDatasetAddress)).isTrue();
+        assertThat(iexecHubService.isDatasetPresent(predictedWorkerpoolAddress)).isFalse();
+        assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse();
+        assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
+        assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
+
+        // Gas
+        web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
+        web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
+        web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
+
+        // Logs
+        assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(datasetTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(workerpoolTxHash)).isEqualTo(List.of("Transfer"));
+        assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
+                .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
     }
 
 }
