@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2024
+
 ## [[4.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.0.0) 2024-04-12
 
 ### New features
