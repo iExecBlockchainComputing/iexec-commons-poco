@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 
 - Upgrade to Gradle 8.7. (#90)
+- Upgrade to Spring Boot 2.7.18. (#91)
 
 ## [[4.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.0.0) 2024-04-12
 

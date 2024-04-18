@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.17')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.18')
 
     // web3j
     api 'org.web3j:core:4.9.7'
