@@ -160,6 +160,10 @@ public abstract class Web3jAbstractService {
                 false).send().getBlock();
     }
 
+    /**
+     * @deprecated Use {@link SignerService#getNonce()}
+     */
+    @Deprecated(forRemoval = true)
     public BigInteger getNonce(String address) {
         try {
             return web3j.ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)

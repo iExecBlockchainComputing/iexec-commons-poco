@@ -120,7 +120,7 @@ class MatchOrdersTests {
         assertThat(signedRequestOrder.getSign())
                 .isEqualTo("0xa6a6eea2c49c7df388d8a265926f19bf4cac049f73875f1dbbe813ce088a7e833a2552cb33a14927b350c858349d3bcedbe23286edf912ad585dc102a1249e751c");
 
-        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
+        BigInteger nonce = signerService.getNonce();
         String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
         String predictedDealId = signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
         String matchOrdersTxHash = signerService.signAndSendTransaction(
@@ -152,7 +152,7 @@ class MatchOrdersTests {
         final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(appName);
         final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(datasetName);
         final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(workerpoolName);
-        BigInteger nonce = web3jService.getNonce(credentials.getAddress());
+        BigInteger nonce = signerService.getNonce();
         final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, appName);
         nonce = nonce.add(BigInteger.ONE);
         final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, datasetName);

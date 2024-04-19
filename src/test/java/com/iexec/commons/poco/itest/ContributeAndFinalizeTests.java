@@ -80,7 +80,7 @@ class ContributeAndFinalizeTests {
         final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(APP_NAME);
         final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(DATASET_NAME);
         final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(WORKERPOOL_NAME);
-        BigInteger nonce = web3jService.getNonce(signerService.getAddress());
+        BigInteger nonce = signerService.getNonce();
         final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, APP_NAME);
         nonce = nonce.add(BigInteger.ONE);
         final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, DATASET_NAME);
@@ -101,7 +101,7 @@ class ContributeAndFinalizeTests {
 
         // init
         final String initializeTxData = PoCoDataEncoder.encodeInitialize(predictedDealId, 0);
-        nonce = web3jService.getNonce(signerService.getAddress());
+        nonce = signerService.getNonce();
         final String initializeTxHash = signerService.signAndSendTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, initializeTxData);
 
