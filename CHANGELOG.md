@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Configure Gradle JVM Test Suite Plugin. (#89)
+- Remove unused `predictApp`, `predictDataset` and `predictWorkerpool` methods. (#93)
 
 ### Dependency Upgrades
 

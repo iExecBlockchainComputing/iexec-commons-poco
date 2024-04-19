@@ -29,7 +29,6 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
 import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.ChainIdLong;
@@ -289,39 +288,6 @@ public abstract class IexecHubAbstractService {
     public String createWorkerpool(String name) {
         return createWorkerpool(name, 10 * 60, 5);
     }
-
-    /**
-     * This method to predict workerpool address without deploying it
-     *
-     * @param owner workerpool owner
-     * @param name  workerpool name
-     * @return workerpool address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String predictWorkerpool(String owner, String name) {
-        final String paramsPrinter = " [owner:{}, name:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)) {
-            log.error("Non empty inputs are required" + paramsPrinter, owner, name);
-            return "";
-        }
-
-        WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (workerpoolRegistry == null) {
-            log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
-            return null;
-        }
-
-        RemoteFunctionCall<String> call = workerpoolRegistry.predictWorkerpool(owner, name);
-        String address = "";
-        try {
-            address = call.send();
-        } catch (Exception e) {
-            log.error("Failed to get predictWorkerpool" + paramsPrinter, owner, name, e);
-        }
-        return address;
-    }
-
     // endregion
 
     // region app
@@ -463,49 +429,6 @@ public abstract class IexecHubAbstractService {
                             String checksum, String mrEnclave) {
         return createApp(name, multiAddress, type, checksum, mrEnclave, 10 * 60, 5);
     }
-
-    /**
-     * This method to predict app address without deploying it
-     *
-     * @param owner        app owner
-     * @param name         app name
-     * @param multiAddress app url
-     * @param checksum     app sha256 checksum
-     * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String predictApp(String owner, String name, String multiAddress, String type,
-                             String checksum, String mrEnclave) {
-        final String paramsPrinter = " [owner:{}, name:{}, multiAddress:{}, checksum:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)
-                || StringUtils.isEmpty(multiAddress) || StringUtils.isEmpty(checksum)) {
-            log.error("Non empty inputs are required" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (appRegistry == null) {
-            log.error("Failed to get appRegistry" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return null;
-        }
-
-        RemoteFunctionCall<String> call = appRegistry.predictApp(owner, name, type,
-                multiAddress.getBytes(StandardCharsets.UTF_8),
-                BytesUtils.hexStringToBytes32(checksum),
-                mrEnclave.getBytes(StandardCharsets.UTF_8));
-        String address = "";
-        try {
-            address = call.send();
-        } catch (Exception e) {
-            log.error("Failed to get predictApp" + paramsPrinter,
-                    owner, name, multiAddress, checksum, e);
-        }
-        return address;
-    }
-
     // endregion
 
     // region dataset
@@ -646,50 +569,6 @@ public abstract class IexecHubAbstractService {
     public String createDataset(String name, String multiAddress, String checksum) {
         return createDataset(name, multiAddress, checksum, 10 * 60, 5);
     }
-
-    /**
-     * This method to predict dataset address without deploying it
-     *
-     * @param owner        dataset owner
-     * @param name         dataset name
-     * @param multiAddress dataset url
-     * @param checksum     dataset sha256 checksum
-     * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String predictDataset(String owner, String name, String multiAddress,
-                                 String checksum) {
-        final String paramsPrinter = " [owner:{}, name:{}, multiAddress:{}, checksum:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)
-                || StringUtils.isEmpty(multiAddress) || StringUtils.isEmpty(checksum)) {
-            log.error("Non empty inputs are required" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (datasetRegistry == null) {
-            log.error("Failed to get datasetRegistry" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return null;
-        }
-
-        RemoteFunctionCall<String> call = datasetRegistry
-                .predictDataset(owner,
-                        name,
-                        multiAddress.getBytes(StandardCharsets.UTF_8),
-                        BytesUtils.hexStringToBytes32(checksum));
-        String address = "";
-        try {
-            address = call.send();
-        } catch (Exception e) {
-            log.error("Failed to get predictDataset" + paramsPrinter,
-                    owner, name, multiAddress, checksum, e);
-        }
-        return address;
-    }
-
     // endregion
 
     /**
