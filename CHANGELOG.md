@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2024
 
+### New Features
+
+- Add `AbstractAssetDeploymentService` and move `getNonce` method. (#92)
+
 ### Quality
 
 - Configure Gradle JVM Test Suite Plugin. (#89)

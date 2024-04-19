@@ -93,6 +93,15 @@ public class SignerService {
         return credentials.getAddress();
     }
 
+    public BigInteger getNonce() {
+        try {
+            return web3j.ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING)
+                    .send().getTransactionCount();
+        } catch (Exception e) {
+            return BigInteger.ZERO;
+        }
+    }
+
     /**
      * Signs messages with Ethereum prefix
      */
