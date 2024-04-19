@@ -22,9 +22,12 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 
 @Slf4j
 public abstract class AbstractAssetDeploymentService {
+    private static final String ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED =
+            "Registry address has not been initialized, please call initRegistryAddress";
     protected final SignerService signerService;
 
     private final String assetRegistrySelector;
@@ -43,19 +46,23 @@ public abstract class AbstractAssetDeploymentService {
     }
 
     public String callCreateAsset(String assetTxData) throws IOException {
+        Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
         return toEthereumAddress(signerService.sendCall(assetRegistryAddress, assetTxData));
     }
 
     public boolean isAssetDeployed(String address) throws IOException {
+        Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
         final String isRegisteredTxData = AssetDataEncoder.encodeIsRegistered(address);
         return Numeric.toBigInt(signerService.sendCall(assetRegistryAddress, isRegisteredTxData)).equals(BigInteger.ONE);
     }
 
     public BigInteger estimateCreateAsset(String assetTxData) throws IOException {
+        Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
         return signerService.estimateGas(assetRegistryAddress, assetTxData);
     }
 
     public String submitAssetTxData(BigInteger nonce, BigInteger gasPrice, BigInteger gasLimit, String assetTxData) throws IOException {
+        Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
         return signerService.signAndSendTransaction(nonce, gasPrice, gasLimit, assetRegistryAddress, assetTxData);
     }
 
