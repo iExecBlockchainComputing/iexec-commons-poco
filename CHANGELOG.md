@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Configure Gradle JVM Test Suite Plugin. (#89)
 - Remove unused `predictApp`, `predictDataset` and `predictWorkerpool` methods. (#93)
 - Remove empty `ChainStatus` interface. (#94)
+- Remove `com.iexec.commons.poco.notification` package. (#95)
 
 ### Dependency Upgrades
 
