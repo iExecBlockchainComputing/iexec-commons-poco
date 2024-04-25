@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ class IexecHubAbstractServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    // region getChainTask
     @Test
     void shouldGetChainTask() throws Exception {
         whenViewTaskReturnTaskTuple(CHAIN_TASK_ID, CHAIN_DEAL_ID);
@@ -96,7 +97,9 @@ class IexecHubAbstractServiceTest {
 
         Assertions.assertTrue(foundTask.isEmpty());
     }
+    // endregion
 
+    // region repeatGet
     @Test
     void repeatGetChainTaskWithSuccess() {
         ChainTask task = getMockTask();
@@ -220,6 +223,7 @@ class IexecHubAbstractServiceTest {
 
         Assertions.assertTrue(taskDescription.isEmpty());
     }
+    // endregion
 
     private void whenViewTaskReturnTaskTuple(String chainTaskId, String chainDealId) throws Exception {
         IexecHubContract iexecHubContract = mock(IexecHubContract.class);

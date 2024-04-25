@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
 import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
-import org.web3j.tx.ChainIdLong;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
@@ -44,7 +42,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
 import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
@@ -579,15 +576,14 @@ public abstract class IexecHubAbstractService {
      * @param maxRetry    number of maximum retry
      * @return optional ChainDeal
      */
-    public Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
-                                                  long retryDelay,
-                                                  int maxRetry) {
+    Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
+                                           long retryDelay,
+                                           int maxRetry) {
         return new Retryer<Optional<ChainDeal>>()
                 .repeatCall(() -> getChainDeal(chainDealId),
                         Optional::isEmpty,
                         retryDelay, maxRetry,
-                        String.format("getChainDeal(chainDealId) " +
-                                "[chainDealId:%s]", chainDealId));
+                        String.format("getChainDeal(chainDealId) [chainDealId:%s]", chainDealId));
     }
 
     /**
@@ -602,29 +598,21 @@ public abstract class IexecHubAbstractService {
      * @return deal object
      */
     public Optional<ChainDeal> getChainDeal(String chainDealId) {
-        byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
+        final byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
-            IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
+            final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
 
-            String appAddress = deal.app.pointer;
-            String datasetAddress = deal.dataset.pointer;
-            BigInteger categoryId = deal.category;
-
-            Optional<ChainApp> chainApp = getChainApp(getAppContract(appAddress));
-            if (chainApp.isEmpty()) {
+            final ChainApp app = getChainApp(getAppContract(deal.app.pointer)).orElse(null);
+            if (app == null) {
                 return Optional.empty();
             }
-            ChainApp app = chainApp.get();
-            Optional<ChainCategory> chainCategory = getChainCategory(categoryId.longValue());
-            if (chainCategory.isEmpty()) {
+            final ChainCategory category = getChainCategory(deal.category.longValue()).orElse(null);
+            if (category == null) {
                 return Optional.empty();
             }
-            ChainCategory category = chainCategory.get();
-            Optional<ChainDataset> chainDataset =
-                    getChainDataset(getDatasetContract(datasetAddress));
-            ChainDataset dataset = chainDataset.orElse(null);
+            final ChainDataset dataset = getChainDataset(getDatasetContract(deal.dataset.pointer)).orElse(null);
 
-            ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
+            final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
             if (chainDeal.getStartTime() == null
                     || chainDeal.getStartTime().longValue() <= 0) {
@@ -648,22 +636,21 @@ public abstract class IexecHubAbstractService {
      * @param maxRetry    number of maximum retry
      * @return optional ChainTask
      */
-    public Optional<ChainTask> repeatGetChainTask(String chainTaskId,
-                                                  long retryDelay,
-                                                  int maxRetry) {
+    Optional<ChainTask> repeatGetChainTask(String chainTaskId,
+                                           long retryDelay,
+                                           int maxRetry) {
         return new Retryer<Optional<ChainTask>>()
                 .repeatCall(() -> getChainTask(chainTaskId),
                         Optional::isEmpty,
                         retryDelay, maxRetry,
-                        String.format("getChainTask(chainTaskId) " +
-                                "[chainTaskId:%s]", chainTaskId));
+                        String.format("getChainTask(chainTaskId) [chainTaskId:%s]", chainTaskId));
     }
 
     public Optional<ChainTask> getChainTask(String chainTaskId) {
         try {
-            ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
+            final ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
                     .viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)).send());
-            String chainDealId = chainTask.getDealid();
+            final String chainDealId = chainTask.getDealid();
             if (isNonZeroedBytes32(chainDealId)) {
                 return Optional.of(chainTask);
             } else {
@@ -704,7 +691,7 @@ public abstract class IexecHubAbstractService {
      * <p>
      * Note:
      * If `max execution time` is invalid, it is likely a blockchain issue.
-     * In this case,in order to protect workflows based on top of it, the category
+     * In this case, in order to protect workflows based on top of it, the category
      * won't be accessible from this method
      *
      * @param id blockchain ID of the category (e.g: 0x123..abc)
@@ -903,50 +890,43 @@ public abstract class IexecHubAbstractService {
         return taskDescriptions.get(chainTaskId);
     }
 
-    public Optional<TaskDescription> getTaskDescriptionFromChain(String chainTaskId) {
+    private Optional<TaskDescription> getTaskDescriptionFromChain(String chainTaskId) {
         return repeatGetTaskDescriptionFromChain(chainTaskId, retryDelay, 0);
     }
 
-    public Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
-                                                                       long retryDelay,
-                                                                       int maxRetry) {
+    Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
+                                                                long retryDelay,
+                                                                int maxRetry) {
         if (retryDelay == 0) {
             return Optional.empty();
         }
-        Optional<ChainTask> optionalChainTask =
-                repeatGetChainTask(chainTaskId, retryDelay, maxRetry);
-        if (optionalChainTask.isEmpty()) {
-            log.info("Failed to get TaskDescription, ChainTask error " +
-                    "[chainTaskId:{}]", chainTaskId);
+        final ChainTask chainTask = repeatGetChainTask(chainTaskId, retryDelay, maxRetry).orElse(null);
+        if (chainTask == null) {
+            log.info("Failed to get TaskDescription, ChainTask error [chainTaskId:{}]", chainTaskId);
             return Optional.empty();
         }
-        ChainTask chainTask = optionalChainTask.get();
 
-        Optional<ChainDeal> optionalChainDeal =
-                repeatGetChainDeal(chainTask.getDealid(), retryDelay, maxRetry);
-        if (optionalChainDeal.isEmpty()) {
-            log.info("Failed to get TaskDescription, ChainDeal error " +
-                    "[chainTaskId:{}]", chainTaskId);
+        final ChainDeal chainDeal = repeatGetChainDeal(chainTask.getDealid(), retryDelay, maxRetry).orElse(null);
+        if (chainDeal == null) {
+            log.info("Failed to get TaskDescription, ChainDeal error [chainTaskId:{}]", chainTaskId);
             return Optional.empty();
         }
-        ChainDeal chainDeal = optionalChainDeal.get();
 
-        TaskDescription taskDescription =
-                TaskDescription.toTaskDescription(chainDeal, chainTask);
+        final TaskDescription taskDescription = TaskDescription.toTaskDescription(chainDeal, chainTask);
+        // taskDescription cannot be null here as chainTask and ChainDeal are not
         return taskDescription != null ? Optional.of(taskDescription) : Optional.empty();
     }
 
     public boolean isTeeTask(String chainTaskId) {
-        Optional<TaskDescription> oTaskDescription =
-                getTaskDescriptionFromChain(chainTaskId);
+        final TaskDescription taskDescription = getTaskDescriptionFromChain(chainTaskId).orElse(null);
 
-        if (oTaskDescription.isEmpty()) {
+        if (taskDescription == null) {
             log.error("Couldn't get task description from chain [chainTaskId:{}]",
                     chainTaskId);
             return false;
         }
 
-        return oTaskDescription.get().isTeeTask();
+        return taskDescription.isTeeTask();
     }
 
     // region Purge
