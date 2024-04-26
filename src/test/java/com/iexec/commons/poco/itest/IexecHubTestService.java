@@ -73,10 +73,10 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return appDeploymentService.estimateCreateAsset(appTxData);
     }
 
-    public String submitCreateAppTx(BigInteger nonce, BigInteger gasLimit, String name) throws IOException {
+    public String submitCreateAppTx(BigInteger nonce, String name) throws IOException {
         log.info("submitCreateAppTx");
         final String appTxData = createAppTxData(name);
-        final String appTxHash = appDeploymentService.submitAssetTxData(nonce, GAS_PRICE, gasLimit, appTxData);
+        final String appTxHash = appDeploymentService.submitAssetTxData(nonce, GAS_PRICE, appTxData);
         log.info("app tx hash {}", appTxHash);
         return appTxHash;
     }
@@ -111,10 +111,10 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return datasetDeploymentService.estimateCreateAsset(datasetTxData);
     }
 
-    public String submitCreateDatasetTx(BigInteger nonce, BigInteger gasLimit, String name) throws IOException {
+    public String submitCreateDatasetTx(BigInteger nonce, String name) throws IOException {
         log.info("submitCreateDatasetTx");
         final String datasetTxData = createDatasetTxData(name);
-        final String datasetTxHash = datasetDeploymentService.submitAssetTxData(nonce, GAS_PRICE, gasLimit, datasetTxData);
+        final String datasetTxHash = datasetDeploymentService.submitAssetTxData(nonce, GAS_PRICE, datasetTxData);
         log.info("dataset tx hash {}", datasetTxHash);
         return datasetTxHash;
     }
@@ -147,10 +147,10 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return workerpoolDeploymentService.estimateCreateAsset(workerpoolTxData);
     }
 
-    public String submitCreateWorkerpoolTx(BigInteger nonce, BigInteger gasLimit, String name) throws IOException {
+    public String submitCreateWorkerpoolTx(BigInteger nonce, String name) throws IOException {
         log.info("submitCreateWorkerpoolTx");
         final String workerpoolTxData = createWorkerpoolTxData(name);
-        final String workerpoolTxHash = workerpoolDeploymentService.submitAssetTxData(nonce, GAS_PRICE, gasLimit, workerpoolTxData);
+        final String workerpoolTxHash = workerpoolDeploymentService.submitAssetTxData(nonce, GAS_PRICE, workerpoolTxData);
         log.info("workerpool tx hash {}", workerpoolTxHash);
         return workerpoolTxHash;
     }

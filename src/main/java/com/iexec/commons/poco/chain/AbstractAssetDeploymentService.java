@@ -61,9 +61,9 @@ public abstract class AbstractAssetDeploymentService {
         return signerService.estimateGas(assetRegistryAddress, assetTxData);
     }
 
-    public String submitAssetTxData(BigInteger nonce, BigInteger gasPrice, BigInteger gasLimit, String assetTxData) throws IOException {
+    public String submitAssetTxData(BigInteger nonce, BigInteger gasPrice, String assetTxData) throws IOException {
         Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
-        return signerService.signAndSendTransaction(nonce, gasPrice, gasLimit, assetRegistryAddress, assetTxData);
+        return signerService.signAndSendTransaction(nonce, gasPrice, assetRegistryAddress, assetTxData);
     }
 
     private String toEthereumAddress(String hexaString) {

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Add `AbstractAssetDeploymentService` and move `getNonce` method. (#92)
+- Estimate gas and submit a transaction in a single method. (#97)
 
 ### Quality
 
@@ -14,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Remove unused `predictApp`, `predictDataset` and `predictWorkerpool` methods. (#93)
 - Remove empty `ChainStatus` interface. (#94)
 - Remove `com.iexec.commons.poco.notification` package. (#95)
+- Restrict several methods visibility in `IexecHubAbstractService`. (#96)
 
 ### Dependency Upgrades
 
