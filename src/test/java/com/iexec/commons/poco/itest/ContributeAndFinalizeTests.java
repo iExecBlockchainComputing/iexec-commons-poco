@@ -77,15 +77,12 @@ class ContributeAndFinalizeTests {
         final String predictedAppAddress = iexecHubService.callCreateApp(APP_NAME);
         final String predictedDatasetAddress = iexecHubService.callCreateDataset(DATASET_NAME);
         final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(WORKERPOOL_NAME);
-        final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(APP_NAME);
-        final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(DATASET_NAME);
-        final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(WORKERPOOL_NAME);
         BigInteger nonce = signerService.getNonce();
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, APP_NAME);
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, APP_NAME);
         nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, DATASET_NAME);
+        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, DATASET_NAME);
         nonce = nonce.add(BigInteger.ONE);
-        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, estimatedCreateWorkerpoolGas, WORKERPOOL_NAME);
+        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, WORKERPOOL_NAME);
 
         // Wait for assets deployment to be able to call MatchOrders
         await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
@@ -96,8 +93,6 @@ class ContributeAndFinalizeTests {
         nonce = nonce.add(BigInteger.ONE);
         final String matchOrdersTxHash = ordersService.submitMatchOrders(
                 predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress, nonce);
-        final BigInteger estimatedMatchOrdersGas = ordersService.estimateMatchOrders(
-                predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
 
         // init
         final String initializeTxData = PoCoDataEncoder.encodeInitialize(predictedDealId, 0);
@@ -144,12 +139,6 @@ class ContributeAndFinalizeTests {
         assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse();
         assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
         assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
-
-        // Gas
-        web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
-        web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
-        web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
-        web3jService.displayGas("matchOrders", estimatedMatchOrdersGas, matchOrdersTxHash);
 
         // Logs
         assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));

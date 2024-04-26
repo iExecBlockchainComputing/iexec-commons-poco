@@ -55,7 +55,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 @Testcontainers
 class MatchOrdersTests {
 
-    private Credentials credentials;
     private SignerService signerService;
     private IexecHubTestService iexecHubService;
     private Web3jTestService web3jService;
@@ -67,7 +66,7 @@ class MatchOrdersTests {
 
     @BeforeEach
     void init() throws CipherException, IOException {
-        credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
+        final Credentials credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
         String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
                 environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
         web3jService = new Web3jTestService(chainNodeAddress);
@@ -149,15 +148,12 @@ class MatchOrdersTests {
         final String predictedAppAddress = iexecHubService.callCreateApp(appName);
         final String predictedDatasetAddress = iexecHubService.callCreateDataset(datasetName);
         final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(workerpoolName);
-        final BigInteger estimatedCreateAppGas = iexecHubService.estimateCreateApp(appName);
-        final BigInteger estimatedCreateDatasetGas = iexecHubService.estimateCreateDataset(datasetName);
-        final BigInteger estimatedCreateWorkerpoolGas = iexecHubService.estimateCreateWorkerpool(workerpoolName);
         BigInteger nonce = signerService.getNonce();
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, estimatedCreateAppGas, appName);
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, appName);
         nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, estimatedCreateDatasetGas, datasetName);
+        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, datasetName);
         nonce = nonce.add(BigInteger.ONE);
-        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, estimatedCreateWorkerpoolGas, workerpoolName);
+        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, workerpoolName);
 
         final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(predictedAppAddress);
         assertThat(signedAppOrder.getSign())
@@ -205,11 +201,6 @@ class MatchOrdersTests {
         assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse();
         assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
         assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
-
-        // Gas
-        web3jService.displayGas("createApp", estimatedCreateAppGas, appTxHash);
-        web3jService.displayGas("createDataset", estimatedCreateDatasetGas, datasetTxHash);
-        web3jService.displayGas("createWorkerpool", estimatedCreateWorkerpoolGas, workerpoolTxHash);
 
         // Logs
         assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
