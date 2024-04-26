@@ -877,9 +877,8 @@ public abstract class IexecHubAbstractService {
         return web3jAbstractService.hasEnoughGas(address);
     }
 
-    /*
+    /**
      * Behaves as a cache to avoid always calling blockchain to retrieve task description
-     *
      */
     public TaskDescription getTaskDescription(String chainTaskId) {
         if (!taskDescriptions.containsKey(chainTaskId)) {
@@ -890,14 +889,12 @@ public abstract class IexecHubAbstractService {
         return taskDescriptions.get(chainTaskId);
     }
 
-    private Optional<TaskDescription> getTaskDescriptionFromChain(String chainTaskId) {
-        return repeatGetTaskDescriptionFromChain(chainTaskId, retryDelay, 0);
-    }
-
     Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
                                                                 long retryDelay,
                                                                 int maxRetry) {
+        // If retryDelay is 0, a runtime exception will be thrown from failsafe library
         if (retryDelay == 0) {
+            log.warn("retry delay cannot be 0 [chainTaskId:{}]", chainTaskId);
             return Optional.empty();
         }
         final ChainTask chainTask = repeatGetChainTask(chainTaskId, retryDelay, maxRetry).orElse(null);
@@ -918,7 +915,9 @@ public abstract class IexecHubAbstractService {
     }
 
     public boolean isTeeTask(String chainTaskId) {
-        final TaskDescription taskDescription = getTaskDescriptionFromChain(chainTaskId).orElse(null);
+        // Magical non-null retry delay to ease testing and because there are no retries
+        final TaskDescription taskDescription = repeatGetTaskDescriptionFromChain(chainTaskId, 1000, 0)
+                .orElse(null);
 
         if (taskDescription == null) {
             log.error("Couldn't get task description from chain [chainTaskId:{}]",

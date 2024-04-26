@@ -19,7 +19,6 @@ package com.iexec.commons.poco.chain;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.iexec.commons.poco.chain.ChainUtils.generateChainTaskId;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
 class IexecHubAbstractServiceTest {
@@ -60,9 +60,8 @@ class IexecHubAbstractServiceTest {
                 .thenCallRealMethod();
         Optional<ChainTask> foundTask = iexecHubAbstractService.getChainTask(CHAIN_TASK_ID);
 
-        Assertions.assertTrue(foundTask.isPresent());
-        Assertions.assertEquals(CHAIN_TASK_ID, foundTask.get().getChainTaskId());
-        Assertions.assertEquals(CHAIN_DEAL_ID, foundTask.get().getDealid());
+        assertThat(foundTask).map(ChainTask::getChainTaskId).hasValue(CHAIN_TASK_ID);
+        assertThat(foundTask).map(ChainTask::getDealid).hasValue(CHAIN_DEAL_ID);
     }
 
     @Test
@@ -73,7 +72,7 @@ class IexecHubAbstractServiceTest {
                 .thenCallRealMethod();
         Optional<ChainTask> foundTask = iexecHubAbstractService.getChainTask(CHAIN_TASK_ID);
 
-        Assertions.assertTrue(foundTask.isEmpty());
+        assertThat(foundTask).isEmpty();
     }
 
     @Test
@@ -84,7 +83,7 @@ class IexecHubAbstractServiceTest {
                 .thenCallRealMethod();
         Optional<ChainTask> foundTask = iexecHubAbstractService.getChainTask(CHAIN_TASK_ID);
 
-        Assertions.assertTrue(foundTask.isEmpty());
+        assertThat(foundTask).isEmpty();
     }
 
     @Test
@@ -95,7 +94,7 @@ class IexecHubAbstractServiceTest {
                 .thenCallRealMethod();
         Optional<ChainTask> foundTask = iexecHubAbstractService.getChainTask(CHAIN_TASK_ID);
 
-        Assertions.assertTrue(foundTask.isEmpty());
+        assertThat(foundTask).isEmpty();
     }
     // endregion
 
@@ -114,8 +113,7 @@ class IexecHubAbstractServiceTest {
         Optional<ChainTask> foundTask =
                 iexecHubAbstractService.repeatGetChainTask(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(foundTask.isPresent());
-        Assertions.assertEquals(task, foundTask.get());
+        assertThat(foundTask).isEqualTo(Optional.of(task));
         verify(iexecHubAbstractService, times(3))
                 .getChainTask(CHAIN_TASK_ID);
     }
@@ -130,7 +128,7 @@ class IexecHubAbstractServiceTest {
         Optional<ChainTask> foundTask =
                 iexecHubAbstractService.repeatGetChainTask(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(foundTask.isEmpty());
+        assertThat(foundTask).isEmpty();
         verify(iexecHubAbstractService, times(1 + MAX_RETRY))
                 .getChainTask(CHAIN_TASK_ID);
     }
@@ -149,8 +147,7 @@ class IexecHubAbstractServiceTest {
         Optional<ChainDeal> foundDeal =
                 iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(foundDeal.isPresent());
-        Assertions.assertEquals(chainDeal, foundDeal.get());
+        assertThat(foundDeal).isEqualTo(Optional.of(chainDeal));
         verify(iexecHubAbstractService, times(3))
                 .getChainDeal(CHAIN_DEAL_ID);
     }
@@ -165,7 +162,7 @@ class IexecHubAbstractServiceTest {
         Optional<ChainDeal> foundDeal =
                 iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(foundDeal.isEmpty());
+        assertThat(foundDeal).isEmpty();
         verify(iexecHubAbstractService, times(1 + MAX_RETRY))
                 .getChainDeal(CHAIN_DEAL_ID);
     }
@@ -185,9 +182,8 @@ class IexecHubAbstractServiceTest {
         Optional<TaskDescription> taskDescription =
                 iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(taskDescription.isPresent());
-        Assertions.assertEquals(task.getChainTaskId(), taskDescription.get().getChainTaskId());
-        Assertions.assertEquals(deal.getBotSize().intValue(), taskDescription.get().getBotSize());
+        assertThat(taskDescription.map(TaskDescription::getChainTaskId)).hasValue(task.getChainTaskId());
+        assertThat(taskDescription.map(TaskDescription::getBotSize)).hasValue(deal.getBotSize().intValue());
     }
 
     @Test
@@ -204,7 +200,7 @@ class IexecHubAbstractServiceTest {
         Optional<TaskDescription> taskDescription =
                 iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(taskDescription.isEmpty());
+        assertThat(taskDescription).isEmpty();
     }
 
     @Test
@@ -221,7 +217,33 @@ class IexecHubAbstractServiceTest {
         Optional<TaskDescription> taskDescription =
                 iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
 
-        Assertions.assertTrue(taskDescription.isEmpty());
+        assertThat(taskDescription).isEmpty();
+    }
+    // endregion
+
+    // region isTeeTask
+    @Test
+    void shouldReturnFalseWhenTaskCanNotBeRetrieved() {
+        when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, 1000, 0))
+                .thenReturn(Optional.empty());
+        when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
+        assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isFalse();
+    }
+
+    @Test
+    void shouldReturnFalseWhenStdTask() {
+        when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, 1000, 0))
+                .thenReturn(Optional.of(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(false).build()));
+        when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
+        assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isFalse();
+    }
+
+    @Test
+    void shouldReturnTrueWhenTeeTask() {
+        when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, 1000, 0))
+                .thenReturn(Optional.of(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(true).build()));
+        when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
+        assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isTrue();
     }
     // endregion
 
