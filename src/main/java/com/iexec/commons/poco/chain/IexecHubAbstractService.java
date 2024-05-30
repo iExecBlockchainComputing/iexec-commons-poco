@@ -580,24 +580,52 @@ public abstract class IexecHubAbstractService {
                                            long retryDelay,
                                            int maxRetry) {
         return new Retryer<Optional<ChainDeal>>()
-                .repeatCall(() -> getChainDeal(chainDealId),
+                .repeatCall(() -> getChainDealWithDetails(chainDealId),
                         Optional::isEmpty,
                         retryDelay, maxRetry,
                         String.format("getChainDeal(chainDealId) [chainDealId:%s]", chainDealId));
     }
 
     /**
-     * Retrieves on-chain deal with its blockchain ID
+     * Retrieves on-chain deal from its blockchain ID
+     * <p>
+     * The obtained deal won't contain app or dataset details
      * <p>
      * Note:
-     * If `start time` is invalid, it is likely a blockchain issue. In this case,
-     * in order to protect workflows based on top of it, the deal won't be
-     * accessible from this method
+     * If `start time` is invalid, it is likely a blockchain issue.
+     * In this case, in order to protect workflows based on top of it,
+     * an {@code Optional.empty()} will be returned.
      *
      * @param chainDealId blockchain ID of the deal (e.g: 0x123..abc)
      * @return deal object
      */
     public Optional<ChainDeal> getChainDeal(String chainDealId) {
+        final byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
+        try {
+            final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
+            final ChainCategory category = getChainCategory(deal.category.longValue()).orElse(null);
+            final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, category);
+            return validateChainDeal(chainDeal);
+        } catch (Exception e) {
+            log.error("Failed to getChainDeal [chainDealId:{}]", chainDealId, e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Retrieves on-chain deal from its blockchain ID
+     * <p>
+     * The obtained deal will contain app or dataset details
+     * <p>
+     * Note:
+     * If `start time` is invalid, it is likely a blockchain issue.
+     * In this case, in order to protect workflows based on top of it,
+     * an {@code Optional.empty()} will be returned.
+     *
+     * @param chainDealId blockchain ID of the deal (e.g: 0x123..abc)
+     * @return deal object
+     */
+    public Optional<ChainDeal> getChainDealWithDetails(String chainDealId) {
         final byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
             final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
@@ -614,18 +642,26 @@ public abstract class IexecHubAbstractService {
 
             final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
-            if (chainDeal.getStartTime() == null
-                    || chainDeal.getStartTime().longValue() <= 0) {
-                log.error("Deal start time should be greater than zero (likely a " +
-                                "blockchain issue) [chainDealId:{}, startTime:{}]",
-                        chainDealId, chainDeal.getStartTime());
-                return Optional.empty();
-            }
-            return Optional.of(chainDeal);
+            return validateChainDeal(chainDeal);
         } catch (Exception e) {
             log.error("Failed to get ChainDeal [chainDealId:{}]", chainDealId, e);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Checks if deal is valid, i.e. has a positive start time allowing to compute deadlines.
+     *
+     * @param chainDeal The {@code ChainDeal} to check
+     * @return {@code Optional.of(chainDeal)} if valid, {@code Optional.empty()} otherwise
+     */
+    private Optional<ChainDeal> validateChainDeal(final ChainDeal chainDeal) {
+        if (chainDeal.getStartTime() == null || chainDeal.getStartTime().longValue() <= 0) {
+            log.error("Deal start time should be greater than zero (likely a blockchain issue) [chainDealId:{}, startTime:{}]",
+                    chainDeal.getChainDealId(), chainDeal.getStartTime());
+            return Optional.empty();
+        }
+        return Optional.of(chainDeal);
     }
 
     /**

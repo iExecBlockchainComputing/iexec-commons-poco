@@ -139,4 +139,15 @@ class ChainTests {
         assertThat(web3jService.hasEnoughGas(credentials.getAddress())).isTrue();
     }
 
+    @Test
+    void shouldNotGetChainDeal() {
+        assertThat(iexecHubService.getChainDeal("0x0")).isEmpty();
+        assertThat(iexecHubService.getChainDealWithDetails("0x0")).isEmpty();
+    }
+
+    @Test
+    void shouldNotGetChainTask() {
+        assertThat(iexecHubService.getChainTask("0x0")).isEmpty();
+    }
+
 }

@@ -19,10 +19,10 @@ package com.iexec.commons.poco.chain;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.tuples.generated.Tuple12;
@@ -36,6 +36,7 @@ import static com.iexec.commons.poco.chain.ChainUtils.generateChainTaskId;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class IexecHubAbstractServiceTest {
 
     public static final int RETRY_DELAY = 10; //in ms
@@ -45,11 +46,6 @@ class IexecHubAbstractServiceTest {
 
     @Mock
     private IexecHubAbstractService iexecHubAbstractService;
-
-    @BeforeEach
-    void beforeEach() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     // region getChainTask
     @Test
@@ -137,34 +133,34 @@ class IexecHubAbstractServiceTest {
     void repeatGetChainDealWithSuccess() {
         ChainDeal chainDeal = getMockDeal();
 
-        when(iexecHubAbstractService.getChainDeal(CHAIN_DEAL_ID))
+        when(iexecHubAbstractService.getChainDealWithDetails(CHAIN_DEAL_ID))
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(chainDeal));
-
         when(iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY))
                 .thenCallRealMethod();
+
         Optional<ChainDeal> foundDeal =
                 iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY);
 
         assertThat(foundDeal).isEqualTo(Optional.of(chainDeal));
         verify(iexecHubAbstractService, times(3))
-                .getChainDeal(CHAIN_DEAL_ID);
+                .getChainDealWithDetails(CHAIN_DEAL_ID);
     }
 
     @Test
     void repeatGetChainDealWithFailure() {
-        when(iexecHubAbstractService.getChainDeal(CHAIN_DEAL_ID))
+        when(iexecHubAbstractService.getChainDealWithDetails(CHAIN_DEAL_ID))
                 .thenReturn(Optional.empty());
-
         when(iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY))
                 .thenCallRealMethod();
+
         Optional<ChainDeal> foundDeal =
                 iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY);
 
         assertThat(foundDeal).isEmpty();
         verify(iexecHubAbstractService, times(1 + MAX_RETRY))
-                .getChainDeal(CHAIN_DEAL_ID);
+                .getChainDealWithDetails(CHAIN_DEAL_ID);
     }
 
     @Test
@@ -188,12 +184,8 @@ class IexecHubAbstractServiceTest {
 
     @Test
     void repeatGetTaskDescriptionFromChainWithTaskFailure() {
-        ChainDeal deal = getMockDeal();
-
         when(iexecHubAbstractService.repeatGetChainTask(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY))
                 .thenReturn(Optional.empty());
-        when(iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY))
-                .thenReturn(Optional.of(deal));
 
         when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY))
                 .thenCallRealMethod();
@@ -201,6 +193,7 @@ class IexecHubAbstractServiceTest {
                 iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
 
         assertThat(taskDescription).isEmpty();
+        verify(iexecHubAbstractService, never()).repeatGetChainDeal(anyString(), anyLong(), anyInt());
     }
 
     @Test
