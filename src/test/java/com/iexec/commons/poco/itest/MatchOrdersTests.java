@@ -137,6 +137,7 @@ class MatchOrdersTests {
 
         String chainDealId = BytesUtils.bytesToString(dealid);
         assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+        assertThat(iexecHubService.getChainDealWithDetails(chainDealId)).isPresent();
         assertThat(chainDealId).isEqualTo(predictedDealId);
     }
 
@@ -187,6 +188,7 @@ class MatchOrdersTests {
         final byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
         final String chainDealId = BytesUtils.bytesToString(dealid);
         assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+        assertThat(iexecHubService.getChainDealWithDetails(chainDealId)).isPresent();
 
         assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
                 .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
