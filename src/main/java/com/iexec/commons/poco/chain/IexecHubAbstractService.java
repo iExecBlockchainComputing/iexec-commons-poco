@@ -605,7 +605,7 @@ public abstract class IexecHubAbstractService {
             final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
             final ChainCategory category = getChainCategory(deal.category.longValue()).orElse(null);
             final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, category);
-            return isChainDealValid(chainDeal) ? Optional.of(chainDeal) : Optional.empty();
+            return validateChainDeal(chainDeal);
         } catch (Exception e) {
             log.error("Failed to getChainDeal [chainDealId:{}]", chainDealId, e);
         }
@@ -642,7 +642,7 @@ public abstract class IexecHubAbstractService {
 
             final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
-            return isChainDealValid(chainDeal) ? Optional.of(chainDeal) : Optional.empty();
+            return validateChainDeal(chainDeal);
         } catch (Exception e) {
             log.error("Failed to get ChainDeal [chainDealId:{}]", chainDealId, e);
         }
@@ -650,18 +650,18 @@ public abstract class IexecHubAbstractService {
     }
 
     /**
-     * Checks if deal has a positive start time allowing to compute deadlines.
+     * Checks if deal is valid, i.e. has a positive start time allowing to compute deadlines.
      *
      * @param chainDeal The {@code ChainDeal} to check
-     * @return {@literal true} if valid, {@literal false} otherwise
+     * @return {@code Optional.of(chainDeal)} if valid, {@code Optional.empty()} otherwise
      */
-    private boolean isChainDealValid(final ChainDeal chainDeal) {
+    private Optional<ChainDeal> validateChainDeal(final ChainDeal chainDeal) {
         if (chainDeal.getStartTime() == null || chainDeal.getStartTime().longValue() <= 0) {
             log.error("Deal start time should be greater than zero (likely a blockchain issue) [chainDealId:{}, startTime:{}]",
                     chainDeal.getChainDealId(), chainDeal.getStartTime());
-            return false;
+            return Optional.empty();
         }
-        return true;
+        return Optional.of(chainDeal);
     }
 
     /**
