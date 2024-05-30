@@ -62,10 +62,21 @@ public class ChainDeal {
                 !getChainDataset().getChainDatasetId().equals(BytesUtils.EMPTY_ADDRESS);
     }
 
+    public static ChainDeal parts2ChainDeal(String chainDealId, IexecHubContract.Deal deal, ChainCategory category) {
+        if (deal == null || category == null) {
+            return ChainDeal.builder().build();
+        }
+        return create(chainDealId, deal, category, null, null);
+    }
+
     public static ChainDeal parts2ChainDeal(String chainDealId, IexecHubContract.Deal deal, ChainApp app, ChainCategory category, ChainDataset dataset) {
         if (deal == null || app == null || category == null) {
             return ChainDeal.builder().build();
         }
+        return create(chainDealId, deal, category, app, dataset);
+    }
+
+    private static ChainDeal create(String chainDealId, IexecHubContract.Deal deal, ChainCategory category, ChainApp app, ChainDataset dataset) {
         return ChainDeal.builder()
                 .chainDealId(chainDealId)
                 .chainApp(app)
