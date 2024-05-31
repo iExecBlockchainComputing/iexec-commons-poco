@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@
 package com.iexec.commons.poco.contract;
 
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigInteger;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IexecHubSmartContractValidator {
-    public boolean validate(IexecHubContract contract) {
+    public static boolean validate(IexecHubContract contract) {
         final BigInteger finalDeadlineRatio;
         final String errorMessage =
                 "Something went wrong with IexecHub smart contract configuration. "

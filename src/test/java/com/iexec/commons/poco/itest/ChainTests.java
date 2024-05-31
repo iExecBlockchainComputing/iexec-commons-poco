@@ -18,6 +18,7 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.ChainAccount;
 import com.iexec.commons.poco.chain.ChainCategory;
+import com.iexec.commons.poco.contract.IexecHubSmartContractValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -148,6 +149,11 @@ class ChainTests {
     @Test
     void shouldNotGetChainTask() {
         assertThat(iexecHubService.getChainTask("0x0")).isEmpty();
+    }
+
+    @Test
+    void shouldValidateSmartContract() {
+        assertThat(IexecHubSmartContractValidator.validate(iexecHubService.getHubContract())).isTrue();
     }
 
 }

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Add `AbstractAssetDeploymentService` and move `getNonce` method. (#92)
 - Estimate gas and submit a transaction in a single method. (#97)
+- Add method to fetch on-chain deal without app or dataset details. (#98)
 
 ### Quality
 
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Remove empty `ChainStatus` interface. (#94)
 - Remove `com.iexec.commons.poco.notification` package. (#95)
 - Restrict several methods visibility in `IexecHubAbstractService`. (#96)
+- Avoid exceptions during `IexecHubAbstractService` and `Web3jAbstractService` objects creation. (#99)
 
 ### Dependency Upgrades
 

@@ -16,7 +16,6 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.contract.IexecHubSmartContractValidator;
 import com.iexec.commons.poco.contract.generated.*;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
@@ -34,7 +33,6 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 
-import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -111,17 +109,6 @@ public abstract class IexecHubAbstractService {
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());
     }
-
-    @PostConstruct
-    private void validateRemoteIexecHubSmartContract() {
-        if (!new IexecHubSmartContractValidator().validate(iexecHubContract)) {
-            throw new IllegalArgumentException(
-                    "IexecHub smart contract validation failed."
-            );
-        }
-        setMaxNbOfPeriodsForConsensus();
-    }
-
 
     private static int scoreToWeight(int workerScore) {
         return Math.max(workerScore / 3, 3) - 1;
