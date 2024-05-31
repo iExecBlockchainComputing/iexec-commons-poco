@@ -48,7 +48,6 @@ import static com.iexec.commons.poco.itest.IexecHubTestService.*;
 import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @Slf4j
 @Tag("itest")
@@ -78,7 +77,6 @@ class MatchOrdersTests {
     @Test
     void shouldBeConnectedToNode() {
         assertThat(web3jService.isConnected()).isTrue();
-        assertDoesNotThrow(() -> web3jService.checkConnection());
     }
 
     @Test
