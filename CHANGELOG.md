@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Remove `com.iexec.commons.poco.notification` package. (#95)
 - Restrict several methods visibility in `IexecHubAbstractService`. (#96)
 - Avoid exceptions during `IexecHubAbstractService` and `Web3jAbstractService` objects creation. (#99)
+- Improve `SignatureUtils`: remove dead code and remove cleanly unused parameter in `hashAndSign`. (#100)
 
 ### Dependency Upgrades
 
