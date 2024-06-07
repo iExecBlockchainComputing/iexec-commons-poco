@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,13 @@ import org.web3j.utils.Numeric;
 import java.math.BigInteger;
 import java.security.SignatureException;
 
-import static com.iexec.commons.poco.utils.BytesUtils.*;
+import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedHexStringWithPrefixAndProperBytesSize;
+import static com.iexec.commons.poco.utils.BytesUtils.stringToBytes;
 
 @Slf4j
 public class SignatureUtils {
 
-    public static final Signature EMPTY_SIGNATURE =  new Signature();
+    public static final Signature EMPTY_SIGNATURE = new Signature();
 
     private SignatureUtils() {
         throw new UnsupportedOperationException();
@@ -42,7 +43,7 @@ public class SignatureUtils {
     public static boolean doesSignatureMatchesAddress(byte[] signatureR,
                                                       byte[] signatureS,
                                                       String hashToCheck,
-                                                      String signerAddress){
+                                                      String signerAddress) {
         // check that the public address of the signer can be found
         for (int i = 0; i < 4; i++) {
             BigInteger publicKey = Sign.recoverFromSignature((byte) i,
@@ -80,32 +81,24 @@ public class SignatureUtils {
         return addressRecovered.equalsIgnoreCase(signerAddress);
     }
 
+    /**
+     * @deprecated Use {@link #hashAndSign(String, ECKeyPair)}
+     */
+    @Deprecated(forRemoval = true)
     public static Signature hashAndSign(String stringToSign, String walletAddress, ECKeyPair ecKeyPair) {
-        byte[] message = Hash.sha3(BytesUtils.stringToBytes(stringToSign));
-        Sign.SignatureData sign = Sign.signMessage(message, ecKeyPair, false);
-
-        return new Signature(sign.getR(), sign.getS(), sign.getV());
+        return hashAndSign(stringToSign, ecKeyPair);
     }
 
-    public static String hashAndSignAsString(String stringToSign, ECKeyPair ecKeyPair) {
+    public static Signature hashAndSign(String stringToSign, ECKeyPair ecKeyPair) {
         byte[] message = Hash.sha3(BytesUtils.stringToBytes(stringToSign));
         Sign.SignatureData sign = Sign.signMessage(message, ecKeyPair, false);
-        return createStringFromSignature(sign);
+        return new Signature(sign.getR(), sign.getS(), sign.getV());
     }
 
     public static String signAsString(String stringToSign, ECKeyPair ecKeyPair) {
         byte[] message = Numeric.hexStringToByteArray(stringToSign);
         Sign.SignatureData sign = Sign.signMessage(message, ecKeyPair, false);
         return createStringFromSignature(sign);
-    }
-
-    public static Signature emptySignature() {
-        return new Signature (
-            BytesUtils.stringToBytes(EMPTY_HEX_STRING_32),
-            BytesUtils.stringToBytes(EMPTY_HEX_STRING_32),
-            new byte[1]
-        );
-
     }
 
     private static String createStringFromSignature(Sign.SignatureData sign) {
@@ -141,7 +134,7 @@ public class SignatureUtils {
     /*
      * web3j signedMessageHashToSignerAddress(..) accepts Sign.SignatureData [built on EthereumMessageHash]
      * */
-    public static String signedMessageHashToSignerAddress(String messageHash, Sign.SignatureData signatureData){
+    public static String signedMessageHashToSignerAddress(String messageHash, Sign.SignatureData signatureData) {
         String signerAddress = "";
         try {
             BigInteger publicKey = Sign.signedPrefixedMessageToKey(stringToBytes(messageHash), signatureData);
@@ -155,7 +148,7 @@ public class SignatureUtils {
     /*
      * iExec signedMessageHashToSignerAddress(..) accepts Signature [built on EthereumMessageHash]
      * */
-    public static String signedMessageHashToSignerAddress(String messageHash, Signature signature){
+    public static String signedMessageHashToSignerAddress(String messageHash, Signature signature) {
         Sign.SignatureData signatureData = new Sign.SignatureData(signature.getV()[0], signature.getR(), signature.getS());
         return signedMessageHashToSignerAddress(messageHash, signatureData);
     }
@@ -163,7 +156,7 @@ public class SignatureUtils {
     /*
      * iExec isExpectedSignerOnSignedMessageHash(..) accepts Signature [built on EthereumMessageHash]
      * */
-    public static boolean isExpectedSignerOnSignedMessageHash(String messageHash, Signature signature, String expectedSigner){
+    public static boolean isExpectedSignerOnSignedMessageHash(String messageHash, Signature signature, String expectedSigner) {
         String signerAddress = signedMessageHashToSignerAddress(messageHash, signature);
         return signerAddress.equalsIgnoreCase(expectedSigner);
     }
