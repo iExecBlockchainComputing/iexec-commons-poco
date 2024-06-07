@@ -18,12 +18,24 @@ package com.iexec.commons.poco.utils;
 
 import com.iexec.commons.poco.security.Signature;
 import org.junit.jupiter.api.Test;
+import org.web3j.crypto.Credentials;
 
 import static com.iexec.commons.poco.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.commons.poco.utils.SignatureUtils.signMessageHashAndGetSignature;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class SignatureUtilsTests {
+    @Test
+    void shouldHashAndSign() {
+        final String privateKey = "0x6dacd24b3d49d0c50c555aa728c60a57aa08beb363e3a90cce2e4e5d327c6ee2";
+        final Credentials credentials = Credentials.create(privateKey);
+        final Signature expectedSig =
+                new Signature("0x873c63aa363337dd2d5b3e7ca0659f62e1602116e199ba47bea3084fa8bad8752d054ba48a665448e87638a8228b666a20509425e7b7c411f9d3ed76e9db79da1b");
+        final Signature sig1 = SignatureUtils.hashAndSign("challenge", credentials.getEcKeyPair());
+        final Signature sig2 = SignatureUtils.hashAndSign("challenge", credentials.getAddress(), credentials.getEcKeyPair());
+        assertThat(sig1).isEqualTo(expectedSig);
+        assertThat(sig2).isEqualTo(sig1);
+    }
 
     @Test
     void shouldMatchExpectedSigner() {
@@ -38,7 +50,7 @@ class SignatureUtilsTests {
     }
 
     @Test
-    void isSignatureValid() {
+    void shouldSignatureBeValid() {
         final String address = "0x043B9300356351419d9F63E818054E99e6c831b2";
         final String challenge = "0xe6fe0ad9cc7e30e83c9f9b6ce818ad20d576a496dd332cb1a257e85a7ebf2ca3";
         final String signature = "0x7e78fbf387024f96211345c9caae47bafccf9a992fbf7924b3473d133f73c02a32204b44309bb2eaba2fcfa3be726c2c1d19f4ca560ba0c82dbd18b724ea52a11b";
