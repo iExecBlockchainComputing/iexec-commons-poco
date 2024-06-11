@@ -65,17 +65,19 @@ class AssetRegistriesTests {
     }
 
     @Test
-    void shouldCreateAndPredictCallsBeEqualWhenAssetNotDeployed() throws IOException {
+    void shouldCreateAndPredictCallsBeEqualWhenAssetNotDeployed() {
         final String appName = RandomStringUtils.randomAlphanumeric(16);
         final String datasetName = RandomStringUtils.randomAlphanumeric(16);
         final String workerpoolName = RandomStringUtils.randomAlphanumeric(16);
 
-        assertThat(iexecHubService.callCreateApp(appName))
-                .isEqualTo(iexecHubService.callPredictApp(appName));
-        assertThat(iexecHubService.callCreateDataset(datasetName))
-                .isEqualTo(iexecHubService.callPredictDataset(datasetName));
-        assertThat(iexecHubService.callCreateWorkerpool(workerpoolName))
-                .isEqualTo(iexecHubService.callPredictWorkerpool(workerpoolName));
+        assertAll(
+                () -> assertThat(iexecHubService.callCreateApp(appName))
+                        .isEqualTo(iexecHubService.callPredictApp(appName)),
+                () -> assertThat(iexecHubService.callCreateDataset(datasetName))
+                        .isEqualTo(iexecHubService.callPredictDataset(datasetName)),
+                () -> assertThat(iexecHubService.callCreateWorkerpool(workerpoolName))
+                        .isEqualTo(iexecHubService.callPredictWorkerpool(workerpoolName))
+        );
     }
 
     @Test
