@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Add `AbstractAssetDeploymentService` and move `getNonce` method. (#92)
 - Estimate gas and submit a transaction in a single method. (#97)
 - Add method to fetch on-chain deal without app or dataset details. (#98)
+- Add encodings to call PoCo assets address prediction functions. (#101)
 
 ### Quality
 

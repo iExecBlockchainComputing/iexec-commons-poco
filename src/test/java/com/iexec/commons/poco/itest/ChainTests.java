@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +59,7 @@ class ChainTests {
     @BeforeEach
     void init() throws CipherException, IOException {
         credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
+        final String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
                 environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
         web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
@@ -68,24 +67,22 @@ class ChainTests {
 
     @Test
     void shouldGetAccount() {
-        Optional<ChainAccount> oChainAccount = iexecHubService.getChainAccount(credentials.getAddress());
-        assertThat(oChainAccount).isPresent();
-        assertThat(oChainAccount.get().getDeposit()).isEqualTo(10_000_000L);
-        assertThat(oChainAccount.get().getLocked()).isZero();
+        final ChainAccount chainAccount = iexecHubService.getChainAccount(credentials.getAddress()).orElse(null);
+        assertThat(chainAccount).isNotNull();
+        assertThat(chainAccount.getDeposit()).isEqualTo(10_000_000L);
+        assertThat(chainAccount.getLocked()).isZero();
     }
 
     @Test
     void shouldGetBalance() {
-        Optional<BigInteger> oBalance = web3jService.getBalance(credentials.getAddress());
-        assertThat(oBalance)
-                .isPresent()
-                .contains(new BigInteger("1000000000000000000000000000000000000000000"));
+        final BigInteger balance = web3jService.getBalance(credentials.getAddress()).orElse(null);
+        assertThat(balance).isEqualTo(new BigInteger("1000000000000000000000000000000000000000000"));
     }
 
     @Test
     void shouldNotGetBalance() {
-        Web3jTestService web3jService = new Web3jTestService("http://localhost:8545");
-        assertThat(web3jService.getBalance(credentials.getAddress())).isEmpty();
+        final Web3jTestService badWeb3jService = new Web3jTestService("http://localhost:8545");
+        assertThat(badWeb3jService.getBalance(credentials.getAddress())).isEmpty();
     }
 
     @Test
@@ -99,17 +96,15 @@ class ChainTests {
 
     @Test
     void shouldNotGetBlockNumber() {
-        Web3jTestService web3jService = new Web3jTestService("http://localhost:8545");
-        assertThat(web3jService.getLatestBlockNumber()).isZero();
+        final Web3jTestService badWeb3jService = new Web3jTestService("http://localhost:8545");
+        assertThat(badWeb3jService.getLatestBlockNumber()).isZero();
     }
 
     @ParameterizedTest
     @MethodSource("categoryProvider")
     void shouldGetCategory(long id, ChainCategory expectedCategory) {
-        Optional<ChainCategory> oChainCategory = iexecHubService.getChainCategory(id);
-        assertThat(oChainCategory)
-                .isPresent()
-                .contains(expectedCategory);
+        final ChainCategory chainCategory = iexecHubService.getChainCategory(id).orElse(null);
+        assertThat(chainCategory).isEqualTo(expectedCategory);
     }
 
     private static Stream<Arguments> categoryProvider() {
@@ -124,15 +119,14 @@ class ChainTests {
 
     @Test
     void shouldGetMaxNbOfPeriodsForConsensus() {
-        long maxNbOfPeriodsForConsensus = iexecHubService.getMaxNbOfPeriodsForConsensus();
+        final long maxNbOfPeriodsForConsensus = iexecHubService.getMaxNbOfPeriodsForConsensus();
         assertThat(maxNbOfPeriodsForConsensus).isEqualTo(7L);
     }
 
     @Test
     void shouldGetWorkerScore() {
-        Optional<Integer> oScore = iexecHubService.getWorkerScore(credentials.getAddress());
-        assertThat(oScore).isPresent();
-        assertThat(oScore.get()).isZero();
+        final Integer score = iexecHubService.getWorkerScore(credentials.getAddress()).orElse(null);
+        assertThat(score).isZero();
     }
 
     @Test

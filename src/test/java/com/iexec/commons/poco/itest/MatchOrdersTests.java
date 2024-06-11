@@ -140,7 +140,7 @@ class MatchOrdersTests {
     }
 
     @Test
-    void shouldMatchOrdersWithSignerService() throws Exception {
+    void shouldMatchOrdersWithSignerService() throws IOException {
         final String appName = "my-app-2";
         final String datasetName = "my-dataset-2";
         final String workerpoolName = "my-workerpool-2";

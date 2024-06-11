@@ -56,11 +56,6 @@ public abstract class AbstractAssetDeploymentService {
         return Numeric.toBigInt(signerService.sendCall(assetRegistryAddress, isRegisteredTxData)).equals(BigInteger.ONE);
     }
 
-    public BigInteger estimateCreateAsset(String assetTxData) throws IOException {
-        Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
-        return signerService.estimateGas(assetRegistryAddress, assetTxData);
-    }
-
     public String submitAssetTxData(BigInteger nonce, BigInteger gasPrice, String assetTxData) throws IOException {
         Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
         return signerService.signAndSendTransaction(nonce, gasPrice, assetRegistryAddress, assetTxData);
