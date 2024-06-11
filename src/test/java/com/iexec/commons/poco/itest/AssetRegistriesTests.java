@@ -40,6 +40,7 @@ import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("itest")
 @Testcontainers
@@ -99,27 +100,31 @@ class AssetRegistriesTests {
         final String predictedWorkerpoolAddress = iexecHubService.callPredictWorkerpool(workerpoolName);
 
         // check assets are deployed
-        assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue();
-        assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse();
-        assertThat(iexecHubService.isAppPresent(predictedWorkerpoolAddress)).isFalse();
-        assertThat(iexecHubService.isDatasetPresent(predictedAppAddress)).isFalse();
-        assertThat(iexecHubService.isDatasetPresent(predictedDatasetAddress)).isTrue();
-        assertThat(iexecHubService.isDatasetPresent(predictedWorkerpoolAddress)).isFalse();
-        assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse();
-        assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
-        assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
+        assertAll(
+                () -> assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue(),
+                () -> assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse(),
+                () -> assertThat(iexecHubService.isAppPresent(predictedWorkerpoolAddress)).isFalse(),
+                () -> assertThat(iexecHubService.isDatasetPresent(predictedAppAddress)).isFalse(),
+                () -> assertThat(iexecHubService.isDatasetPresent(predictedDatasetAddress)).isTrue(),
+                () -> assertThat(iexecHubService.isDatasetPresent(predictedWorkerpoolAddress)).isFalse(),
+                () -> assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse(),
+                () -> assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse(),
+                () -> assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue()
+        );
 
         // call on create assets should revert
         final String errorMessage = "Contract Call has been reverted by the EVM with the reason: 'VM execution error.'.";
 
-        assertThatThrownBy(() -> iexecHubService.callCreateApp(appName))
-                .isInstanceOf(ContractCallException.class)
-                .hasMessage(errorMessage);
-        assertThatThrownBy(() -> iexecHubService.callCreateDataset(datasetName))
-                .isInstanceOf(ContractCallException.class)
-                .hasMessage(errorMessage);
-        assertThatThrownBy(() -> iexecHubService.callCreateWorkerpool(workerpoolName))
-                .isInstanceOf(ContractCallException.class)
-                .hasMessage(errorMessage);
+        assertAll(
+                () -> assertThatThrownBy(() -> iexecHubService.callCreateApp(appName), "Should have failed to call createApp")
+                        .isInstanceOf(ContractCallException.class)
+                        .hasMessage(errorMessage),
+                () -> assertThatThrownBy(() -> iexecHubService.callCreateDataset(datasetName), "Should have failed to call createDataset")
+                        .isInstanceOf(ContractCallException.class)
+                        .hasMessage(errorMessage),
+                () -> assertThatThrownBy(() -> iexecHubService.callCreateWorkerpool(workerpoolName), "Should have failed to call createWorkerpool")
+                        .isInstanceOf(ContractCallException.class)
+                        .hasMessage(errorMessage)
+        );
     }
 }
