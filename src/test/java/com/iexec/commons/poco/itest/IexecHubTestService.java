@@ -35,6 +35,9 @@ public class IexecHubTestService extends IexecHubAbstractService {
     static final BigInteger GAS_LIMIT = BigInteger.valueOf(1_000_000L);
     static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
 
+    private static final String ASSET_MULTI_ADDRESS = "multiAddress";
+    private static final String ASSET_CHECKSUM = Numeric.toHexStringNoPrefix(new byte[32]);
+
     private static final String APP_REGISTRY_SELECTOR = "0x45b637a9";
     private static final String DATASET_REGISTRY_SELECTOR = "0xb1b11d2c";
     private static final String WORKERPOOL_REGISTRY_SELECTOR = "0x90a0f546";
@@ -67,10 +70,11 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return appDeploymentService.callCreateAsset(appTxData);
     }
 
-    public BigInteger estimateCreateApp(String name) throws IOException {
-        log.info("estimateCreateApp");
-        final String appTxData = createAppTxData(name);
-        return appDeploymentService.estimateCreateAsset(appTxData);
+    public String callPredictApp(String name) throws IOException {
+        log.info("callPredictApp");
+        final String appTxData = AssetDataEncoder.encodePredictApp(
+                ownerAddress, name, "DOCKER", ASSET_MULTI_ADDRESS, ASSET_CHECKSUM, "{}");
+        return appDeploymentService.callCreateAsset(appTxData);
     }
 
     public String submitCreateAppTx(BigInteger nonce, String name) throws IOException {
@@ -86,8 +90,8 @@ public class IexecHubTestService extends IexecHubAbstractService {
                 ownerAddress,
                 name,
                 "DOCKER",
-                "multiAddress",
-                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64),
+                ASSET_MULTI_ADDRESS,
+                ASSET_CHECKSUM,
                 "{}"
         );
     }
@@ -105,10 +109,10 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return datasetDeploymentService.callCreateAsset(datasetTxData);
     }
 
-    public BigInteger estimateCreateDataset(String name) throws IOException {
-        log.info("estimateCreateDataset");
-        final String datasetTxData = createDatasetTxData(name);
-        return datasetDeploymentService.estimateCreateAsset(datasetTxData);
+    public String callPredictDataset(String name) throws IOException {
+        log.info("callPredictDataset");
+        final String datasetTxData = AssetDataEncoder.encodePredictDataset(ownerAddress, name, ASSET_MULTI_ADDRESS, ASSET_CHECKSUM);
+        return datasetDeploymentService.callCreateAsset(datasetTxData);
     }
 
     public String submitCreateDatasetTx(BigInteger nonce, String name) throws IOException {
@@ -123,8 +127,8 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return AssetDataEncoder.encodeDataset(
                 ownerAddress,
                 name,
-                "multiAddress",
-                Numeric.toHexStringNoPrefixZeroPadded(BigInteger.ZERO, 64)
+                ASSET_MULTI_ADDRESS,
+                ASSET_CHECKSUM
         );
     }
 
@@ -135,16 +139,16 @@ public class IexecHubTestService extends IexecHubAbstractService {
     // endregion
 
     // region createWorkerpool
-    public String callCreateWorkerpool(String name) throws Exception {
+    public String callCreateWorkerpool(String name) throws IOException {
         log.info("callCreateWorkerpool");
         final String workerpoolTxData = createWorkerpoolTxData(name);
         return workerpoolDeploymentService.callCreateAsset(workerpoolTxData);
     }
 
-    public BigInteger estimateCreateWorkerpool(String name) throws Exception {
-        log.info("estimateCreateWorkerpool");
-        final String workerpoolTxData = createWorkerpoolTxData(name);
-        return workerpoolDeploymentService.estimateCreateAsset(workerpoolTxData);
+    public String callPredictWorkerpool(String name) throws IOException {
+        log.info("callPredictWorkerpool");
+        final String workerpoolTxData = AssetDataEncoder.encodePredictWorkerpool(ownerAddress, name);
+        return workerpoolDeploymentService.callCreateAsset(workerpoolTxData);
     }
 
     public String submitCreateWorkerpoolTx(BigInteger nonce, String name) throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,8 +84,8 @@ class ChainTests {
 
     @Test
     void shouldNotGetBalance() {
-        Web3jTestService web3jService = new Web3jTestService("http://localhost:8545");
-        assertThat(web3jService.getBalance(credentials.getAddress())).isEmpty();
+        Web3jTestService badWeb3jService = new Web3jTestService("http://localhost:8545");
+        assertThat(badWeb3jService.getBalance(credentials.getAddress())).isEmpty();
     }
 
     @Test
@@ -99,8 +99,8 @@ class ChainTests {
 
     @Test
     void shouldNotGetBlockNumber() {
-        Web3jTestService web3jService = new Web3jTestService("http://localhost:8545");
-        assertThat(web3jService.getLatestBlockNumber()).isZero();
+        Web3jTestService badWeb3jService = new Web3jTestService("http://localhost:8545");
+        assertThat(badWeb3jService.getLatestBlockNumber()).isZero();
     }
 
     @ParameterizedTest
