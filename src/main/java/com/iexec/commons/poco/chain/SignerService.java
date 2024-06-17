@@ -21,6 +21,7 @@ import com.iexec.commons.poco.security.Signature;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.EthAddress;
 import com.iexec.commons.poco.utils.SignatureUtils;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.web3j.crypto.*;
@@ -45,6 +46,7 @@ import java.security.NoSuchProviderException;
 @Slf4j
 public class SignerService {
 
+    @Getter
     private final Credentials credentials;
     private final RawTransactionManager txManager;
     private final Web3j web3j;
@@ -91,6 +93,15 @@ public class SignerService {
 
     public String getAddress() {
         return credentials.getAddress();
+    }
+
+    public BigInteger getNonce() {
+        try {
+            return web3j.ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.PENDING)
+                    .send().getTransactionCount();
+        } catch (Exception e) {
+            return BigInteger.ZERO;
+        }
     }
 
     /**
@@ -199,6 +210,11 @@ public class SignerService {
         }
         log.warn("Could not verify transaction by hash [txHash:{}]", txHash);
         return txHash;
+    }
+
+    public String signAndSendTransaction(BigInteger nonce, BigInteger gasPrice, String to, String data) throws IOException {
+        final BigInteger gasLimit = estimateGas(to, data);
+        return signAndSendTransaction(nonce, gasPrice, gasLimit, to, data);
     }
 
     /**

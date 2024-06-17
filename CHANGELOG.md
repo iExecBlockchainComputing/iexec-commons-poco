@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[4.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.1.0) 2024-06-17
+
+### New Features
+
+- Add `AbstractAssetDeploymentService` and move `getNonce` method. (#92)
+- Estimate gas and submit a transaction in a single method. (#97)
+- Add method to fetch on-chain deal without app or dataset details. (#98)
+- Add encodings to call PoCo assets address prediction functions. (#101)
+
+### Quality
+
+- Configure Gradle JVM Test Suite Plugin. (#89)
+- Remove unused `predictApp`, `predictDataset` and `predictWorkerpool` methods. (#93)
+- Remove empty `ChainStatus` interface. (#94)
+- Remove `com.iexec.commons.poco.notification` package. (#95)
+- Restrict several methods visibility in `IexecHubAbstractService`. (#96)
+- Avoid exceptions during `IexecHubAbstractService` and `Web3jAbstractService` objects creation. (#99)
+- Improve `SignatureUtils`: remove dead code and remove cleanly unused parameter in `hashAndSign`. (#100)
+
+### Dependency Upgrades
+
+- Upgrade to Gradle 8.7. (#90)
+- Upgrade to Spring Boot 2.7.18. (#91)
+
 ## [[4.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.0.0) 2024-04-12
 
 ### New features

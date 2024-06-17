@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package com.iexec.commons.poco.chain;
 
 import java.math.BigInteger;
 
-public enum ChainTaskStatus implements ChainStatus {
+public enum ChainTaskStatus {
     UNSET,     // Work order not yet initialized (invalid address)
-    ACTIVE,    // Marketed to constributions are open
+    ACTIVE,    // Marketed, contributions are open
     REVEALING, // Starting consensus reveal
-    COMPLETED, // Concensus achieved
-    FAILLED;    // Failed consensus
+    COMPLETED, // Consensus achieved
+    FAILED;    // Failed consensus
 
     public static ChainTaskStatus getValue(int i) {
         return ChainTaskStatus.values()[i];

@@ -1,9 +1,9 @@
 plugins {
     id 'java-library'
+    id 'io.freefair.lombok' version '8.6'
     id 'jacoco'
-    id 'org.sonarqube' version '4.2.1.3168'
+    id 'org.sonarqube' version '5.0.0.4638'
     id 'maven-publish'
-    id 'io.freefair.lombok' version '8.2.2'
 }
 
 group = 'com.iexec.commons'
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.17')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.18')
 
     // web3j
     api 'org.web3j:core:4.9.7'
@@ -55,19 +55,6 @@ dependencies {
 
     // javax annotations like PostConstruct
     implementation 'javax.annotation:javax.annotation-api'
-
-    // tests
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'org.assertj:assertj-core'
-    testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
-
-    // spring-test for ReflectionTestUtils
-    testImplementation 'org.springframework:spring-test'
-
-    // logback
-    testRuntimeOnly 'ch.qos.logback:logback-classic'
 }
 
 java {
@@ -80,9 +67,26 @@ java {
     withSourcesJar()
 }
 
+testing {
+    suites {
+        test {
+            useJUnitJupiter()
+            dependencies {
+                implementation 'org.junit.jupiter:junit-jupiter'
+                implementation 'org.mockito:mockito-junit-jupiter'
+                implementation 'org.assertj:assertj-core'
+                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+                // spring-test for ReflectionTestUtils
+                implementation 'org.springframework:spring-test'
+                // logback
+                runtimeOnly 'ch.qos.logback:logback-classic'
+            }
+        }
+    }
+}
+
 tasks.withType(Test).configureEach {
     finalizedBy jacocoTestReport
-    useJUnitPlatform()
 }
 
 test {

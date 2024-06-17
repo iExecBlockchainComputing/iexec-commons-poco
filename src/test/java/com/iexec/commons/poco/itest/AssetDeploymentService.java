@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package com.iexec.commons.poco.chain;
+package com.iexec.commons.poco.itest;
 
-public interface ChainStatus {
+import com.iexec.commons.poco.chain.AbstractAssetDeploymentService;
+import com.iexec.commons.poco.chain.SignerService;
 
+public class AssetDeploymentService extends AbstractAssetDeploymentService {
+    protected AssetDeploymentService(SignerService signerService, String assetRegistrySelector) {
+        super(signerService, assetRegistrySelector);
+    }
 }

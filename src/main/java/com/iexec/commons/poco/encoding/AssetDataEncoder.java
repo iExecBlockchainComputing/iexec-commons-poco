@@ -34,8 +34,11 @@ import static com.iexec.commons.poco.encoding.Utils.toHexString;
 public class AssetDataEncoder {
 
     private static final String CREATE_APP_SELECTOR = "0x3f7868ff";
+    private static final String PREDICT_APP_SELECTOR = "0xe92118ed";
     private static final String CREATE_DATASET_SELECTOR = "0x3354bcdb";
+    private static final String PREDICT_DATASET_SELECTOR = "0xfe17fc7a";
     private static final String CREATE_WORKERPOOL_SELECTOR = "0xe40238f4";
+    private static final String PREDICT_WORKERPOOL_SELECTOR = "0x064a6c2a";
     private static final String IS_REGISTERED_SELECTOR = "0xc3c5a547";
     private static final String NFT_TRANSFER_EVENT = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
@@ -51,8 +54,27 @@ public class AssetDataEncoder {
      * @return encoded data
      */
     public static String encodeApp(String owner, String name, String type, String multiaddr, String checksum, String mrenclave) {
+        return encodeAppTxData(CREATE_APP_SELECTOR, owner, name, type, multiaddr, checksum, mrenclave);
+    }
+
+    /**
+     * Encodes data for {@code predictApp} transaction.
+     *
+     * @param owner     Owner Ethereum address
+     * @param name      App name
+     * @param type      App type, unique supported value should be DOCKER
+     * @param multiaddr Docker registry download address
+     * @param checksum  Docker image SHA-256 checksum
+     * @param mrenclave TEE configuration if applicable, should be a valid JSON string of {@link com.iexec.commons.poco.tee.TeeEnclaveConfiguration}
+     * @return encoded data
+     */
+    public static String encodePredictApp(String owner, String name, String type, String multiaddr, String checksum, String mrenclave) {
+        return encodeAppTxData(PREDICT_APP_SELECTOR, owner, name, type, multiaddr, checksum, mrenclave);
+    }
+
+    private static String encodeAppTxData(String selector, String owner, String name, String type, String multiaddr, String checksum, String mrenclave) {
         long offset = 6;
-        StringBuilder sb = new StringBuilder(CREATE_APP_SELECTOR);
+        StringBuilder sb = new StringBuilder(selector);
         sb.append(toHexString(owner));
 
         sb.append(toHexString(BigInteger.valueOf(offset * 32)));
@@ -90,8 +112,25 @@ public class AssetDataEncoder {
      * @return encoded data
      */
     public static String encodeDataset(String owner, String name, String multiaddr, String checksum) {
+        return encodeDatasetTxData(CREATE_DATASET_SELECTOR, owner, name, multiaddr, checksum);
+    }
+
+    /**
+     * Encodes data for {@code predictDataset} transaction.
+     *
+     * @param owner     Owner Ethereum address
+     * @param name      Dataset name, can be empty
+     * @param multiaddr Download address, can be a http link or an IPFS multiaddr
+     * @param checksum  SHA-256 checksum of the dataset
+     * @return encoded data
+     */
+    public static String encodePredictDataset(String owner, String name, String multiaddr, String checksum) {
+        return encodeDatasetTxData(PREDICT_DATASET_SELECTOR, owner, name, multiaddr, checksum);
+    }
+
+    private static String encodeDatasetTxData(String selector, String owner, String name, String multiaddr, String checksum) {
         long offset = 4;
-        StringBuilder sb = new StringBuilder(CREATE_DATASET_SELECTOR);
+        StringBuilder sb = new StringBuilder(selector);
 
         String nameOffset = toHexString(BigInteger.valueOf(offset * 32));
         String nameContrib = TypeEncoder.encode(new DynamicBytes(name.getBytes(StandardCharsets.UTF_8)));
@@ -118,8 +157,23 @@ public class AssetDataEncoder {
      * @return encoded data
      */
     public static String encodeWorkerpool(String owner, String description) {
+        return encodeWorkerpoolTxData(CREATE_WORKERPOOL_SELECTOR, owner, description);
+    }
+
+    /**
+     * Encodes data for {@code predictWorkerpool} transaction.
+     *
+     * @param owner       Owner Ethereum address
+     * @param description Workerpool description
+     * @return encoded data
+     */
+    public static String encodePredictWorkerpool(String owner, String description) {
+        return encodeWorkerpoolTxData(PREDICT_WORKERPOOL_SELECTOR, owner, description);
+    }
+
+    private static String encodeWorkerpoolTxData(String selector, String owner, String description) {
         long offset = 2;
-        StringBuilder sb = new StringBuilder(CREATE_WORKERPOOL_SELECTOR);
+        StringBuilder sb = new StringBuilder(selector);
         sb.append(toHexString(owner));
         sb.append(toHexString(BigInteger.valueOf(offset * 32)));
         String descriptionContrib = TypeEncoder.encode(new DynamicBytes(description.getBytes(StandardCharsets.UTF_8)));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_
 public abstract class Web3jAbstractService {
 
     static final long GAS_LIMIT_CAP = 1_000_000;
-    private final int maxAttempts = 12;
 
     @Getter
     private final int chainId;
@@ -104,20 +103,6 @@ public abstract class Web3jAbstractService {
     }
 
     @PostConstruct
-    public void checkConnection() {
-        final int fewSeconds = 5;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            log.debug("Connection attempt {}", attempt);
-            if (isConnected()) {
-                return;
-            }
-            log.error("Failed to connect to ethereum node (will retry) [chainNodeAddress:{}, retryIn:{}]",
-                    chainNodeAddress, fewSeconds);
-            WaitUtils.sleep(fewSeconds);
-        }
-        throw new IllegalStateException("Failed to connect to the blockchain node after " + maxAttempts + " attempts");
-    }
-
     public boolean isConnected() {
         try {
             if (web3j.web3ClientVersion().send().getWeb3ClientVersion() != null) {
@@ -160,6 +145,10 @@ public abstract class Web3jAbstractService {
                 false).send().getBlock();
     }
 
+    /**
+     * @deprecated Use {@link SignerService#getNonce()}
+     */
+    @Deprecated(forRemoval = true)
     public BigInteger getNonce(String address) {
         try {
             return web3j.ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)

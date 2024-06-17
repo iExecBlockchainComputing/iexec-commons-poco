@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.contract.IexecHubSmartContractValidator;
 import com.iexec.commons.poco.contract.generated.*;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
@@ -25,19 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
 import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
-import org.web3j.tx.ChainIdLong;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 
-import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -45,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
 import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
@@ -115,17 +109,6 @@ public abstract class IexecHubAbstractService {
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());
     }
-
-    @PostConstruct
-    private void validateRemoteIexecHubSmartContract() {
-        if (!new IexecHubSmartContractValidator().validate(iexecHubContract)) {
-            throw new IllegalArgumentException(
-                    "IexecHub smart contract validation failed."
-            );
-        }
-        setMaxNbOfPeriodsForConsensus();
-    }
-
 
     private static int scoreToWeight(int workerScore) {
         return Math.max(workerScore / 3, 3) - 1;
@@ -289,39 +272,6 @@ public abstract class IexecHubAbstractService {
     public String createWorkerpool(String name) {
         return createWorkerpool(name, 10 * 60, 5);
     }
-
-    /**
-     * This method to predict workerpool address without deploying it
-     *
-     * @param owner workerpool owner
-     * @param name  workerpool name
-     * @return workerpool address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String predictWorkerpool(String owner, String name) {
-        final String paramsPrinter = " [owner:{}, name:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)) {
-            log.error("Non empty inputs are required" + paramsPrinter, owner, name);
-            return "";
-        }
-
-        WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (workerpoolRegistry == null) {
-            log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
-            return null;
-        }
-
-        RemoteFunctionCall<String> call = workerpoolRegistry.predictWorkerpool(owner, name);
-        String address = "";
-        try {
-            address = call.send();
-        } catch (Exception e) {
-            log.error("Failed to get predictWorkerpool" + paramsPrinter, owner, name, e);
-        }
-        return address;
-    }
-
     // endregion
 
     // region app
@@ -463,49 +413,6 @@ public abstract class IexecHubAbstractService {
                             String checksum, String mrEnclave) {
         return createApp(name, multiAddress, type, checksum, mrEnclave, 10 * 60, 5);
     }
-
-    /**
-     * This method to predict app address without deploying it
-     *
-     * @param owner        app owner
-     * @param name         app name
-     * @param multiAddress app url
-     * @param checksum     app sha256 checksum
-     * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String predictApp(String owner, String name, String multiAddress, String type,
-                             String checksum, String mrEnclave) {
-        final String paramsPrinter = " [owner:{}, name:{}, multiAddress:{}, checksum:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)
-                || StringUtils.isEmpty(multiAddress) || StringUtils.isEmpty(checksum)) {
-            log.error("Non empty inputs are required" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (appRegistry == null) {
-            log.error("Failed to get appRegistry" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return null;
-        }
-
-        RemoteFunctionCall<String> call = appRegistry.predictApp(owner, name, type,
-                multiAddress.getBytes(StandardCharsets.UTF_8),
-                BytesUtils.hexStringToBytes32(checksum),
-                mrEnclave.getBytes(StandardCharsets.UTF_8));
-        String address = "";
-        try {
-            address = call.send();
-        } catch (Exception e) {
-            log.error("Failed to get predictApp" + paramsPrinter,
-                    owner, name, multiAddress, checksum, e);
-        }
-        return address;
-    }
-
     // endregion
 
     // region dataset
@@ -646,50 +553,6 @@ public abstract class IexecHubAbstractService {
     public String createDataset(String name, String multiAddress, String checksum) {
         return createDataset(name, multiAddress, checksum, 10 * 60, 5);
     }
-
-    /**
-     * This method to predict dataset address without deploying it
-     *
-     * @param owner        dataset owner
-     * @param name         dataset name
-     * @param multiAddress dataset url
-     * @param checksum     dataset sha256 checksum
-     * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String predictDataset(String owner, String name, String multiAddress,
-                                 String checksum) {
-        final String paramsPrinter = " [owner:{}, name:{}, multiAddress:{}, checksum:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)
-                || StringUtils.isEmpty(multiAddress) || StringUtils.isEmpty(checksum)) {
-            log.error("Non empty inputs are required" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (datasetRegistry == null) {
-            log.error("Failed to get datasetRegistry" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return null;
-        }
-
-        RemoteFunctionCall<String> call = datasetRegistry
-                .predictDataset(owner,
-                        name,
-                        multiAddress.getBytes(StandardCharsets.UTF_8),
-                        BytesUtils.hexStringToBytes32(checksum));
-        String address = "";
-        try {
-            address = call.send();
-        } catch (Exception e) {
-            log.error("Failed to get predictDataset" + paramsPrinter,
-                    owner, name, multiAddress, checksum, e);
-        }
-        return address;
-    }
-
     // endregion
 
     /**
@@ -700,65 +563,92 @@ public abstract class IexecHubAbstractService {
      * @param maxRetry    number of maximum retry
      * @return optional ChainDeal
      */
-    public Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
-                                                  long retryDelay,
-                                                  int maxRetry) {
+    Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
+                                           long retryDelay,
+                                           int maxRetry) {
         return new Retryer<Optional<ChainDeal>>()
-                .repeatCall(() -> getChainDeal(chainDealId),
+                .repeatCall(() -> getChainDealWithDetails(chainDealId),
                         Optional::isEmpty,
                         retryDelay, maxRetry,
-                        String.format("getChainDeal(chainDealId) " +
-                                "[chainDealId:%s]", chainDealId));
+                        String.format("getChainDeal(chainDealId) [chainDealId:%s]", chainDealId));
     }
 
     /**
-     * Retrieves on-chain deal with its blockchain ID
+     * Retrieves on-chain deal from its blockchain ID
+     * <p>
+     * The obtained deal won't contain app or dataset details
      * <p>
      * Note:
-     * If `start time` is invalid, it is likely a blockchain issue. In this case,
-     * in order to protect workflows based on top of it, the deal won't be
-     * accessible from this method
+     * If `start time` is invalid, it is likely a blockchain issue.
+     * In this case, in order to protect workflows based on top of it,
+     * an {@code Optional.empty()} will be returned.
      *
      * @param chainDealId blockchain ID of the deal (e.g: 0x123..abc)
      * @return deal object
      */
     public Optional<ChainDeal> getChainDeal(String chainDealId) {
-        byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
+        final byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
-            IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
+            final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
+            final ChainCategory category = getChainCategory(deal.category.longValue()).orElse(null);
+            final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, category);
+            return validateChainDeal(chainDeal);
+        } catch (Exception e) {
+            log.error("Failed to getChainDeal [chainDealId:{}]", chainDealId, e);
+        }
+        return Optional.empty();
+    }
 
-            String appAddress = deal.app.pointer;
-            String datasetAddress = deal.dataset.pointer;
-            BigInteger categoryId = deal.category;
+    /**
+     * Retrieves on-chain deal from its blockchain ID
+     * <p>
+     * The obtained deal will contain app or dataset details
+     * <p>
+     * Note:
+     * If `start time` is invalid, it is likely a blockchain issue.
+     * In this case, in order to protect workflows based on top of it,
+     * an {@code Optional.empty()} will be returned.
+     *
+     * @param chainDealId blockchain ID of the deal (e.g: 0x123..abc)
+     * @return deal object
+     */
+    public Optional<ChainDeal> getChainDealWithDetails(String chainDealId) {
+        final byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
+        try {
+            final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
 
-            Optional<ChainApp> chainApp = getChainApp(getAppContract(appAddress));
-            if (chainApp.isEmpty()) {
+            final ChainApp app = getChainApp(getAppContract(deal.app.pointer)).orElse(null);
+            if (app == null) {
                 return Optional.empty();
             }
-            ChainApp app = chainApp.get();
-            Optional<ChainCategory> chainCategory = getChainCategory(categoryId.longValue());
-            if (chainCategory.isEmpty()) {
+            final ChainCategory category = getChainCategory(deal.category.longValue()).orElse(null);
+            if (category == null) {
                 return Optional.empty();
             }
-            ChainCategory category = chainCategory.get();
-            Optional<ChainDataset> chainDataset =
-                    getChainDataset(getDatasetContract(datasetAddress));
-            ChainDataset dataset = chainDataset.orElse(null);
+            final ChainDataset dataset = getChainDataset(getDatasetContract(deal.dataset.pointer)).orElse(null);
 
-            ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
+            final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
-            if (chainDeal.getStartTime() == null
-                    || chainDeal.getStartTime().longValue() <= 0) {
-                log.error("Deal start time should be greater than zero (likely a " +
-                                "blockchain issue) [chainDealId:{}, startTime:{}]",
-                        chainDealId, chainDeal.getStartTime());
-                return Optional.empty();
-            }
-            return Optional.of(chainDeal);
+            return validateChainDeal(chainDeal);
         } catch (Exception e) {
             log.error("Failed to get ChainDeal [chainDealId:{}]", chainDealId, e);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Checks if deal is valid, i.e. has a positive start time allowing to compute deadlines.
+     *
+     * @param chainDeal The {@code ChainDeal} to check
+     * @return {@code Optional.of(chainDeal)} if valid, {@code Optional.empty()} otherwise
+     */
+    private Optional<ChainDeal> validateChainDeal(final ChainDeal chainDeal) {
+        if (chainDeal.getStartTime() == null || chainDeal.getStartTime().longValue() <= 0) {
+            log.error("Deal start time should be greater than zero (likely a blockchain issue) [chainDealId:{}, startTime:{}]",
+                    chainDeal.getChainDealId(), chainDeal.getStartTime());
+            return Optional.empty();
+        }
+        return Optional.of(chainDeal);
     }
 
     /**
@@ -769,22 +659,21 @@ public abstract class IexecHubAbstractService {
      * @param maxRetry    number of maximum retry
      * @return optional ChainTask
      */
-    public Optional<ChainTask> repeatGetChainTask(String chainTaskId,
-                                                  long retryDelay,
-                                                  int maxRetry) {
+    Optional<ChainTask> repeatGetChainTask(String chainTaskId,
+                                           long retryDelay,
+                                           int maxRetry) {
         return new Retryer<Optional<ChainTask>>()
                 .repeatCall(() -> getChainTask(chainTaskId),
                         Optional::isEmpty,
                         retryDelay, maxRetry,
-                        String.format("getChainTask(chainTaskId) " +
-                                "[chainTaskId:%s]", chainTaskId));
+                        String.format("getChainTask(chainTaskId) [chainTaskId:%s]", chainTaskId));
     }
 
     public Optional<ChainTask> getChainTask(String chainTaskId) {
         try {
-            ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
+            final ChainTask chainTask = ChainTask.tuple2ChainTask(iexecHubContract
                     .viewTaskABILegacy(BytesUtils.stringToBytes(chainTaskId)).send());
-            String chainDealId = chainTask.getDealid();
+            final String chainDealId = chainTask.getDealid();
             if (isNonZeroedBytes32(chainDealId)) {
                 return Optional.of(chainTask);
             } else {
@@ -825,7 +714,7 @@ public abstract class IexecHubAbstractService {
      * <p>
      * Note:
      * If `max execution time` is invalid, it is likely a blockchain issue.
-     * In this case,in order to protect workflows based on top of it, the category
+     * In this case, in order to protect workflows based on top of it, the category
      * won't be accessible from this method
      *
      * @param id blockchain ID of the category (e.g: 0x123..abc)
@@ -1011,9 +900,8 @@ public abstract class IexecHubAbstractService {
         return web3jAbstractService.hasEnoughGas(address);
     }
 
-    /*
+    /**
      * Behaves as a cache to avoid always calling blockchain to retrieve task description
-     *
      */
     public TaskDescription getTaskDescription(String chainTaskId) {
         if (!taskDescriptions.containsKey(chainTaskId)) {
@@ -1024,50 +912,43 @@ public abstract class IexecHubAbstractService {
         return taskDescriptions.get(chainTaskId);
     }
 
-    public Optional<TaskDescription> getTaskDescriptionFromChain(String chainTaskId) {
-        return repeatGetTaskDescriptionFromChain(chainTaskId, retryDelay, 0);
-    }
-
-    public Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
-                                                                       long retryDelay,
-                                                                       int maxRetry) {
+    Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
+                                                                long retryDelay,
+                                                                int maxRetry) {
+        // If retryDelay is 0, a runtime exception will be thrown from failsafe library
         if (retryDelay == 0) {
+            log.warn("retry delay cannot be 0 [chainTaskId:{}]", chainTaskId);
             return Optional.empty();
         }
-        Optional<ChainTask> optionalChainTask =
-                repeatGetChainTask(chainTaskId, retryDelay, maxRetry);
-        if (optionalChainTask.isEmpty()) {
-            log.info("Failed to get TaskDescription, ChainTask error " +
-                    "[chainTaskId:{}]", chainTaskId);
+        final ChainTask chainTask = repeatGetChainTask(chainTaskId, retryDelay, maxRetry).orElse(null);
+        if (chainTask == null) {
+            log.info("Failed to get TaskDescription, ChainTask error [chainTaskId:{}]", chainTaskId);
             return Optional.empty();
         }
-        ChainTask chainTask = optionalChainTask.get();
 
-        Optional<ChainDeal> optionalChainDeal =
-                repeatGetChainDeal(chainTask.getDealid(), retryDelay, maxRetry);
-        if (optionalChainDeal.isEmpty()) {
-            log.info("Failed to get TaskDescription, ChainDeal error " +
-                    "[chainTaskId:{}]", chainTaskId);
+        final ChainDeal chainDeal = repeatGetChainDeal(chainTask.getDealid(), retryDelay, maxRetry).orElse(null);
+        if (chainDeal == null) {
+            log.info("Failed to get TaskDescription, ChainDeal error [chainTaskId:{}]", chainTaskId);
             return Optional.empty();
         }
-        ChainDeal chainDeal = optionalChainDeal.get();
 
-        TaskDescription taskDescription =
-                TaskDescription.toTaskDescription(chainDeal, chainTask);
+        final TaskDescription taskDescription = TaskDescription.toTaskDescription(chainDeal, chainTask);
+        // taskDescription cannot be null here as chainTask and ChainDeal are not
         return taskDescription != null ? Optional.of(taskDescription) : Optional.empty();
     }
 
     public boolean isTeeTask(String chainTaskId) {
-        Optional<TaskDescription> oTaskDescription =
-                getTaskDescriptionFromChain(chainTaskId);
+        // Magical non-null retry delay to ease testing and because there are no retries
+        final TaskDescription taskDescription = repeatGetTaskDescriptionFromChain(chainTaskId, 1000, 0)
+                .orElse(null);
 
-        if (oTaskDescription.isEmpty()) {
+        if (taskDescription == null) {
             log.error("Couldn't get task description from chain [chainTaskId:{}]",
                     chainTaskId);
             return false;
         }
 
-        return oTaskDescription.get().isTeeTask();
+        return taskDescription.isTeeTask();
     }
 
     // region Purge

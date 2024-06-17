@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.iexec.commons.poco.chain;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -27,7 +26,6 @@ import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CRE
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-
 
 class Web3jAbstractServiceTest {
 
@@ -39,34 +37,32 @@ class Web3jAbstractServiceTest {
     private final boolean isSidechain = true;
 
     private final Web3jAbstractService web3jAbstractService =
-            new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain) {};
+            new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain) {
+            };
 
     @Test
     void shouldCreateInstance() {
         assertDoesNotThrow(
-                () -> new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain){});
+                () -> new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain) {
+                });
     }
 
     @Test
     void shouldNotCreateInstanceWhenNullBlockTime() {
         assertThrows(IllegalArgumentException.class,
-                () -> new Web3jAbstractService(chainId, nodeAddress, null, gasPriceMultiplier, gasPriceCap, isSidechain){});
+                () -> new Web3jAbstractService(chainId, nodeAddress, null, gasPriceMultiplier, gasPriceCap, isSidechain) {
+                });
     }
 
     @Test
     void shouldNotCreateInstanceWhenNegativeBlockTime() {
         Duration blockTime = Duration.ofSeconds(-1);
         assertThrows(IllegalArgumentException.class,
-                () -> new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain){});
+                () -> new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain) {
+                });
     }
 
     // region checkConnection
-    @Test
-    void shouldFailToConnect() {
-        ReflectionTestUtils.setField(web3jAbstractService, "maxAttempts", 1);
-        assertThrows(IllegalStateException.class, web3jAbstractService::checkConnection);
-    }
-
     @Test
     void shouldNotBeConnected() {
         assertThat(web3jAbstractService.isConnected()).isFalse();
@@ -100,5 +96,5 @@ class Web3jAbstractServiceTest {
                         .getGasLimitForFunction("randomfunction"),
                 BigInteger.valueOf(GAS_LIMIT_CAP));
     }
-    
+
 }

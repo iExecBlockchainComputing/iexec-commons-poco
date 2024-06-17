@@ -33,7 +33,8 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static com.iexec.commons.poco.itest.IexecHubTestService.*;
+import static com.iexec.commons.poco.itest.IexecHubTestService.GAS_PRICE;
+import static com.iexec.commons.poco.itest.IexecHubTestService.IEXEC_HUB_ADDRESS;
 
 public class OrdersService {
 
@@ -135,14 +136,9 @@ public class OrdersService {
         return signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
     }
 
-    public BigInteger estimateMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress) throws IOException {
-        final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
-        return signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData);
-    }
-
     public String submitMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress, BigInteger nonce) throws IOException {
         final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
-        return signerService.signAndSendTransaction(nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
+        return signerService.signAndSendTransaction(nonce, GAS_PRICE, IEXEC_HUB_ADDRESS, matchOrdersTxData);
     }
 
     private String encodeMathOrdersTxData(String appAddress, String datasetAddress, String workerpoolAddress) {
