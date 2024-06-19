@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2024
 
+## [[4.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.1.0) 2024-06-17
+
 ### New Features
 
 - Add `AbstractAssetDeploymentService` and move `getNonce` method. (#92)
