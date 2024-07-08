@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 public class Web3jTestService extends Web3jAbstractService {
-    final static long BLOCK_TIME = 5;
+    static final long BLOCK_TIME = 5;
 
     public Web3jTestService(String chainNodeAddress) {
         this(chainNodeAddress, 1.0f, 22_000_000_000L);
