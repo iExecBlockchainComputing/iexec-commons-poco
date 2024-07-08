@@ -29,10 +29,14 @@ import java.util.stream.Stream;
 
 @Slf4j
 public class Web3jTestService extends Web3jAbstractService {
-    static long BLOCK_TIME = 5;
+    static final long BLOCK_TIME = 5;
 
     public Web3jTestService(String chainNodeAddress) {
-        super(65535, chainNodeAddress, Duration.ofSeconds(BLOCK_TIME), 1.0f, 22_000_000_000L, true);
+        this(chainNodeAddress, 1.0f, 22_000_000_000L);
+    }
+
+    public Web3jTestService(String chainNodeAddress, float gasPriceMultiplier, long gasPriceCap) {
+        super(65535, chainNodeAddress, Duration.ofSeconds(BLOCK_TIME), gasPriceMultiplier, gasPriceCap, true);
     }
 
     public boolean areTxMined(String... txHashes) {

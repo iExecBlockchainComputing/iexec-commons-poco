@@ -56,9 +56,9 @@ class Web3jAbstractServiceTest {
 
     @Test
     void shouldNotCreateInstanceWhenNegativeBlockTime() {
-        Duration blockTime = Duration.ofSeconds(-1);
+        final Duration negativeBlockTime = Duration.ofSeconds(-1);
         assertThrows(IllegalArgumentException.class,
-                () -> new Web3jAbstractService(chainId, nodeAddress, blockTime, gasPriceMultiplier, gasPriceCap, isSidechain) {
+                () -> new Web3jAbstractService(chainId, nodeAddress, negativeBlockTime, gasPriceMultiplier, gasPriceCap, isSidechain) {
                 });
     }
 
