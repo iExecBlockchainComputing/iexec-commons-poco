@@ -36,6 +36,7 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,9 +48,12 @@ class ChainTests {
     static final String SERVICE_NAME = "poco-chain";
     static final int SERVICE_PORT = 8545;
 
+    private final String badBlockchainAddress = "http://localhost:5458";
+
     private Credentials credentials;
     private IexecHubTestService iexecHubService;
     private Web3jTestService web3jService;
+    private String chainNodeAddress;
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
@@ -58,11 +62,11 @@ class ChainTests {
 
     @BeforeEach
     void init() throws CipherException, IOException {
-        credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
-        final String chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
+        this.credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
+        this.chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
                 environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
-        web3jService = new Web3jTestService(chainNodeAddress);
-        iexecHubService = new IexecHubTestService(credentials, web3jService);
+        this.web3jService = new Web3jTestService(chainNodeAddress);
+        this.iexecHubService = new IexecHubTestService(credentials, web3jService);
     }
 
     @Test
@@ -81,7 +85,7 @@ class ChainTests {
 
     @Test
     void shouldNotGetBalance() {
-        final Web3jTestService badWeb3jService = new Web3jTestService("http://localhost:8545");
+        final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress);
         assertThat(badWeb3jService.getBalance(credentials.getAddress())).isEmpty();
     }
 
@@ -96,7 +100,7 @@ class ChainTests {
 
     @Test
     void shouldNotGetBlockNumber() {
-        final Web3jTestService badWeb3jService = new Web3jTestService("http://localhost:8545");
+        final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress);
         assertThat(badWeb3jService.getLatestBlockNumber()).isZero();
     }
 
@@ -149,5 +153,31 @@ class ChainTests {
     void shouldValidateSmartContract() {
         assertThat(IexecHubSmartContractValidator.validate(iexecHubService.getHubContract())).isTrue();
     }
+
+    // region gas price
+    @Test
+    void shouldGetNetworkGasPrice() {
+        assertThat(web3jService.getNetworkGasPrice()).isEqualTo(Optional.of(BigInteger.valueOf(8_000_000_000L)));
+    }
+
+    @Test
+    void shouldReturnNetworkPriceWhenBelowGasPriceCap() {
+        assertThat(web3jService.getUserGasPrice()).isEqualTo(8_000_000_000L);
+    }
+
+    @Test
+    void shouldReturnUserPriceCapWhenBelowNetworkPrice() {
+        final float gasPriceMultiplier = 1.2f;
+        final long gasPriceCap = 5_000_000_000L;
+        final Web3jTestService newService = new Web3jTestService(chainNodeAddress, gasPriceMultiplier, gasPriceCap);
+        assertThat(newService.getUserGasPrice()).isEqualTo(gasPriceCap);
+    }
+
+    @Test
+    void shouldReturnGasPriceCapOnBlockchainCommunicationError() {
+        final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress);
+        assertThat(badWeb3jService.getUserGasPrice()).isEqualTo(22_000_000_000L);
+    }
+    // endregion
 
 }
