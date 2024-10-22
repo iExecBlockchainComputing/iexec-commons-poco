@@ -73,14 +73,14 @@ class ChainTests {
     void shouldGetAccount() {
         final ChainAccount chainAccount = iexecHubService.getChainAccount(credentials.getAddress()).orElse(null);
         assertThat(chainAccount).isNotNull();
-        assertThat(chainAccount.getDeposit()).isEqualTo(10_000_000L);
+        assertThat(chainAccount.getDeposit()).isEqualTo(40_178L);
         assertThat(chainAccount.getLocked()).isZero();
     }
 
     @Test
     void shouldGetBalance() {
         final BigInteger balance = web3jService.getBalance(credentials.getAddress()).orElse(null);
-        assertThat(balance).isEqualTo(new BigInteger("1000000000000000000000000000000000000000000"));
+        assertThat(balance).isEqualTo(new BigInteger("3188369135434504514964210500676909925639291603846501657344"));
     }
 
     @Test
@@ -157,12 +157,12 @@ class ChainTests {
     // region gas price
     @Test
     void shouldGetNetworkGasPrice() {
-        assertThat(web3jService.getNetworkGasPrice()).isEqualTo(Optional.of(BigInteger.valueOf(8_000_000_000L)));
+        assertThat(web3jService.getNetworkGasPrice()).isEqualTo(Optional.empty());
     }
 
     @Test
     void shouldReturnNetworkPriceWhenBelowGasPriceCap() {
-        assertThat(web3jService.getUserGasPrice()).isEqualTo(8_000_000_000L);
+        assertThat(web3jService.getUserGasPrice()).isEqualTo(22_000_000_000L);
     }
 
     @Test

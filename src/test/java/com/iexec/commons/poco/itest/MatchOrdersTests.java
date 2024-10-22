@@ -88,34 +88,34 @@ class MatchOrdersTests {
                 BytesUtils.EMPTY_HEX_STRING_32,
                 "{}"
         );
-        assertThat(appAddress).isEqualTo("0x564ef252a271ff68a74266e8f574ed827297caf4");
+        assertThat(appAddress).isEqualTo("0x909375d8bc4e9c26afa996bad7571b88b6cefa72");
 
         String datasetAddress = iexecHubService.createDataset(
                 "my-dataset-1",
                 "multiAddress",
                 BytesUtils.EMPTY_HEX_STRING_32
         );
-        assertThat(datasetAddress).isEqualTo("0x8e0c3441b788fe2bafb29a729c59d9e9a9ca5483");
+        assertThat(datasetAddress).isEqualTo("0x049d8b40e50282ae8b34780240ff49235b87bf59");
 
         String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool-1");
-        assertThat(workerpoolAddress).isEqualTo("0x1d9340e5c33c6d289250df3b1ce31bc3ac6b16c0");
+        assertThat(workerpoolAddress).isEqualTo("0x4f1e8ec6d1fb6ce8309d816ecacde77da4f7de9c");
 
         final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(appAddress);
         assertThat(signedAppOrder.getSign())
-                .isEqualTo("0xbcb64941a9e7162f6f3a2b9e636596eec1bee8d420556469e11641905b45c7785691c310e4cce295311ebf6439acf2a6a943fb8d5db87a1971f979a83e6ea34d1b");
+                .isEqualTo("0x95bc07e7a64415d7529ded8c4730c17870d519e569857533e273f350235b4ebf17d46ffff80b37452cca1b6540db127cd991ce91c6cb7ba3d2a1bc9409d70ad51b");
 
         final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(datasetAddress);
         assertThat(signedDatasetOrder.getSign())
-                .isEqualTo("0x014011344b5684761605fd34ecdcebd34b1efc249658a1f975d8c2a26a7adc5b68dcda7bd298cc578aea99877b5ae4e7b0f3cacd307cd4fdfb382d87a0fdc5e11c");
+                .isEqualTo("0x08195ca0a92aea60ff6e08c7b8d089d50b650a4ac214d1233d6857cc58349a8f710fdc16121bf028e035b26774c2a341c67e556119bec42532c4e0586256f5481b");
 
         final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(workerpoolAddress);
         assertThat(signedWorkerpoolOrder.getSign())
-                .isEqualTo("0xb3b4cc51859bf106562baecf6261bfa8e168a11e06dcc82b91d0ccfbe16be14c414526c4a2e0908ef61eae6a91ec96a8d977fda4b204ac06d1b7e477abe8ea8d1b");
+                .isEqualTo("0x012dd3697776b6ce1a8ea8dc8541155dff59422bc9f21c28e61009817934ec943ff274d3831432b9ee6b2206b8b0a7e669e38cf8fa9c73bd339dd6a6e1514c8b1b");
 
         final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
                 signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
         assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0xa6a6eea2c49c7df388d8a265926f19bf4cac049f73875f1dbbe813ce088a7e833a2552cb33a14927b350c858349d3bcedbe23286edf912ad585dc102a1249e751c");
+                .isEqualTo("0x66d7c636055ff2d03e5250065cc24481ed7bfa80cc0b92f2437feb9690c9ad30077351549030ab65eaf647de8b2b9e7ac758d6b6cb53550d4771b213b5f206e11b");
 
         BigInteger nonce = signerService.getNonce();
         String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
@@ -156,20 +156,20 @@ class MatchOrdersTests {
 
         final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(predictedAppAddress);
         assertThat(signedAppOrder.getSign())
-                .isEqualTo("0xc200bf4ac4170d3949831d0049a184b7ee612d74a54f4d12af62cfa734330b3523c1db3a57a4f91d03932313aed3c95200e7950d52cc2f98ee0e08cb0648cbf31c");
+                .isEqualTo("0x8a3d3283f11e22318ed65fc22dcf1101a5905c1fbfb2dee67981668de7130647175ca7b728f066d764006b9e95cc4f8097157de7ee6b6d917479f6598d055ff81b");
 
         final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(predictedDatasetAddress);
         assertThat(signedDatasetOrder.getSign())
-                .isEqualTo("0xfa2bf8bbfde7db118970aae8781dc78210bd9433111f1332f549aa003f7f28cc6c68c038aa35b5ddfc98242a8ede07ea8fa073f2b0e7f1247b8b97fadc4837c91c");
+                .isEqualTo("0x936734f59674cb89ba77616b4a00f91b9b5ec938723b4465b15bca74e3e8274a72db4ad60cc5097dbecd5f721f7d241efe5905fe6d49968dffe6a14ca33c82951b");
 
         final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(predictedWorkerpoolAddress);
         assertThat(signedWorkerpoolOrder.getSign())
-                .isEqualTo("0xf6474336a10e3ec12ff65e721fee6ba53763f937a1b54659332f61cf1770b4b26947df22ad89e8623aa985763e917e9f66670e51befc7195b16b0e8db365c13c1c");
+                .isEqualTo("0x0d204f203e07e8250bb587fbcd64adf8da95accf2f3cc686e9585794f3d1aad076a996d5d2fe6ff4b4cabd8f127fc7543468d784c74420a8440d9742a72bd0ee1b");
 
         final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
                 signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
         assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0x17d53276b2f125953d147af94381388ee20e6be80a6c76cf5359c8a1f04c0f0b670a3bd890fdca9307a11ef52927634b65399fa3a03fc6e89f17d5e3c383b4c31c");
+                .isEqualTo("0xf6117dcc9a2feac58fcf3bb9b4cfebac9cd2f538c6611dce8ff2c3a7ea1d5c464c4e46e8622f5faeb2ec88dc6e5231fb97163494acbccf54bf8650477b11c4781b");
 
         nonce = nonce.add(BigInteger.ONE);
         final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
