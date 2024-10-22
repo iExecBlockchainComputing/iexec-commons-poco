@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Add `getUserGasPrice` method to `Web3jAbstractService`. (#104)
+- Use `poco-chain` with `poco v5.5.0` and `voucher v1.0.0` in tests (#106)
 
 ### Dependency Upgrades
 
