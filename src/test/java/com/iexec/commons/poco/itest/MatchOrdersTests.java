@@ -61,6 +61,7 @@ class MatchOrdersTests {
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
+            .withPull(true)
             .withExposedService(SERVICE_NAME, SERVICE_PORT);
 
     @BeforeEach
