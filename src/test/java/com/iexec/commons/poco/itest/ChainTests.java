@@ -36,7 +36,6 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
