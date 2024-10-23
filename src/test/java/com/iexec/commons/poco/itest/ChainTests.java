@@ -36,7 +36,6 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +56,8 @@ class ChainTests {
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
-            .withExposedService("poco-chain", 8545);
+            .withPull(true)
+            .withExposedService(SERVICE_NAME, SERVICE_PORT);
 
 
     @BeforeEach
@@ -73,14 +73,14 @@ class ChainTests {
     void shouldGetAccount() {
         final ChainAccount chainAccount = iexecHubService.getChainAccount(credentials.getAddress()).orElse(null);
         assertThat(chainAccount).isNotNull();
-        assertThat(chainAccount.getDeposit()).isEqualTo(10_000_000L);
+        assertThat(chainAccount.getDeposit()).isEqualTo(40_178L);
         assertThat(chainAccount.getLocked()).isZero();
     }
 
     @Test
     void shouldGetBalance() {
         final BigInteger balance = web3jService.getBalance(credentials.getAddress()).orElse(null);
-        assertThat(balance).isEqualTo(new BigInteger("1000000000000000000000000000000000000000000"));
+        assertThat(balance).isEqualTo(new BigInteger("3188369135434504514964210500676909925639291603846501657344"));
     }
 
     @Test
@@ -157,12 +157,12 @@ class ChainTests {
     // region gas price
     @Test
     void shouldGetNetworkGasPrice() {
-        assertThat(web3jService.getNetworkGasPrice()).isEqualTo(Optional.of(BigInteger.valueOf(8_000_000_000L)));
+        assertThat(web3jService.getNetworkGasPrice()).isEmpty();
     }
 
     @Test
     void shouldReturnNetworkPriceWhenBelowGasPriceCap() {
-        assertThat(web3jService.getUserGasPrice()).isEqualTo(8_000_000_000L);
+        assertThat(web3jService.getUserGasPrice()).isEqualTo(22_000_000_000L);
     }
 
     @Test
