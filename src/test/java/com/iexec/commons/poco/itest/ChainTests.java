@@ -158,7 +158,7 @@ class ChainTests {
     // region gas price
     @Test
     void shouldGetNetworkGasPrice() {
-        assertThat(web3jService.getNetworkGasPrice()).isEqualTo(Optional.empty());
+        assertThat(web3jService.getNetworkGasPrice()).isEmpty();
     }
 
     @Test
