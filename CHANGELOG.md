@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - Restrict several methods visibility in `IexecHubAbstractService`. (#96)
 - Avoid exceptions during `IexecHubAbstractService` and `Web3jAbstractService` objects creation. (#99)
 - Improve `SignatureUtils`: remove dead code and remove cleanly unused parameter in `hashAndSign`. (#100)
+- Use `poco-chain` with `poco v5.5.0` and `voucher v1.0.0` in tests. (#106)
 
 ### Dependency Upgrades
 

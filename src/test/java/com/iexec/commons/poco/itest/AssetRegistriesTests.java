@@ -52,7 +52,8 @@ class AssetRegistriesTests {
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
-            .withExposedService("poco-chain", 8545);
+            .withPull(true)
+            .withExposedService(SERVICE_NAME, SERVICE_PORT);
 
     @BeforeEach
     void init() throws CipherException, IOException {
