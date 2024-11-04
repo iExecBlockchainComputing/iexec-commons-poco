@@ -108,27 +108,39 @@ public class SignatureUtils {
         return String.join("", r, Numeric.cleanHexPrefix(s), Numeric.cleanHexPrefix(v));
     }
 
-    /*
-     * web3j signMessageHash(..) base method [built on EthereumMessageHash]
-     * */
+    /**
+     * Sign a message prefixed with {@code "\x19Ethereum Signed Message:\n" + len(message)}.
+     *
+     * @param messageHash Hashed data to sign
+     * @param ecKeyPair   Key pair to sign the message
+     * @return The signature data
+     * @see <a href="https://eips.ethereum.org/EIPS/eip-191">ERC-191</a> specification.
+     */
     private static Sign.SignatureData signMessageHash(String messageHash, ECKeyPair ecKeyPair) {
         return Sign.signPrefixedMessage(stringToBytes(messageHash), ecKeyPair);
     }
 
-    /*
-     * web3j signMessageHash(..) returns Sign.SignatureData [built on EthereumMessageHash]
-     * */
-    public static Sign.SignatureData signMessageHashAndGetSignatureData(String messageHash, String privateKey) {
-        ECKeyPair ecKeyPair = ECKeyPair.create(BytesUtils.hexStringToBytes32(privateKey));
-        return signMessageHash(messageHash, ecKeyPair);
+    /**
+     * Sign a message prefixed with {@code "\x19Ethereum Signed Message:\n" + len(message)}.
+     *
+     * @param messageHash Hashed data to sign
+     * @param ecKeyPair   Key pair to sign the message
+     * @return The signature data wrapped in a {@link Signature} instance
+     */
+    public static Signature signMessageHashAndGetSignature(String messageHash, ECKeyPair ecKeyPair) {
+        return new Signature(signMessageHash(messageHash, ecKeyPair));
     }
 
-    /*
-     * iExec signMessageHash(..) returns Signature [built on EthereumMessageHash]
-     * */
+    /**
+     * Sign a message prefixed with {@code "\x19Ethereum Signed Message:\n" + len(message)}.
+     *
+     * @param messageHash Hashed data to sign
+     * @param privateKey  Private key to use, an {@code ECKeyPair} will be created from this key
+     * @return The signature data wrapper in a {@link Signature} instance
+     */
     public static Signature signMessageHashAndGetSignature(String messageHash, String privateKey) {
-        Sign.SignatureData signatureData = signMessageHashAndGetSignatureData(messageHash, privateKey);
-        return new Signature(signatureData);
+        final ECKeyPair ecKeyPair = ECKeyPair.create(Numeric.hexStringToByteArray(privateKey));
+        return signMessageHashAndGetSignature(messageHash, ecKeyPair);
     }
 
     /*
