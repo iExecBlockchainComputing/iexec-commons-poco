@@ -34,7 +34,6 @@ import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.exceptions.JsonRpcError;
 import org.web3j.tx.RawTransactionManager;
-import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -108,8 +107,7 @@ public class SignerService {
      * Signs messages with Ethereum prefix
      */
     public Signature signMessageHash(String messageHash) {
-        String hexPrivateKey = Numeric.toHexStringWithPrefix(credentials.getEcKeyPair().getPrivateKey());
-        return SignatureUtils.signMessageHashAndGetSignature(messageHash, hexPrivateKey);
+        return SignatureUtils.signMessageHashAndGetSignature(messageHash, credentials.getEcKeyPair());
     }
 
     public String signEIP712Entity(EIP712Entity<?> eip712Entity) {
