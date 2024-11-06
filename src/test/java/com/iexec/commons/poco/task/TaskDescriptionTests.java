@@ -1,18 +1,15 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
- * Licensed under the Apache License,
-Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
-software
+ * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -25,7 +22,6 @@ import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -33,46 +29,116 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 class TaskDescriptionTests {
 
-    public static final String CHAIN_TASK_ID = "chainTaskId";
-    public static final String REQUESTER = "requester";
-    public static final String BENEFICIARY = "beneficiary";
-    public static final String CALLBACK = "callback";
-    public static final DappType APP_TYPE = DappType.DOCKER;
-    public static final String APP_URI = "https://uri";
-    public static final String APP_ADDRESS = "appAddress";
-    public static final TeeEnclaveConfiguration enclaveConfig = TeeEnclaveConfiguration.builder().build();
-    public static final String CMD = "cmd";
-    public static final int MAX_EXECUTION_TIME = 1;
-    public static final boolean IS_TEE_TASK = true;
-    public static final TeeFramework TEE_FRAMEWORK = TeeFramework.SCONE;
-    public static final int BOT_SIZE = 1;
-    public static final int BOT_FIRST = 2;
-    public static final int TASK_IDX = 3;
-    public static final String DATASET_ADDRESS = "datasetAddress";
-    public static final String DATASET_URI = "https://datasetUri";
-    public static final String DATASET_NAME = "datasetName";
-    public static final String DATASET_CHECKSUM = "datasetChecksum";
-    public static final List<String> INPUT_FILES = Collections.singletonList("inputFiles");
-    public static final boolean IS_CALLBACK_REQUESTED = true;
-    public static final boolean IS_RESULT_ENCRYPTION = true;
-    public static final String RESULT_STORAGE_PROVIDER = "resultStorageProvider";
-    public static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
-    public static final BigInteger TRUST = BigInteger.ONE;
+    private static final String APP_OWNER = "0x1";
+    private static final BigInteger APP_PRICE = BigInteger.ZERO;
+    private static final String DATA_OWNER = "0x2";
+    private static final BigInteger DATA_PRICE = BigInteger.ONE;
+    private static final String WORKERPOOL_OWNER = "0x3";
+    private static final BigInteger WORKERPOOL_PRICE = BigInteger.TEN;
+
+    private static final String CHAIN_TASK_ID = "chainTaskId";
+    private static final String REQUESTER = "requester";
+    private static final String BENEFICIARY = "beneficiary";
+    private static final String CALLBACK = "callback";
+    private static final DappType APP_TYPE = DappType.DOCKER;
+    private static final String APP_URI = "https://uri";
+    private static final String APP_ADDRESS = "appAddress";
+    private static final String ENTRYPOINT = "entrypoint";
+    private static final String CMD = "cmd";
+    private static final int MAX_EXECUTION_TIME = 1;
+    private static final boolean IS_TEE_TASK = true;
+    private static final TeeFramework TEE_FRAMEWORK = TeeFramework.SCONE;
+    private static final int BOT_SIZE = 1;
+    private static final int BOT_FIRST = 2;
+    private static final int TASK_IDX = 3;
+    private static final String DATASET_ADDRESS = "datasetAddress";
+    private static final String DATASET_URI = "https://datasetUri";
+    private static final String DATASET_NAME = "datasetName";
+    private static final String DATASET_CHECKSUM = "datasetChecksum";
+    private static final List<String> INPUT_FILES = Collections.singletonList("inputFiles");
+    private static final boolean IS_RESULT_ENCRYPTION = true;
+    private static final String RESULT_STORAGE_PROVIDER = "resultStorageProvider";
+    private static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
+    private static final BigInteger TRUST = BigInteger.ONE;
 
     @Test
-    void shouldBuildAndGetTaskDescription() {
-        TaskDescription task = TaskDescription.builder()
+    void toTaskDescriptionWithNullDeal() {
+        assertNull(TaskDescription.toTaskDescription(null, null));
+    }
+
+    @Test
+    void toTaskDescription() {
+        final ChainCategory chainCategory = ChainCategory.builder()
+                .maxExecutionTime(MAX_EXECUTION_TIME)
+                .build();
+        final TeeEnclaveConfiguration enclaveConfiguration = TeeEnclaveConfiguration.builder()
+                .entrypoint(ENTRYPOINT)
+                .build();
+        final ChainApp chainApp = ChainApp.builder()
+                .chainAppId(APP_ADDRESS)
+                .type(APP_TYPE.toString())
+                .uri(BytesUtils.bytesToString(APP_URI.getBytes(StandardCharsets.UTF_8)))
+                .enclaveConfiguration(enclaveConfiguration)
+                .build();
+        final ChainDataset chainDataset = ChainDataset.builder()
+                .chainDatasetId(DATASET_ADDRESS)
+                .name(DATASET_NAME)
+                .uri(BytesUtils.bytesToString(DATASET_URI.getBytes(StandardCharsets.UTF_8)))
+                .checksum(DATASET_CHECKSUM)
+                .build();
+        final DealParams dealParams = DealParams.builder()
+                .iexecArgs(CMD)
+                .iexecInputFiles(INPUT_FILES)
+                .iexecResultStorageProvider(RESULT_STORAGE_PROVIDER)
+                .iexecResultStorageProxy(RESULT_STORAGE_PROXY)
+                .iexecResultEncryption(IS_RESULT_ENCRYPTION)
+                .build();
+        final ChainDeal chainDeal = ChainDeal.builder()
+                .dappOwner(APP_OWNER)
+                .dappPrice(APP_PRICE)
+                .dataOwner(DATA_OWNER)
+                .dataPrice(DATA_PRICE)
+                .poolOwner(WORKERPOOL_OWNER)
+                .poolPrice(WORKERPOOL_PRICE)
+                .requester(REQUESTER)
+                .beneficiary(BENEFICIARY)
+                .callback(CALLBACK)
+                .chainApp(chainApp)
+                .params(dealParams)
+                .chainDataset(chainDataset)
+                .tag(TeeUtils.TEE_SCONE_ONLY_TAG) // any supported TEE tag
+                .chainCategory(chainCategory)
+                .botFirst(BigInteger.valueOf(BOT_FIRST))
+                .botSize(BigInteger.valueOf(BOT_SIZE))
+                .trust(TRUST)
+                .build();
+        final ChainTask chainTask = ChainTask.builder()
+                .dealid(chainDeal.getChainDealId())
                 .chainTaskId(CHAIN_TASK_ID)
+                .idx(TASK_IDX)
+                .build();
+
+        final TaskDescription task = TaskDescription.toTaskDescription(chainDeal, chainTask);
+
+        final TaskDescription expectedTaskDescription = TaskDescription.builder()
+                .chainTaskId(CHAIN_TASK_ID)
+                .appOwner(APP_OWNER)
+                .appPrice(APP_PRICE)
+                .datasetOwner(DATA_OWNER)
+                .datasetPrice(DATA_PRICE)
+                .workerpoolOwner(WORKERPOOL_OWNER)
+                .workerpoolPrice(WORKERPOOL_PRICE)
                 .requester(REQUESTER)
                 .beneficiary(BENEFICIARY)
                 .callback(CALLBACK)
                 .appType(APP_TYPE)
                 .appUri(APP_URI)
                 .appAddress(APP_ADDRESS)
-                .appEnclaveConfiguration(enclaveConfig)
-                .cmd(CMD)
+                .appEnclaveConfiguration(enclaveConfiguration)
                 .maxExecutionTime(MAX_EXECUTION_TIME)
                 .isTeeTask(IS_TEE_TASK)
                 .teeFramework(TEE_FRAMEWORK)
@@ -83,160 +149,24 @@ class TaskDescriptionTests {
                 .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
+                .cmd(CMD)
                 .inputFiles(INPUT_FILES)
                 .isResultEncryption(IS_RESULT_ENCRYPTION)
                 .resultStorageProvider(RESULT_STORAGE_PROVIDER)
                 .resultStorageProxy(RESULT_STORAGE_PROXY)
-                .trust(TRUST)
-                .build();
-        Assertions.assertEquals(CHAIN_TASK_ID,
-                task.getChainTaskId());
-        Assertions.assertEquals(REQUESTER,
-                task.getRequester());
-        Assertions.assertEquals(BENEFICIARY,
-                task.getBeneficiary());
-        Assertions.assertEquals(CALLBACK,
-                task.getCallback());
-        Assertions.assertEquals(APP_TYPE,
-                task.getAppType());
-        Assertions.assertEquals(APP_URI,
-                task.getAppUri());
-        Assertions.assertEquals(APP_ADDRESS,
-                task.getAppAddress());
-        Assertions.assertEquals(enclaveConfig,
-                task.getAppEnclaveConfiguration());
-        Assertions.assertEquals(CMD,
-                task.getCmd());
-        Assertions.assertEquals(MAX_EXECUTION_TIME,
-                task.getMaxExecutionTime());
-        Assertions.assertEquals(IS_TEE_TASK,
-                task.isTeeTask());
-        Assertions.assertEquals(TEE_FRAMEWORK,
-                task.getTeeFramework());
-        Assertions.assertEquals(TASK_IDX,
-                task.getBotIndex());
-        Assertions.assertEquals(BOT_SIZE,
-                task.getBotSize());
-        Assertions.assertEquals(BOT_FIRST,
-                task.getBotFirstIndex());
-        Assertions.assertEquals(DATASET_URI,
-                task.getDatasetUri());
-        Assertions.assertEquals(DATASET_NAME,
-                task.getDatasetName());
-        Assertions.assertEquals(DATASET_CHECKSUM,
-                task.getDatasetChecksum());
-        Assertions.assertEquals(INPUT_FILES,
-                task.getInputFiles());
-        Assertions.assertEquals(IS_CALLBACK_REQUESTED,
-                task.containsCallback());
-        Assertions.assertEquals(IS_RESULT_ENCRYPTION,
-                task.isResultEncryption());
-        Assertions.assertEquals(RESULT_STORAGE_PROVIDER,
-                task.getResultStorageProvider());
-        Assertions.assertEquals(RESULT_STORAGE_PROXY,
-                task.getResultStorageProxy());
-        Assertions.assertEquals(TRUST,
-                task.getTrust());
-        Assertions.assertTrue(task.containsDataset());
-    }
-
-    @Test
-    void toTaskDescriptionWithNullDeal() {
-        Assertions.assertNull(TaskDescription.toTaskDescription(null, null));
-    }
-
-    @Test
-    void toTaskDescription() {
-        ChainDeal chainDeal = ChainDeal.builder()
-                .requester(REQUESTER)
-                .beneficiary(BENEFICIARY)
-                .callback(CALLBACK)
-                .chainApp(ChainApp.builder()
-                        .chainAppId(APP_ADDRESS)
-                        .type(APP_TYPE.toString())
-                        .uri(BytesUtils.bytesToString(APP_URI.getBytes(StandardCharsets.UTF_8)))
-                        .build())
-                .params(DealParams.builder()
-                        .iexecArgs(CMD)
-                        .iexecInputFiles(INPUT_FILES)
-                        .iexecResultStorageProvider(RESULT_STORAGE_PROVIDER)
-                        .iexecResultStorageProxy(RESULT_STORAGE_PROXY)
-                        .iexecResultEncryption(IS_RESULT_ENCRYPTION)
-                        .build())
-                .chainDataset(ChainDataset.builder()
-                        .chainDatasetId(DATASET_ADDRESS)
-                        .name(DATASET_NAME)
-                        .uri(BytesUtils.bytesToString(DATASET_URI.getBytes(StandardCharsets.UTF_8)))
-                        .checksum(DATASET_CHECKSUM).build())
-                .tag(TeeUtils.TEE_SCONE_ONLY_TAG) // any supported TEE tag
-                .chainCategory(ChainCategory.builder()
-                        .maxExecutionTime(MAX_EXECUTION_TIME)
-                        .build())
-                .botFirst(BigInteger.valueOf(BOT_FIRST))
-                .botSize(BigInteger.valueOf(BOT_SIZE))
+                .secrets(Collections.emptyMap())
+                .dealParams(dealParams)
                 .trust(TRUST)
                 .build();
 
-        ChainTask chainTask = ChainTask.builder()
-                .dealid(chainDeal.getChainDealId())
-                .chainTaskId(CHAIN_TASK_ID)
-                .idx(TASK_IDX)
-                .build();
-
-        TaskDescription task =
-                TaskDescription.toTaskDescription(chainDeal, chainTask);
-
-        Assertions.assertEquals(CHAIN_TASK_ID,
-                task.getChainTaskId());
-        Assertions.assertEquals(REQUESTER,
-                task.getRequester());
-        Assertions.assertEquals(BENEFICIARY,
-                task.getBeneficiary());
-        Assertions.assertEquals(CALLBACK,
-                task.getCallback());
-        Assertions.assertEquals(APP_TYPE,
-                task.getAppType());
-        Assertions.assertEquals(APP_URI,
-                task.getAppUri());
-        Assertions.assertEquals(APP_ADDRESS,
-                task.getAppAddress());
-        Assertions.assertEquals(CMD,
-                task.getCmd());
-        Assertions.assertEquals(MAX_EXECUTION_TIME,
-                task.getMaxExecutionTime());
-        Assertions.assertEquals(IS_TEE_TASK,
-                task.isTeeTask());
-        Assertions.assertEquals(TEE_FRAMEWORK,
-                task.getTeeFramework());
-        Assertions.assertEquals(TASK_IDX,
-                task.getBotIndex());
-        Assertions.assertEquals(BOT_SIZE,
-                task.getBotSize());
-        Assertions.assertEquals(BOT_FIRST,
-                task.getBotFirstIndex());
-        Assertions.assertEquals(DATASET_URI,
-                task.getDatasetUri());
-        Assertions.assertEquals(DATASET_NAME,
-                task.getDatasetName());
-        Assertions.assertEquals(DATASET_CHECKSUM,
-                task.getDatasetChecksum());
-        Assertions.assertEquals(INPUT_FILES,
-                task.getInputFiles());
-        Assertions.assertEquals(IS_CALLBACK_REQUESTED,
-                task.containsCallback());
-        Assertions.assertEquals(IS_RESULT_ENCRYPTION,
-                task.isResultEncryption());
-        Assertions.assertEquals(RESULT_STORAGE_PROVIDER,
-                task.getResultStorageProvider());
-        Assertions.assertEquals(RESULT_STORAGE_PROXY,
-                task.getResultStorageProxy());
-        Assertions.assertEquals(TRUST,
-                task.getTrust());
+        assertEquals(expectedTaskDescription, task);
+        assertTrue(task.containsCallback());
     }
 
+    // region containsDataset
     @Test
     void shouldContainDataset() {
-        Assertions.assertTrue(TaskDescription.builder()
+        assertTrue(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
@@ -244,7 +174,7 @@ class TaskDescriptionTests {
                 .build()
                 .containsDataset());
 
-        Assertions.assertTrue(TaskDescription.builder()
+        assertTrue(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
                 // .datasetName(DATASET_NAME)
@@ -255,7 +185,7 @@ class TaskDescriptionTests {
 
     @Test
     void shouldNotContainDataset() {
-        Assertions.assertFalse(TaskDescription.builder()
+        assertFalse(TaskDescription.builder()
                 // .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
@@ -263,7 +193,7 @@ class TaskDescriptionTests {
                 .build()
                 .containsDataset());
 
-        Assertions.assertFalse(TaskDescription.builder()
+        assertFalse(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 // .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
@@ -271,7 +201,7 @@ class TaskDescriptionTests {
                 .build()
                 .containsDataset());
 
-        Assertions.assertFalse(TaskDescription.builder()
+        assertFalse(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
@@ -279,10 +209,12 @@ class TaskDescriptionTests {
                 .build()
                 .containsDataset());
     }
+    // endregion
 
+    // region containsCallback
     @Test
     void shouldContainCallback() {
-        Assertions.assertTrue(TaskDescription.builder()
+        assertTrue(TaskDescription.builder()
                 .callback(CALLBACK)
                 .build()
                 .containsCallback());
@@ -290,33 +222,56 @@ class TaskDescriptionTests {
 
     @Test
     void shouldNotContainCallback() {
-        Assertions.assertFalse(TaskDescription.builder()
+        assertFalse(TaskDescription.builder()
                 .callback(BytesUtils.EMPTY_ADDRESS)
                 .build()
                 .containsCallback());
-        Assertions.assertFalse(TaskDescription.builder()
+        assertFalse(TaskDescription.builder()
                 // .callback(CALLBACK)
                 .build()
                 .containsCallback());
     }
+    // endregion
 
+    // region containsInputFiles
     @Test
     void shouldContainInputFiles() {
-        Assertions.assertTrue(TaskDescription.builder()
+        assertTrue(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(List.of("http://file1", "http://file2"))
+                .dealParams(DealParams.builder().iexecInputFiles(List.of("http://file1", "http://file2")).build())
                 .build()
                 .containsInputFiles());
     }
 
     @Test
     void shouldNotContainInputFiles() {
-        Assertions.assertFalse(TaskDescription.builder()
+        assertFalse(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
-                // .inputFiles(List.of("http://file1", "http://file2"))
+                .dealParams(DealParams.builder().build())
                 .build()
                 .containsInputFiles());
     }
+    // endregion
+
+    // region getAppCommand
+    @Test
+    void shouldGenerateAppCommandWithEntrypoint() {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
+                .dealParams(DealParams.builder().build())
+                .build();
+        assertEquals(ENTRYPOINT, taskDescription.getAppCommand());
+    }
+
+    @Test
+    void shouldGenerateAppCommandWithEntrypointAndArgs() {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
+                .dealParams(DealParams.builder().iexecArgs(CMD).build())
+                .build();
+        assertEquals(ENTRYPOINT + " " + CMD, taskDescription.getAppCommand());
+    }
+    // endregion
 
     // region isEligibleToContributeAndFinalize
     @Test
@@ -327,7 +282,7 @@ class TaskDescriptionTests {
                 .callback("")
                 .build();
 
-        Assertions.assertTrue(taskDescription.isEligibleToContributeAndFinalize());
+        assertTrue(taskDescription.isEligibleToContributeAndFinalize());
     }
 
     @Test
@@ -338,7 +293,7 @@ class TaskDescriptionTests {
                 .callback("")
                 .build();
 
-        Assertions.assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+        assertFalse(taskDescription.isEligibleToContributeAndFinalize());
     }
 
     @Test
@@ -349,7 +304,7 @@ class TaskDescriptionTests {
                 .callback("")
                 .build();
 
-        Assertions.assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+        assertFalse(taskDescription.isEligibleToContributeAndFinalize());
     }
 
     @Test
@@ -360,7 +315,7 @@ class TaskDescriptionTests {
                 .callback(CALLBACK)
                 .build();
 
-        Assertions.assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+        assertFalse(taskDescription.isEligibleToContributeAndFinalize());
     }
     // endregion
 }
