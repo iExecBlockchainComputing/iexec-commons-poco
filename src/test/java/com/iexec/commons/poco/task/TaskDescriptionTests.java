@@ -68,6 +68,8 @@ class TaskDescriptionTests {
     @Test
     void toTaskDescriptionWithNullDeal() {
         assertNull(TaskDescription.toTaskDescription(null, null));
+        assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().build(), null));
+        assertNull(TaskDescription.toTaskDescription(null, ChainTask.builder().build()));
     }
 
     @Test
