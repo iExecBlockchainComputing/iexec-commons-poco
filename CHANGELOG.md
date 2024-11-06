@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Use `poco-chain` with `poco v5.5.0` and `voucher v1.0.0` in tests. (#106)
+- Manage deal parameters in a single field and add assets owner and assets price fields in `TaskDescription`. (#108)
 
 ### Dependency Upgrades
 
