@@ -246,10 +246,19 @@ class TaskDescriptionTests {
     }
 
     @Test
-    void shouldNotContainInputFiles() {
+    void shouldNotContainInputFilesWhenEmpty() {
         assertFalse(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
                 .dealParams(DealParams.builder().build())
+                .build()
+                .containsInputFiles());
+    }
+
+    @Test
+    void shouldNotContainInputFilesWhenNull() {
+        assertFalse(TaskDescription.builder()
+                .chainTaskId(CHAIN_TASK_ID)
+                .dealParams(DealParams.builder().iexecInputFiles(null).build())
                 .build()
                 .containsInputFiles());
     }
