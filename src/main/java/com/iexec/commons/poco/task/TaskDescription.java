@@ -96,7 +96,8 @@ public class TaskDescription {
      */
     @Deprecated(forRemoval = true)
     Map<String, String> secrets;
-    DealParams dealParams;
+    @Builder.Default
+    DealParams dealParams = DealParams.builder().build();
     BigInteger trust;
     // from task
     int botIndex;
@@ -137,7 +138,8 @@ public class TaskDescription {
      * @return true if at least one input file is present, false otherwise
      */
     public boolean containsInputFiles() {
-        return dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty();
+        return (dealParams != null && dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty())
+                || (inputFiles != null && !inputFiles.isEmpty());
     }
 
     public String getAppCommand() {

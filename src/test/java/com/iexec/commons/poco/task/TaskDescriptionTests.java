@@ -23,12 +23,18 @@ import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
+import static com.iexec.commons.poco.utils.BytesUtils.EMPTY_ADDRESS;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskDescriptionTests {
@@ -196,6 +202,14 @@ class TaskDescriptionTests {
                 .containsDataset());
 
         assertFalse(TaskDescription.builder()
+                .datasetAddress(EMPTY_ADDRESS)
+                .datasetUri(DATASET_URI)
+                .datasetName(DATASET_NAME)
+                .datasetChecksum(DATASET_CHECKSUM)
+                .build()
+                .containsDataset());
+
+        assertFalse(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 // .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
@@ -225,7 +239,7 @@ class TaskDescriptionTests {
     @Test
     void shouldNotContainCallback() {
         assertFalse(TaskDescription.builder()
-                .callback(BytesUtils.EMPTY_ADDRESS)
+                .callback(EMPTY_ADDRESS)
                 .build()
                 .containsCallback());
         assertFalse(TaskDescription.builder()
@@ -240,25 +254,52 @@ class TaskDescriptionTests {
     void shouldContainInputFiles() {
         assertTrue(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
+                .inputFiles(List.of("http://file1", "http://file2"))
+                .build()
+                .containsInputFiles());
+    }
+
+    @Test
+    void shouldContainsInputFilesFromDealParams() {
+        assertTrue(TaskDescription.builder()
+                .chainTaskId(CHAIN_TASK_ID)
                 .dealParams(DealParams.builder().iexecInputFiles(List.of("http://file1", "http://file2")).build())
                 .build()
                 .containsInputFiles());
     }
 
-    @Test
-    void shouldNotContainInputFilesWhenEmpty() {
+    @ParameterizedTest
+    @NullSource
+    @MethodSource("provideTaskDescriptionWithoutInputFiles")
+    void shouldNotContainInputFilesWhenNullDealParams(final DealParams dealParams) {
         assertFalse(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
-                .dealParams(DealParams.builder().build())
+                .dealParams(dealParams)
+                .build()
+                .containsInputFiles());
+    }
+
+    private static Stream<Arguments> provideTaskDescriptionWithoutInputFiles() {
+        return Stream.of(
+                Arguments.of(DealParams.builder().build()),
+                Arguments.of(DealParams.builder().iexecInputFiles(null).build())
+        );
+    }
+
+    @Test
+    void shouldNotContainInputFilesWhenEmptyInputFiles() {
+        assertFalse(TaskDescription.builder()
+                .chainTaskId(CHAIN_TASK_ID)
+                .inputFiles(List.of())
                 .build()
                 .containsInputFiles());
     }
 
     @Test
-    void shouldNotContainInputFilesWhenNull() {
+    void shouldNotContainInputFilesWhenNullInputFiles() {
         assertFalse(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
-                .dealParams(DealParams.builder().iexecInputFiles(null).build())
+                .inputFiles(null)
                 .build()
                 .containsInputFiles());
     }
