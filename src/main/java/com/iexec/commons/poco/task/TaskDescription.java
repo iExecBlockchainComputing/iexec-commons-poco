@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.iexec.commons.poco.task;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.ChainTask;
+import com.iexec.commons.poco.chain.DealParams;
 import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
@@ -38,7 +39,17 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskDescription {
 
+    // computed data, not available on-chain
     String chainTaskId;
+
+    // assets
+    String appOwner;
+    BigInteger appPrice;
+    String datasetOwner;
+    BigInteger datasetPrice;
+    String workerpoolOwner;
+    BigInteger workerpoolPrice;
+
     String requester;
     String beneficiary;
     String callback;
@@ -46,6 +57,10 @@ public class TaskDescription {
     String appUri;
     String appAddress;
     TeeEnclaveConfiguration appEnclaveConfiguration;
+    /**
+     * @deprecated Use dealParams instead
+     */
+    @Deprecated(forRemoval = true)
     String cmd;
     boolean isTeeTask;
     TeeFramework teeFramework;
@@ -55,12 +70,34 @@ public class TaskDescription {
     String datasetUri;
     String datasetName;
     String datasetChecksum;
+    /**
+     * @deprecated Use dealParams instead
+     */
+    @Deprecated(forRemoval = true)
     List<String> inputFiles;
+    /**
+     * @deprecated Use dealParams instead
+     */
+    @Deprecated(forRemoval = true)
     boolean isResultEncryption;
+    /**
+     * @deprecated Use dealParams instead
+     */
+    @Deprecated(forRemoval = true)
     String resultStorageProvider;
+    /**
+     * @deprecated Use dealParams instead
+     */
+    @Deprecated(forRemoval = true)
     String resultStorageProxy;
     String smsUrl;
+    /**
+     * @deprecated Use dealParams instead
+     */
+    @Deprecated(forRemoval = true)
     Map<String, String> secrets;
+    @Builder.Default
+    DealParams dealParams = DealParams.builder().build();
     BigInteger trust;
     // from task
     int botIndex;
@@ -101,16 +138,15 @@ public class TaskDescription {
      * @return true if at least one input file is present, false otherwise
      */
     public boolean containsInputFiles() {
-        return inputFiles != null && !inputFiles.isEmpty();
+        return (dealParams != null && dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty())
+                || (inputFiles != null && !inputFiles.isEmpty());
     }
 
     public String getAppCommand() {
-        String appArgs = appEnclaveConfiguration.getEntrypoint();
-        //TODO: Add unit test
-        if (!StringUtils.isEmpty(cmd)) {
-            appArgs = appArgs + " " + cmd;
-        }
-        return appArgs;
+        final String args = (dealParams != null && !StringUtils.isEmpty(dealParams.getIexecArgs())) ?
+                dealParams.getIexecArgs() : cmd;
+        return StringUtils.isEmpty(args) ? appEnclaveConfiguration.getEntrypoint() :
+                appEnclaveConfiguration.getEntrypoint() + " " + args;
     }
 
     /**
@@ -138,7 +174,7 @@ public class TaskDescription {
      * @param chainTask On-chain task from PoCo smart contracts
      * @return the created taskDescription
      */
-    public static TaskDescription toTaskDescription(ChainDeal chainDeal, ChainTask chainTask) {
+    public static TaskDescription toTaskDescription(final ChainDeal chainDeal, final ChainTask chainTask) {
         if (chainDeal == null || chainTask == null) {
             return null;
         }
@@ -155,6 +191,12 @@ public class TaskDescription {
         final String tag = chainDeal.getTag();
         return TaskDescription.builder()
                 .chainTaskId(chainTask.getChainTaskId())
+                .appOwner(chainDeal.getDappOwner())
+                .appPrice(chainDeal.getDappPrice())
+                .datasetOwner(chainDeal.getDataOwner())
+                .datasetPrice(chainDeal.getDataPrice())
+                .workerpoolOwner(chainDeal.getPoolOwner())
+                .workerpoolPrice(chainDeal.getPoolPrice())
                 .requester(chainDeal
                         .getRequester())
                 .beneficiary(chainDeal
@@ -183,6 +225,7 @@ public class TaskDescription {
                         .getIexecResultStorageProxy())
                 .secrets(chainDeal.getParams()
                         .getIexecSecrets())
+                .dealParams(chainDeal.getParams())
                 .datasetAddress(datasetAddress)
                 .datasetUri(datasetUri)
                 .datasetName(datasetName)
