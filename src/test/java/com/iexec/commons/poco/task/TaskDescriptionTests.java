@@ -307,7 +307,7 @@ class TaskDescriptionTests {
 
     // region getAppCommand
     @Test
-    void shouldGenerateAppCommandWithEntrypoint() {
+    void shouldGenerateAppCommandWithEntrypointWhenEmptyDealParams() {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
                 .dealParams(DealParams.builder().build())
@@ -316,12 +316,27 @@ class TaskDescriptionTests {
     }
 
     @Test
-    void shouldGenerateAppCommandWithEntrypointAndArgs() {
+    void shouldGenerateAppCommandWithEntrypointWhenNullDealParams() {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(DealParams.builder().iexecArgs(CMD).build())
+                .dealParams(null)
                 .build();
-        assertEquals(ENTRYPOINT + " " + CMD, taskDescription.getAppCommand());
+        assertEquals(ENTRYPOINT, taskDescription.getAppCommand());
+    }
+
+    @Test
+    void shouldGenerateAppCommandWithEntrypointAndArgs() {
+        assertEquals(ENTRYPOINT + " " + CMD, TaskDescription.builder()
+                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
+                .dealParams(DealParams.builder().iexecArgs(CMD).build())
+                .build()
+                .getAppCommand());
+        assertEquals(ENTRYPOINT + " " + CMD, TaskDescription.builder()
+                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
+                .dealParams(DealParams.builder().build())
+                .cmd(CMD)
+                .build()
+                .getAppCommand());
     }
     // endregion
 

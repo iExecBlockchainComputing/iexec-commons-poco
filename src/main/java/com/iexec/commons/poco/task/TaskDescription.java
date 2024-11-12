@@ -143,8 +143,10 @@ public class TaskDescription {
     }
 
     public String getAppCommand() {
-        return StringUtils.isEmpty(dealParams.getIexecArgs()) ? appEnclaveConfiguration.getEntrypoint() :
-                appEnclaveConfiguration.getEntrypoint() + " " + dealParams.getIexecArgs();
+        final String args = (dealParams != null && !StringUtils.isEmpty(dealParams.getIexecArgs())) ?
+                dealParams.getIexecArgs() : cmd;
+        return StringUtils.isEmpty(args) ? appEnclaveConfiguration.getEntrypoint() :
+                appEnclaveConfiguration.getEntrypoint() + " " + args;
     }
 
     /**
