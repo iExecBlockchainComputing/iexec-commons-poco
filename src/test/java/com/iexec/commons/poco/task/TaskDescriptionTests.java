@@ -375,14 +375,14 @@ class TaskDescriptionTests {
     }
 
     @Test
-    void shouldNotBeEligibleToContributeAndFinalizeSinceCallback() {
+    void shouldBeEligibleToContributeAndFinalizeEvenWithCallback() {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .isTeeTask(true)
                 .trust(BigInteger.ONE)
                 .callback(CALLBACK)
                 .build();
 
-        assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+        assertTrue(taskDescription.isEligibleToContributeAndFinalize());
     }
     // endregion
 }

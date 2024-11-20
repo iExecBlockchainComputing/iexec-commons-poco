@@ -162,8 +162,7 @@ public class TaskDescription {
      */
     public boolean isEligibleToContributeAndFinalize() {
         return isTeeTask
-                && BigInteger.ONE.equals(trust)
-                && !containsCallback();
+                && BigInteger.ONE.equals(trust);
     }
 
     /**
