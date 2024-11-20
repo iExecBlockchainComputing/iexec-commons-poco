@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Add `getUserGasPrice` method to `Web3jAbstractService`. (#104)
+- Make `TEE tasks` with callback eligible to `contributeAndFinalize` flow. (#109)
 
 ### Bug Fixes
 
