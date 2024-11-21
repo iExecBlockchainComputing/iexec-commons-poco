@@ -27,6 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -341,12 +342,13 @@ class TaskDescriptionTests {
     // endregion
 
     // region isEligibleToContributeAndFinalize
-    @Test
-    void shouldBeEligibleToContributeAndFinalize() {
+    @ParameterizedTest
+    @ValueSource(strings = {"", CALLBACK})
+    void shouldBeEligibleToContributeAndFinalize(String callback) {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .isTeeTask(true)
                 .trust(BigInteger.ONE)
-                .callback("")
+                .callback(callback)
                 .build();
 
         assertTrue(taskDescription.isEligibleToContributeAndFinalize());
@@ -372,17 +374,6 @@ class TaskDescriptionTests {
                 .build();
 
         assertFalse(taskDescription.isEligibleToContributeAndFinalize());
-    }
-
-    @Test
-    void shouldBeEligibleToContributeAndFinalizeEvenWithCallback() {
-        final TaskDescription taskDescription = TaskDescription.builder()
-                .isTeeTask(true)
-                .trust(BigInteger.ONE)
-                .callback(CALLBACK)
-                .build();
-
-        assertTrue(taskDescription.isEligibleToContributeAndFinalize());
     }
     // endregion
 }

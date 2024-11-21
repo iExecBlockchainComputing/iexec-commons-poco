@@ -161,8 +161,7 @@ public class TaskDescription {
      * @return {@literal true} if eligible, {@literal false} otherwise.
      */
     public boolean isEligibleToContributeAndFinalize() {
-        return isTeeTask
-                && BigInteger.ONE.equals(trust);
+        return isTeeTask && BigInteger.ONE.equals(trust);
     }
 
     /**
