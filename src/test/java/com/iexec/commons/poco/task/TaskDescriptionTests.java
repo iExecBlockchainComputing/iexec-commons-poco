@@ -344,7 +344,7 @@ class TaskDescriptionTests {
     // region isEligibleToContributeAndFinalize
     @ParameterizedTest
     @ValueSource(strings = {"", CALLBACK})
-    void shouldBeEligibleToContributeAndFinalize(String callback) {
+    void shouldBeEligibleToContributeAndFinalize(final String callback) {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .isTeeTask(true)
                 .trust(BigInteger.ONE)
