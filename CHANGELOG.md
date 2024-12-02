@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 
 - Upgrade to Gradle 8.10.2. (#105)
+- Upgrade to `testcontainers` 1.20.4. (#110)
 
 ## [[4.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.1.0) 2024-06-17
 
