@@ -104,6 +104,24 @@ class ChainTests {
         assertThat(badWeb3jService.getLatestBlockNumber()).isZero();
     }
 
+    @Test
+    void shouldGetCallbackGas() throws IOException {
+        final BigInteger callbackGas = iexecHubService.getCallbackGas();
+        assertThat(callbackGas).isEqualTo(BigInteger.valueOf(200_000));
+    }
+
+    @Test
+    void shouldGetContributionDeadlineRatio() throws IOException {
+        final BigInteger contributionDeadlineRatio = iexecHubService.getContributionDeadlineRatio();
+        assertThat(contributionDeadlineRatio).isEqualTo(BigInteger.valueOf(7));
+    }
+
+    @Test
+    void shouldGetFinalDeadlineRatio() throws IOException {
+        final BigInteger finalDeadlineRatio = iexecHubService.getFinalDeadlineRatio();
+        assertThat(finalDeadlineRatio).isEqualTo(BigInteger.valueOf(10));
+    }
+
     @ParameterizedTest
     @MethodSource("categoryProvider")
     void shouldGetCategory(long id, ChainCategory expectedCategory) {
