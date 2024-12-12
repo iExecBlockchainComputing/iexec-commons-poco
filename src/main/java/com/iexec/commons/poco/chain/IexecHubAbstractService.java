@@ -26,13 +26,16 @@ import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
+import org.web3j.utils.Numeric;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -41,6 +44,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
 import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
@@ -889,7 +893,7 @@ public abstract class IexecHubAbstractService {
 
     private void setMaxNbOfPeriodsForConsensus() {
         try {
-            maxNbOfPeriodsForConsensus = iexecHubContract.contribution_deadline_ratio().send().longValue();
+            maxNbOfPeriodsForConsensus = getContributionDeadlineRatio().longValue();
         } catch (Exception e) {
             log.error("Failed to get maxNbOfPeriodsForConsensus from the chain", e);
             maxNbOfPeriodsForConsensus = -1;
@@ -950,6 +954,45 @@ public abstract class IexecHubAbstractService {
 
         return taskDescription.isTeeTask();
     }
+
+    // region accessors
+
+    /**
+     * Send call to callbackgas() PoCo method.
+     *
+     * @return callbackgas value
+     * @throws IOException if communication fails
+     */
+    public BigInteger getCallbackGas() throws IOException {
+        return sendCallWithFunctionSelector(CALLBACKGAS_SELECTOR);
+    }
+
+    /**
+     * Send call to contribution_deadline_ratio() PoCo method.
+     *
+     * @return contribution_deadline_ratio value
+     * @throws IOException if communication fails
+     */
+    public BigInteger getContributionDeadlineRatio() throws IOException {
+        return sendCallWithFunctionSelector(CONTRIBUTION_DEADLINE_RATIO_SELECTOR);
+    }
+
+    /**
+     * Send call to final_deadline_ratio() PoCo method.
+     *
+     * @return final_deadline_ratio value
+     * @throws IOException if communication fails
+     */
+    public BigInteger getFinalDeadlineRatio() throws IOException {
+        return sendCallWithFunctionSelector(FINAL_DEADLINE_RATIO_SELECTOR);
+    }
+
+    private BigInteger sendCallWithFunctionSelector(final String functionSelector) throws IOException {
+        return Numeric.toBigInt(
+                txManager.sendCall(iexecHubAddress, functionSelector, DefaultBlockParameterName.LATEST));
+    }
+
+    // endregion
 
     // region Purge
 

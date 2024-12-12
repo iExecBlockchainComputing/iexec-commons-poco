@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - Add `getUserGasPrice` method to `Web3jAbstractService`. (#104)
 - Make **TEE tasks** with callback eligible to `contributeAndFinalize` flow. (#109)
+- Add accessors to read on-chain deployed PoCo Smart Contracts configurations:
+  `callbackgas`, `contribution_deadline_ratio` and `final_deadline_ratio`. (#111)
 
 ### Bug Fixes
 
