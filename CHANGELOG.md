@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[4.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.2.0) 2024-12-18
+
+### New Features
+
+- Add `getUserGasPrice` method to `Web3jAbstractService`. (#104)
+- Make **TEE tasks** with callback eligible to `contributeAndFinalize` flow. (#109)
+- Add accessors to read on-chain deployed PoCo Smart Contracts configurations:
+  `callbackgas`, `contribution_deadline_ratio` and `final_deadline_ratio`. (#111)
+
+### Bug Fixes
+
+- Prefer methods with ECKEyPair parameter when signing prefixed messages. (#107)
+
+### Quality
+
+- Use `poco-chain` with `poco v5.5.0` and `voucher v1.0.0` in tests. (#106)
+- Manage deal parameters in a single field and add assets owner and assets price fields in `TaskDescription`. (#108)
+
+### Dependency Upgrades
+
+- Upgrade to Gradle 8.10.2. (#105)
+- Upgrade to `testcontainers` 1.20.4. (#110)
+
 ## [[4.1.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.1.0) 2024-06-17
 
 ### New Features

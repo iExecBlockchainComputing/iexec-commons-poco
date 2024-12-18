@@ -265,7 +265,7 @@ public abstract class Web3jAbstractService {
      */
     public Optional<BigInteger> getNetworkGasPrice() {
         try {
-            BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
+            final BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
             if (gasPrice != null && gasPrice.signum() > 0) {
                 return Optional.of(gasPrice);
             }
@@ -276,15 +276,26 @@ public abstract class Web3jAbstractService {
     }
 
     public BigInteger getUserGasPrice(float gasPriceMultiplier, long gasPriceCap) {
-        Optional<BigInteger> networkGasPrice = getNetworkGasPrice();
+        final Optional<BigInteger> networkGasPrice = getNetworkGasPrice();
         if (networkGasPrice.isEmpty()) {
             log.warn("Undefined network gas price (will use default) " +
                     "[userGasPriceCap:{}]", gasPriceCap);
             return BigInteger.valueOf(gasPriceCap);
         }
-        long wishedGasPrice = (long) (networkGasPrice.get().floatValue() * gasPriceMultiplier);
+        final long wishedGasPrice = (long) (networkGasPrice.get().floatValue() * gasPriceMultiplier);
 
         return BigInteger.valueOf(Math.min(wishedGasPrice, gasPriceCap));
+    }
+
+    /**
+     * Returns gas price following current user parameters defined in the {@code Web3jAbstractService} instance.
+     * <p>
+     * The gas price will be Min(gasPriceCap, networkGasPrice * gasPriceMultiplier)
+     *
+     * @return The gas Price as a {@code BigInteger}
+     */
+    public BigInteger getUserGasPrice() {
+        return getUserGasPrice(gasPriceMultiplier, gasPriceCap);
     }
 
     private ContractGasProvider getWritingContractGasProvider() {

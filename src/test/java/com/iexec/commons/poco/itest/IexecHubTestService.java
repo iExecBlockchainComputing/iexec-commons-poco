@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class IexecHubTestService extends IexecHubAbstractService {
     static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     static final BigInteger GAS_LIMIT = BigInteger.valueOf(1_000_000L);
-    static final String IEXEC_HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
+    static final String IEXEC_HUB_ADDRESS = "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7";
 
     private static final String ASSET_MULTI_ADDRESS = "multiAddress";
     private static final String ASSET_CHECKSUM = Numeric.toHexStringNoPrefix(new byte[32]);
