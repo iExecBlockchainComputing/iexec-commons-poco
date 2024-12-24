@@ -16,9 +16,9 @@
 
 package com.iexec.commons.poco.utils;
 
+import jakarta.xml.bind.DatatypeConverter;
 import org.web3j.utils.Numeric;
 
-import javax.xml.bind.DatatypeConverter;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.regex.Pattern;
