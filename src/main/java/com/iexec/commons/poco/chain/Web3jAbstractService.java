@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.utils.WaitUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,6 @@ import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Async;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -325,37 +325,19 @@ public abstract class Web3jAbstractService {
 
     @NotNull
     static BigInteger getGasLimitForFunction(String functionName) {
-        long gasLimit;
-        switch (functionName) {
-            case FUNC_INITIALIZE:
-                gasLimit = 300_000;//seen 176340
-                break;
-            case FUNC_CONTRIBUTE:
-                gasLimit = 500_000;//seen 333541
-                break;
-            case FUNC_REVEAL:
-                gasLimit = 100_000;//seen 56333
-                break;
-            case FUNC_CONTRIBUTEANDFINALIZE:
-            case FUNC_FINALIZE:
+        final long gasLimit = switch (functionName) {
+            case FUNC_INITIALIZE -> 300_000;//seen 176340
+            case FUNC_CONTRIBUTE -> 500_000;//seen 333541
+            case FUNC_REVEAL -> 100_000;//seen 56333
+            case FUNC_CONTRIBUTEANDFINALIZE, FUNC_FINALIZE ->
                 // Multiply with a factor of 10 for callback gas consumption
-                gasLimit = 3_000_000;//seen 175369 (242641 in reopen case)
-                break;
-            case FUNC_REOPEN:
-                gasLimit = 500_000;//seen 43721
-                break;
-            case FUNC_CREATEAPP:
-                gasLimit = 900_000;//800000 might not be enough
-                break;
-            case FUNC_CREATEWORKERPOOL:
-                gasLimit = 700_000;
-                break;
-            case FUNC_CREATEDATASET:
-                gasLimit = 700_000;//seen 608878
-                break;
-            default:
-                gasLimit = GAS_LIMIT_CAP;
-        }
+                    3_000_000;//seen 175369 (242641 in reopen case)
+            case FUNC_REOPEN -> 500_000;//seen 43721
+            case FUNC_CREATEAPP -> 900_000;//800000 might not be enough
+            case FUNC_CREATEWORKERPOOL -> 700_000;
+            case FUNC_CREATEDATASET -> 700_000;//seen 608878
+            default -> GAS_LIMIT_CAP;
+        };
         return BigInteger.valueOf(gasLimit);
     }
 
