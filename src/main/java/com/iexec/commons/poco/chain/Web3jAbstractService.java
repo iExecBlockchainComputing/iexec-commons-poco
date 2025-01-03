@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -325,7 +325,7 @@ public abstract class Web3jAbstractService {
 
     @NotNull
     static BigInteger getGasLimitForFunction(String functionName) {
-        long gasLimit = switch (functionName) {
+        final long gasLimit = switch (functionName) {
             case FUNC_INITIALIZE -> 300_000;//seen 176340
             case FUNC_CONTRIBUTE -> 500_000;//seen 333541
             case FUNC_REVEAL -> 100_000;//seen 56333

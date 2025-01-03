@@ -45,7 +45,7 @@ dependencies {
     // multiaddresses (IPFS)
     implementation 'com.github.multiformats:java-multiaddr:v1.4.6'
 
-    // xml binding for java 17
+    // jakarta xml binding (provide DataTypeConverter for BytesUtils)
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
 
     // failsafe
@@ -72,12 +72,11 @@ testing {
         test {
             useJUnitJupiter()
             dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter'
-                implementation 'org.mockito:mockito-junit-jupiter'
                 implementation 'org.assertj:assertj-core'
-                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+                implementation 'org.mockito:mockito-junit-jupiter'
                 // spring-test for ReflectionTestUtils
                 implementation 'org.springframework:spring-test'
+                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
                 // logback
                 runtimeOnly 'ch.qos.logback:logback-classic'
             }

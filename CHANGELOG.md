@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 
 - Upgrade Spring Boot to `3.0.13`. (#114)
-- Upgrade XML Binding to `jakarta.xml.binf:jakarta.xml.bind-api`. (#114)
 
 ## [[4.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.2.0) 2024-12-18
 
