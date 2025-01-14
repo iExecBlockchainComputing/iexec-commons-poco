@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Breaking API changes
 
 - Remove assets creation methods from `IexecHubAbstractService`. (#115)
+- Remove AppRegistry, DatasetRegistry and WorkerpoolRegistry generated classes. (#116)
 
 ### Dependency Upgrades
 

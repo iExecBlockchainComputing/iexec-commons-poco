@@ -35,7 +35,7 @@ Clean `IexecLibOrders_v5.OrderOperationEnum` references from `IexecLibOrders_v5.
 
 You can now run the script
 ``` shell
-./generateContractWrappers App AppRegistry Dataset DatasetRegistry Ownable WorkerpoolRegistry IexecInterfaceTokenABILegacy
+./generateContractWrappers App Dataset Ownable IexecInterfaceTokenABILegacy
 ```
 
 After this execution and if no error has occurred, you must rename `IexecInterfaceTokenABILegacy.java` to `IexecHubContract.java` and also rename the java class.

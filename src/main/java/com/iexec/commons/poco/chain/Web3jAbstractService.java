@@ -39,10 +39,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
-import static com.iexec.commons.poco.contract.generated.AppRegistry.FUNC_CREATEAPP;
-import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
-import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_CREATEWORKERPOOL;
 
 @Slf4j
 public abstract class Web3jAbstractService {
@@ -333,9 +330,6 @@ public abstract class Web3jAbstractService {
                 // Multiply with a factor of 10 for callback gas consumption
                     3_000_000;//seen 175369 (242641 in reopen case)
             case FUNC_REOPEN -> 500_000;//seen 43721
-            case FUNC_CREATEAPP -> 900_000;//800000 might not be enough
-            case FUNC_CREATEWORKERPOOL -> 700_000;
-            case FUNC_CREATEDATASET -> 700_000;//seen 608878
             default -> GAS_LIMIT_CAP;
         };
         return BigInteger.valueOf(gasLimit);
