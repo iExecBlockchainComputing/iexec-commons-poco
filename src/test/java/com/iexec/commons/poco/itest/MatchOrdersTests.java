@@ -81,66 +81,6 @@ class MatchOrdersTests {
     }
 
     @Test
-    void shouldMatchOrdersWithIexecHubService() throws Exception {
-        String appAddress = iexecHubService.createApp(
-                "my-app-1",
-                "multiAddress",
-                "DOCKER",
-                BytesUtils.EMPTY_HEX_STRING_32,
-                "{}"
-        );
-        assertThat(appAddress).isEqualTo("0x909375d8bc4e9c26afa996bad7571b88b6cefa72");
-
-        String datasetAddress = iexecHubService.createDataset(
-                "my-dataset-1",
-                "multiAddress",
-                BytesUtils.EMPTY_HEX_STRING_32
-        );
-        assertThat(datasetAddress).isEqualTo("0x049d8b40e50282ae8b34780240ff49235b87bf59");
-
-        String workerpoolAddress = iexecHubService.createWorkerpool("my-workerpool-1");
-        assertThat(workerpoolAddress).isEqualTo("0x4f1e8ec6d1fb6ce8309d816ecacde77da4f7de9c");
-
-        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(appAddress);
-        assertThat(signedAppOrder.getSign())
-                .isEqualTo("0x95bc07e7a64415d7529ded8c4730c17870d519e569857533e273f350235b4ebf17d46ffff80b37452cca1b6540db127cd991ce91c6cb7ba3d2a1bc9409d70ad51b");
-
-        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(datasetAddress);
-        assertThat(signedDatasetOrder.getSign())
-                .isEqualTo("0x08195ca0a92aea60ff6e08c7b8d089d50b650a4ac214d1233d6857cc58349a8f710fdc16121bf028e035b26774c2a341c67e556119bec42532c4e0586256f5481b");
-
-        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(workerpoolAddress);
-        assertThat(signedWorkerpoolOrder.getSign())
-                .isEqualTo("0x012dd3697776b6ce1a8ea8dc8541155dff59422bc9f21c28e61009817934ec943ff274d3831432b9ee6b2206b8b0a7e669e38cf8fa9c73bd339dd6a6e1514c8b1b");
-
-        final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
-                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
-        assertThat(signedRequestOrder.getSign())
-                .isEqualTo("0x66d7c636055ff2d03e5250065cc24481ed7bfa80cc0b92f2437feb9690c9ad30077351549030ab65eaf647de8b2b9e7ac758d6b6cb53550d4771b213b5f206e11b");
-
-        BigInteger nonce = signerService.getNonce();
-        String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
-        String predictedDealId = signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
-        String matchOrdersTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData
-        );
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
-                .until(() -> web3jService.areTxMined(matchOrdersTxHash));
-
-        final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
-        assertThat(receipt).isNotNull();
-        assertThat(receipt.isStatusOK()).isTrue();
-
-        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
-        byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
-
-        String chainDealId = BytesUtils.bytesToString(dealid);
-        assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
-        assertThat(iexecHubService.getChainDealWithDetails(chainDealId)).isPresent();
-        assertThat(chainDealId).isEqualTo(predictedDealId);
-    }
-
-    @Test
     void shouldMatchOrdersWithSignerService() throws IOException {
         final String appName = "my-app-2";
         final String datasetName = "my-dataset-2";

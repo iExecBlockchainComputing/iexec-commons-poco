@@ -50,8 +50,6 @@ dependencies {
 
     // failsafe
     implementation 'net.jodah:failsafe:2.4.4'
-    //TODO Migrate from Awaitility to Failsafe everywhere
-    implementation 'org.awaitility:awaitility'
 
     // jakarta annotations like PostConstruct
     implementation 'jakarta.annotation:jakarta.annotation-api'
@@ -72,6 +70,7 @@ testing {
         test {
             useJUnitJupiter()
             dependencies {
+                implementation 'org.awaitility:awaitility'
                 implementation 'org.assertj:assertj-core'
                 implementation 'org.mockito:mockito-junit-jupiter'
                 // spring-test for ReflectionTestUtils

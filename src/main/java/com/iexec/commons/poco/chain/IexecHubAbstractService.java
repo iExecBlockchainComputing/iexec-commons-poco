@@ -16,19 +16,18 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.contract.generated.*;
+import com.iexec.commons.poco.contract.generated.App;
+import com.iexec.commons.poco.contract.generated.Dataset;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.contract.generated.Ownable;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.Retryer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionTimeoutException;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -37,15 +36,11 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
-import static com.iexec.commons.poco.encoding.AssetDataEncoder.getAssetAddressFromReceipt;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
 import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
@@ -150,137 +145,7 @@ public abstract class IexecHubAbstractService {
         return iexecHubContract;
     }
 
-    // region workerpool
-
-    // TODO move workerpool methods to their own class (e.g.: WorkerpoolManager)
-    public Workerpool getWorkerpoolContract(String workerpoolAddress) {
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load Workerpool " +
-                        "contract address " + workerpoolAddress);
-        try {
-            if (workerpoolAddress == null || workerpoolAddress.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-
-            return Workerpool.load(workerpoolAddress,
-                    web3jAbstractService.getWeb3j(),
-                    credentials,
-                    new DefaultGasProvider());
-        } catch (Exception e) {
-            log.error("Failed to load chainWorkerpool [address:{}]", workerpoolAddress, e);
-        }
-        return null;
-    }
-
-    public WorkerpoolRegistry getWorkerpoolRegistryContract(ContractGasProvider contractGasProvider) {
-        String workerpoolRegistryAddress = "";
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load WorkerpoolRegistry contract");
-        try {
-            workerpoolRegistryAddress = iexecHubContract.workerpoolregistry().send();
-            if (workerpoolRegistryAddress == null || workerpoolRegistryAddress.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-            return WorkerpoolRegistry.load(
-                    workerpoolRegistryAddress,
-                    web3jAbstractService.getWeb3j(),
-                    txManager,
-                    contractGasProvider);
-        } catch (Exception e) {
-            log.error("Failed to load WorkerpoolRegistry contract [address:{}]",
-                    workerpoolRegistryAddress, e);
-        }
-        return null;
-    }
-
-    /**
-     * This method allows to create a new workerpool on iExec
-     * <p>
-     * Note: Workerpool is an ERC721. We use the Transfer event sent in the
-     * ERC721 mint method to retrieve workerpool address
-     * tokenId is the generic form of workerpoolAddress
-     *
-     * @param name                   workerpool name
-     * @param secondsTimeout         await workerpool deployment for couple seconds
-     * @param secondsPollingInterval check if workerpool is deployed every couple seconds
-     * @return workerpool address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String createWorkerpool(String name, int secondsTimeout, int secondsPollingInterval) {
-        String owner = credentials.getAddress();
-        final String paramsPrinter = " [owner:{}, name:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)) {
-            log.error("Non empty inputs are required" + paramsPrinter, owner, name);
-            return "";
-        }
-
-        WorkerpoolRegistry workerpoolRegistry =
-                getWorkerpoolRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (workerpoolRegistry == null) {
-            log.error("Failed to get workerpoolRegistry" + paramsPrinter, owner, name);
-            return "";
-        }
-
-        RemoteCall<TransactionReceipt> createWorkerpoolCall = workerpoolRegistry
-                .createWorkerpool(owner, name);
-
-        TransactionReceipt createWorkerpoolReceipt;
-        try {
-            createWorkerpoolReceipt = createWorkerpoolCall.send();
-        } catch (Exception e) {
-            log.error("Failed to send createWorkerpool transaction" + paramsPrinter,
-                    owner, name, e);
-            return "";
-        }
-
-        if (!createWorkerpoolReceipt.isStatusOK()) {
-            log.error("Bad response status for createWorkerpool transaction" + paramsPrinter,
-                    owner, name);
-            return "";
-        }
-
-        String workerpoolAddress = getAssetAddressFromReceipt(createWorkerpoolReceipt);
-
-        if (StringUtils.isEmpty(workerpoolAddress)) {
-            log.error("Failed to extract workerpool address" + paramsPrinter,
-                    owner, name);
-            return "";
-        }
-
-        //tx hash can be null, manually verifying contract is deployed
-        Callable<Optional<ChainWorkerpool>> isDeployedWorkerpool = () -> {
-            log.info("Waiting for contract deployment" + paramsPrinter,
-                    owner, name);
-            return getChainWorkerpool(getWorkerpoolContract(workerpoolAddress));
-        };
-
-        try {
-            Awaitility.await()
-                    .atMost(secondsTimeout, TimeUnit.SECONDS)
-                    .pollInterval(secondsPollingInterval, TimeUnit.SECONDS)
-                    .until(isDeployedWorkerpool, Optional::isPresent);
-        } catch (ConditionTimeoutException e) {
-            log.error("Reached timeout when waiting for contract deployment"
-                    + paramsPrinter, owner, name, e);
-            return "";
-        }
-        return workerpoolAddress;
-    }
-
-    /**
-     * Default method for creating workerpool
-     *
-     * @param name workerpool name
-     * @return workerpool address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String createWorkerpool(String name) {
-        return createWorkerpool(name, 10 * 60, 5);
-    }
-    // endregion
-
     // region app
-
-    // TODO move app methods to its own class (e.g.: AppManager)
     public App getAppContract(String appAddress) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load App " +
@@ -299,129 +164,9 @@ public abstract class IexecHubAbstractService {
         }
         return null;
     }
-
-    public AppRegistry getAppRegistryContract(ContractGasProvider contractGasProvider) {
-        String appRegistryAddress = "";
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load AppRegistry contract");
-        try {
-            appRegistryAddress = iexecHubContract.appregistry().send();
-            if (appRegistryAddress == null || appRegistryAddress.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-            return AppRegistry.load(
-                    appRegistryAddress,
-                    web3jAbstractService.getWeb3j(),
-                    txManager,
-                    contractGasProvider);
-        } catch (Exception e) {
-            log.error("Failed to load AppRegistry contract [address:{}]",
-                    appRegistryAddress, e);
-        }
-        return null;
-    }
-
-    /**
-     * This method allows to create a new app on iExec
-     * <p>
-     * Note: App is an ERC721. We use the Transfer event sent in the
-     * ERC721 mint method to retrieve app address
-     * tokenId is the generic form of appAddress
-     *
-     * @param name                   app name
-     * @param multiAddress           app url
-     * @param type                   app type
-     * @param checksum               app sha256 checksum
-     * @param mrEnclave              app mrEnclave
-     * @param secondsTimeout         await app deployment for couple seconds
-     * @param secondsPollingInterval check if app is deployed every couple seconds
-     * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String createApp(String name, String multiAddress, String type,
-                            String checksum, String mrEnclave, int secondsTimeout, int secondsPollingInterval) {
-        String owner = credentials.getAddress();
-        final String paramsPrinter = " [owner:{}, name:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)) {
-            log.error("Non empty inputs are required" + paramsPrinter, owner, name);
-            return "";
-        }
-
-        AppRegistry appRegistry =
-                getAppRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (appRegistry == null) {
-            log.error("Failed to get appRegistry" + paramsPrinter, owner, name);
-            return "";
-        }
-
-        RemoteCall<TransactionReceipt> createAppCall = appRegistry
-                .createApp(owner, name, type,
-                        multiAddress.getBytes(StandardCharsets.UTF_8),
-                        BytesUtils.hexStringToBytes32(checksum),
-                        mrEnclave.getBytes(StandardCharsets.UTF_8));
-
-        TransactionReceipt createAppReceipt;
-        try {
-            createAppReceipt = createAppCall.send();
-        } catch (Exception e) {
-            log.error("Failed to send createApp transaction" + paramsPrinter,
-                    owner, name, e);
-            return "";
-        }
-
-        if (!createAppReceipt.isStatusOK()) {
-            log.error("Bad response status for createApp transaction" + paramsPrinter,
-                    owner, name);
-            return "";
-        }
-
-        String appAddress = getAssetAddressFromReceipt(createAppReceipt);
-
-        if (StringUtils.isEmpty(appAddress)) {
-            log.error("Failed to extract app address" + paramsPrinter,
-                    owner, name);
-            return "";
-        }
-
-        //tx hash can be null, manually verifying contract is deployed
-        Callable<Optional<ChainApp>> isDeployedApp = () -> {
-            log.info("Waiting for contract deployment" + paramsPrinter,
-                    owner, name);
-            return getChainApp(getAppContract(appAddress));
-        };
-
-        try {
-            Awaitility.await()
-                    .atMost(secondsTimeout, TimeUnit.SECONDS)
-                    .pollInterval(secondsPollingInterval, TimeUnit.SECONDS)
-                    .until(isDeployedApp, Optional::isPresent);
-        } catch (ConditionTimeoutException e) {
-            log.error("Reached timeout when waiting for contract deployment"
-                    + paramsPrinter, owner, name, e);
-            return "";
-        }
-        return appAddress;
-    }
-
-    /**
-     * Default method for creating app
-     *
-     * @param name         app name
-     * @param multiAddress app url
-     * @param type         app type
-     * @param checksum     app sha256 checksum
-     * @param mrEnclave    app mrEnclave
-     * @return app address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String createApp(String name, String multiAddress, String type,
-                            String checksum, String mrEnclave) {
-        return createApp(name, multiAddress, type, checksum, mrEnclave, 10 * 60, 5);
-    }
     // endregion
 
     // region dataset
-
-    // TODO move dataset methods to its own class (e.g.: DatasetManager)
     public Dataset getDatasetContract(String datasetAddress) {
         ExceptionInInitializerError exceptionInInitializerError =
                 new ExceptionInInitializerError("Failed to load Dataset " +
@@ -439,123 +184,6 @@ public abstract class IexecHubAbstractService {
             log.error("Failed to load chainDataset [address:{}]", datasetAddress, e);
         }
         return null;
-    }
-
-    public DatasetRegistry getDatasetRegistryContract(ContractGasProvider contractGasProvider) {
-        String datasetRegistryAddress = "";
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load DatasetRegistry contract");
-        try {
-            datasetRegistryAddress = iexecHubContract.datasetregistry().send();
-            if (datasetRegistryAddress == null || datasetRegistryAddress.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-            return DatasetRegistry.load(
-                    datasetRegistryAddress,
-                    web3jAbstractService.getWeb3j(),
-                    txManager,
-                    contractGasProvider);
-        } catch (Exception e) {
-            log.error("Failed to load DatasetRegistry contract [address:{}]",
-                    datasetRegistryAddress, e);
-        }
-        return null;
-    }
-
-    /**
-     * This method allows to create a new dataset on iExec
-     * <p>
-     * Note: Dataset is an ERC721. We use the Transfer event sent in the
-     * ERC721 mint method to retrieve dataset address
-     * tokenId is the generic form of datasetAddress
-     *
-     * @param name                   dataset name
-     * @param multiAddress           dataset url
-     * @param checksum               dataset sha256 checksum
-     * @param secondsTimeout         await dataset deployment for couple seconds
-     * @param secondsPollingInterval check if dataset is deployed every couple seconds
-     * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String createDataset(String name, String multiAddress, String checksum,
-                                int secondsTimeout, int secondsPollingInterval) {
-        String owner = credentials.getAddress();
-        final String paramsPrinter = " [owner:{}, name:{}, multiAddress:{}, checksum:{}]";
-
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(name)
-                || StringUtils.isEmpty(multiAddress) || StringUtils.isEmpty(checksum)) {
-            log.error("Non empty inputs are required" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        DatasetRegistry datasetRegistry =
-                getDatasetRegistryContract(web3jAbstractService.getContractGasProvider());
-        if (datasetRegistry == null) {
-            log.error("Failed to get datasetRegistry" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        RemoteCall<TransactionReceipt> createDatasetCall = datasetRegistry
-                .createDataset(
-                        owner,
-                        name,
-                        multiAddress.getBytes(StandardCharsets.UTF_8),
-                        BytesUtils.hexStringToBytes32(checksum));
-
-        TransactionReceipt createDatasetReceipt;
-        try {
-            createDatasetReceipt = createDatasetCall.send();
-        } catch (Exception e) {
-            log.error("Failed to send createDataset transaction" + paramsPrinter,
-                    owner, name, multiAddress, checksum, e);
-            return "";
-        }
-
-        if (!createDatasetReceipt.isStatusOK()) {
-            log.error("Bad response status for createDataset transaction" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        String datasetAddress = getAssetAddressFromReceipt(createDatasetReceipt);
-
-        if (StringUtils.isEmpty(datasetAddress)) {
-            log.error("Failed to extract dataset address" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return "";
-        }
-
-        //tx hash can be null, manually verifying contract is deployed
-        Callable<Optional<ChainDataset>> isDeployedDataset = () -> {
-            log.info("Waiting for contract deployment" + paramsPrinter,
-                    owner, name, multiAddress, checksum);
-            return getChainDataset(getDatasetContract(datasetAddress));
-        };
-
-        try {
-            Awaitility.await()
-                    .atMost(secondsTimeout, TimeUnit.SECONDS)
-                    .pollInterval(secondsPollingInterval, TimeUnit.SECONDS)
-                    .until(isDeployedDataset, Optional::isPresent);
-        } catch (ConditionTimeoutException e) {
-            log.error("Reached timeout when waiting for contract deployment"
-                    + paramsPrinter, owner, name, multiAddress, checksum, e);
-            return "";
-        }
-        return datasetAddress;
-    }
-
-    /**
-     * Default method for creating dataset
-     *
-     * @param name         dataset name
-     * @param multiAddress dataset url
-     * @param checksum     dataset sha256 checksum
-     * @return dataset address (e.g.: 0x95ba540ca3c2dfd52a7e487a03e1358dfe9441ce)
-     */
-    public String createDataset(String name, String multiAddress, String checksum) {
-        return createDataset(name, multiAddress, checksum, 10 * 60, 5);
     }
     // endregion
 
@@ -742,22 +370,6 @@ public abstract class IexecHubAbstractService {
             return Optional.of(chainCategory);
         } catch (Exception e) {
             log.error("Failed to get ChainCategory [id:{}]", id, e);
-        }
-        return Optional.empty();
-    }
-
-    public Optional<ChainWorkerpool> getChainWorkerpool(Workerpool workerpool) {
-        if (workerpool != null && !workerpool.getContractAddress().equals(BytesUtils.EMPTY_ADDRESS)) {
-            try {
-                return Optional.of(ChainWorkerpool.builder()
-                        .chainWorkerpoolId(workerpool.getContractAddress())
-                        .owner(workerpool.owner().send())
-                        .description(workerpool.m_workerpoolDescription().send())
-                        .build());
-            } catch (Exception e) {
-                log.error("Failed to get ChainDataset [chainDatasetId:{}]",
-                        workerpool.getContractAddress(), e);
-            }
         }
         return Optional.empty();
     }

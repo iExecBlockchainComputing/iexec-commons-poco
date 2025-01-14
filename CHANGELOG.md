@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade source and target compatibility to Java 17. (#114)
 
+### Breaking API changes
+
+- Remove assets creation methods from `IexecHubAbstractService`. (#115)
+
 ### Dependency Upgrades
 
 - Upgrade to Spring Boot 3.0.13. (#114)
