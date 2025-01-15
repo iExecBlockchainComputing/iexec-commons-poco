@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.math.BigInteger;
 import java.time.Duration;
 
 import static com.iexec.commons.poco.chain.Web3jAbstractService.GAS_LIMIT_CAP;
-import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
 import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -89,9 +88,6 @@ class Web3jAbstractServiceTest {
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction(FUNC_REOPEN),
                 BigInteger.valueOf(500_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_CREATEDATASET),
-                BigInteger.valueOf(700_000));
         assertEquals(Web3jAbstractService
                         .getGasLimitForFunction("randomfunction"),
                 BigInteger.valueOf(GAS_LIMIT_CAP));
