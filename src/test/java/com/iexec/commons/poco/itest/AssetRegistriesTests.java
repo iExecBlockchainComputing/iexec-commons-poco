@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
-import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
+import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -93,7 +93,7 @@ class AssetRegistriesTests {
         nonce = nonce.add(BigInteger.ONE);
         final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, workerpoolName);
 
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash));
         assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash)).isTrue();
 

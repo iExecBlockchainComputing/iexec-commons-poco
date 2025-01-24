@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Upgrade source and target compatibility to Java 17. (#114)
+- Optimize gas limits per PoCo function. This will enable validators
+  to add more finalize and contributeAndFinalize transactions in a block. (#116)
 
 ### Breaking API changes
 
