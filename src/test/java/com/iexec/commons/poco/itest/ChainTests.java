@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ class ChainTests {
         this.credentials = WalletUtils.loadCredentials("whatever", "src/test/resources/wallet.json");
         this.chainNodeAddress = "http://" + environment.getServiceHost(SERVICE_NAME, SERVICE_PORT) + ":" +
                 environment.getServicePort(SERVICE_NAME, SERVICE_PORT);
-        this.web3jService = new Web3jTestService(chainNodeAddress);
+        this.web3jService = new Web3jTestService(chainNodeAddress, 1.0f, 22_000_000_000L);
         this.iexecHubService = new IexecHubTestService(credentials, web3jService);
     }
 
@@ -193,7 +193,7 @@ class ChainTests {
 
     @Test
     void shouldReturnGasPriceCapOnBlockchainCommunicationError() {
-        final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress);
+        final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress, 1.0f, 22_000_000_000L);
         assertThat(badWeb3jService.getUserGasPrice()).isEqualTo(22_000_000_000L);
     }
     // endregion

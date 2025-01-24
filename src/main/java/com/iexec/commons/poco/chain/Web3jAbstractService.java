@@ -323,13 +323,12 @@ public abstract class Web3jAbstractService {
     @NotNull
     static BigInteger getGasLimitForFunction(String functionName) {
         final long gasLimit = switch (functionName) {
-            case FUNC_INITIALIZE -> 300_000;//seen 176340
-            case FUNC_CONTRIBUTE -> 500_000;//seen 333541
-            case FUNC_REVEAL -> 100_000;//seen 56333
-            case FUNC_CONTRIBUTEANDFINALIZE, FUNC_FINALIZE ->
-                // Multiply with a factor of 10 for callback gas consumption
-                    3_000_000;//seen 175369 (242641 in reopen case)
-            case FUNC_REOPEN -> 500_000;//seen 43721
+            case FUNC_INITIALIZE -> 300_000; // 237399 measured
+            case FUNC_CONTRIBUTE -> 500_000; // 417035 measured - more gas when reaching consensus
+            case FUNC_REVEAL -> 100_000; // 92905 measured
+            case FUNC_FINALIZE -> 500_000; // 277899 measured + 200_000 for callback
+            case FUNC_CONTRIBUTEANDFINALIZE -> 700_000; // 440073 measured + 200_000 for callback
+            case FUNC_REOPEN -> 500_000; // seen 43721
             default -> GAS_LIMIT_CAP;
         };
         return BigInteger.valueOf(gasLimit);

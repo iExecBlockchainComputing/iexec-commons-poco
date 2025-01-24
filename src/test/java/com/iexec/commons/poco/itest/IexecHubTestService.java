@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,15 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.iexec.commons.poco.itest.OrdersService.*;
+import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 public class IexecHubTestService extends IexecHubAbstractService {
@@ -43,6 +50,7 @@ public class IexecHubTestService extends IexecHubAbstractService {
     private static final String WORKERPOOL_REGISTRY_SELECTOR = "0x90a0f546";
 
     private final String ownerAddress;
+    private final SignerService signerService;
     private final Web3jTestService web3jTestService;
 
     private final AssetDeploymentService appDeploymentService;
@@ -51,7 +59,7 @@ public class IexecHubTestService extends IexecHubAbstractService {
 
     public IexecHubTestService(Credentials credentials, Web3jTestService web3jTestService) throws IOException {
         super(credentials, web3jTestService, IEXEC_HUB_ADDRESS);
-        final SignerService signerService = new SignerService(
+        this.signerService = new SignerService(
                 web3jTestService.getWeb3j(), web3jTestService.getChainId(), credentials);
         this.ownerAddress = credentials.getAddress();
         this.web3jTestService = web3jTestService;
@@ -61,6 +69,44 @@ public class IexecHubTestService extends IexecHubAbstractService {
         appDeploymentService.initRegistryAddress(IEXEC_HUB_ADDRESS);
         datasetDeploymentService.initRegistryAddress(IEXEC_HUB_ADDRESS);
         workerpoolDeploymentService.initRegistryAddress(IEXEC_HUB_ADDRESS);
+    }
+
+    public Map<String, String> deployAssets() throws IOException {
+        final String predictedAppAddress = callPredictApp(APP_NAME);
+        final String predictedDatasetAddress = callPredictDataset(DATASET_NAME);
+        final String predictedWorkerpoolAddress = callPredictWorkerpool(WORKERPOOL_NAME);
+
+        BigInteger nonce = signerService.getNonce();
+        final List<String> txHashes = new ArrayList<>();
+        if (!isAppPresent(predictedAppAddress)) {
+            txHashes.add(submitCreateAppTx(nonce, APP_NAME));
+            nonce = nonce.add(BigInteger.ONE);
+        }
+        if (!isDatasetPresent(predictedDatasetAddress)) {
+            txHashes.add(submitCreateDatasetTx(nonce, DATASET_NAME));
+            nonce = nonce.add(BigInteger.ONE);
+        }
+        if (!isWorkerpoolPresent(predictedWorkerpoolAddress)) {
+            txHashes.add(submitCreateWorkerpoolTx(nonce, WORKERPOOL_NAME));
+        }
+
+        // Wait for assets deployment to be able to call MatchOrders
+        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+                .until(() -> web3jTestService.areTxMined(txHashes.toArray(String[]::new)));
+
+        // check
+        if (!txHashes.isEmpty()) {
+            assertThat(web3jTestService.getDeployedAssets(txHashes.toArray(String[]::new)))
+                    .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
+            for (final String txHash : txHashes) {
+                assertThat(fetchLogTopics(txHash)).isEqualTo(List.of("Transfer"));
+            }
+        }
+
+        return Map.of(
+                "app", predictedAppAddress,
+                "dataset", predictedDatasetAddress,
+                "workerpool", predictedWorkerpoolAddress);
     }
 
     // region createApp
@@ -178,6 +224,6 @@ public class IexecHubTestService extends IexecHubAbstractService {
                 .stream()
                 .map(log -> log.getTopics().get(0))
                 .map(LogTopic::decode)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

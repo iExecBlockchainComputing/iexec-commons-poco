@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.encoding.PoCoDataEncoder;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.HashUtils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -30,19 +31,22 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.WalletUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
-import static com.iexec.commons.poco.itest.OrdersService.*;
-import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
+import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -72,75 +76,73 @@ class ContributeRevealFinalizeTests {
         ordersService = new OrdersService(signerService);
     }
 
-    @Test
-    void shouldContributeRevealFinalize() throws Exception {
-        final String predictedAppAddress = iexecHubService.callCreateApp(APP_NAME);
-        final String predictedDatasetAddress = iexecHubService.callCreateDataset(DATASET_NAME);
-        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(WORKERPOOL_NAME);
-        BigInteger nonce = signerService.getNonce();
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, APP_NAME);
-        nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, DATASET_NAME);
-        nonce = nonce.add(BigInteger.ONE);
-        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, WORKERPOOL_NAME);
-
-        // Wait for assets deployment to be able to call MatchOrders
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
-                .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash));
-
-        final String predictedDealId = ordersService.callMatchOrders(
-                predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
-        final String predictedChainTaskId = ChainUtils.generateChainTaskId(predictedDealId, 0);
-
-        // deal id
-        nonce = nonce.add(BigInteger.ONE);
-        final String matchOrdersTxHash = ordersService.submitMatchOrders(
-                predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress, nonce);
-
-        // init
-        final String initializeTxData = PoCoDataEncoder.encodeInitialize(predictedDealId, 0);
-        nonce = signerService.getNonce();
-        final String initializeTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, initializeTxData);
-
-        // enclave challenge
+    @SneakyThrows
+    private String workerContribute(final SignerService workerSigner, final String chainTaskId) {
         final SignerService enclaveSigner = new SignerService(web3jService.getWeb3j(), web3jService.getChainId());
         final String enclaveChallenge = enclaveSigner.getAddress();
 
-        // contribute
-        final String resultDigest = TeeUtils.TEE_SCONE_ONLY_TAG;
-        final String resultHash = HashUtils.concatenateAndHash(predictedChainTaskId, resultDigest);
-        final String resultSeal = HashUtils.concatenateAndHash(signerService.getAddress(), predictedChainTaskId, resultDigest);
-
+        final String resultHash = HashUtils.concatenateAndHash(chainTaskId, TeeUtils.TEE_SCONE_ONLY_TAG);
+        final String resultSeal = HashUtils.concatenateAndHash(workerSigner.getAddress(), chainTaskId, TeeUtils.TEE_SCONE_ONLY_TAG);
         final String messageHash = HashUtils.concatenateAndHash(resultHash, resultSeal);
         final String enclaveSignature = enclaveSigner.signMessageHash(messageHash).getValue();
-        final String authorizationHash = HashUtils.concatenateAndHash(signerService.getAddress(), predictedChainTaskId, enclaveChallenge);
+
+        final String authorizationHash = HashUtils.concatenateAndHash(workerSigner.getAddress(), chainTaskId, enclaveChallenge);
         final String wpAuthorizationSignature = signerService.signMessageHash(authorizationHash).getValue();
 
-        final String contributeData = PoCoDataEncoder.encodeContribute(predictedChainTaskId, resultHash, resultSeal, enclaveChallenge, enclaveSignature, wpAuthorizationSignature);
-        nonce = signerService.getNonce();
-        final String contributeTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, contributeData);
+        final String contributeTxData = PoCoDataEncoder.encodeContribute(chainTaskId, resultHash, resultSeal, enclaveChallenge, enclaveSignature, wpAuthorizationSignature);
+        return workerSigner.signAndSendTransaction(
+                BigInteger.ZERO, BigInteger.ZERO, GAS_LIMIT, IEXEC_HUB_ADDRESS, contributeTxData);
+    }
 
-        // reveal
-        final String revealTxData = PoCoDataEncoder.encodeReveal(predictedChainTaskId, resultDigest);
-        nonce = signerService.getNonce();
-        final String revealTxHash = signerService.signAndSendTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, revealTxData);
+    @SneakyThrows
+    private String workerReveal(final SignerService workerSigner, final String chainTaskId) {
+        final String revealTxData = PoCoDataEncoder.encodeReveal(chainTaskId, TeeUtils.TEE_SCONE_ONLY_TAG);
+        return workerSigner.signAndSendTransaction(
+                BigInteger.ONE, BigInteger.ZERO, GAS_LIMIT, IEXEC_HUB_ADDRESS, revealTxData);
+    }
 
-        // finalize
+    @Test
+    void shouldContributeRevealFinalize() throws Exception {
+        final Map<String, String> assetAddresses = iexecHubService.deployAssets();
+        final String predictedAppAddress = assetAddresses.get("app");
+        final String predictedDatasetAddress = assetAddresses.get("dataset");
+        final String predictedWorkerpoolAddress = assetAddresses.get("workerpool");
+
+        final OrdersService.DealOrders dealOrders = ordersService.buildAllSignedOrders(
+                predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress, BigInteger.ONE);
+        final String predictedDealId = ordersService.callMatchOrders(dealOrders);
+        final String predictedChainTaskId = ChainUtils.generateChainTaskId(predictedDealId, 0);
+
+        // deal id
+        BigInteger nonce = signerService.getNonce();
+        final String matchOrdersTxHash = ordersService.submitMatchOrders(dealOrders, nonce);
+
+        // init
+        final String initializeTxData = PoCoDataEncoder.encodeInitialize(predictedDealId, 0);
+        nonce = nonce.add(BigInteger.ONE);
+        final String initializeTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, initializeTxData);
+
+        // worker contribute and reveal
+        final SignerService workerSigner = web3jService.createSigner();
+        final String contributeTxHash = workerContribute(workerSigner, predictedChainTaskId);
+        final String revealTxHash = workerReveal(workerSigner, predictedChainTaskId);
+
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(matchOrdersTxHash, initializeTxHash, contributeTxHash, revealTxHash));
+
+        // finalize needs to be separated to avoid executing the transaction before contribute and reveal
         final String finalizeTxData = PoCoDataEncoder.encodeFinalize(predictedChainTaskId, new byte[0], new byte[0]);
-        nonce = signerService.getNonce();
+        nonce = nonce.add(BigInteger.ONE);
         final String finalizeTxHash = signerService.signAndSendTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, finalizeTxData);
 
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
-                .until(() -> web3jService.areTxMined(matchOrdersTxHash, contributeTxHash, revealTxHash, finalizeTxHash));
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(finalizeTxHash));
+
         assertThat(web3jService.areTxStatusOK(matchOrdersTxHash, initializeTxHash, contributeTxHash, revealTxHash, finalizeTxHash)).isTrue();
 
         // checks
-        assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
-                .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
         assertThat(iexecHubService.getChainDeal(predictedDealId)).isPresent();
         assertThat(iexecHubService.getChainTask(predictedChainTaskId)).isPresent();
 
@@ -156,9 +158,6 @@ class ContributeRevealFinalizeTests {
         assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
 
         // Logs
-        assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
-        assertThat(iexecHubService.fetchLogTopics(datasetTxHash)).isEqualTo(List.of("Transfer"));
-        assertThat(iexecHubService.fetchLogTopics(workerpoolTxHash)).isEqualTo(List.of("Transfer"));
         assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
                 .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
         assertThat(iexecHubService.fetchLogTopics(initializeTxHash)).isEqualTo(List.of("TaskInitialize"));
@@ -166,6 +165,73 @@ class ContributeRevealFinalizeTests {
         assertThat(iexecHubService.fetchLogTopics(revealTxHash)).isEqualTo(List.of("TaskReveal"));
         assertThat(iexecHubService.fetchLogTopics(finalizeTxHash))
                 .isEqualTo(List.of("Seize", "Transfer", "Unlock", "Transfer", "Unlock", "Transfer", "Reward", "Transfer", "Reward", "TaskFinalize"));
+
+        web3jService.showReceipt(matchOrdersTxHash, "matchOrders");
+        web3jService.showReceipt(initializeTxHash, "initialize");
+        web3jService.showReceipt(contributeTxHash, "contribute");
+        web3jService.showReceipt(revealTxHash, "reveal");
+        web3jService.showReceipt(finalizeTxHash, "finalize");
+    }
+
+    @Test
+    void shouldContributeRevealFinalizeWith2contributions() throws Exception {
+        final Map<String, String> assetAddresses = iexecHubService.deployAssets();
+        final String predictedAppAddress = assetAddresses.get("app");
+        final String predictedDatasetAddress = assetAddresses.get("dataset");
+        final String predictedWorkerpoolAddress = assetAddresses.get("workerpool");
+
+        final List<String> txHashes = new ArrayList<>();
+        final BigInteger trust = BigInteger.valueOf(3);
+
+        BigInteger nonce = signerService.getNonce();
+
+        final OrdersService.DealOrders dealOrders = ordersService.buildAllSignedOrders(
+                predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress, trust);
+        final String predictedDealId = ordersService.callMatchOrders(dealOrders);
+        final String predictedChainTaskId = ChainUtils.generateChainTaskId(predictedDealId, 0);
+
+        // deal id
+        txHashes.add(ordersService.submitMatchOrders(dealOrders, nonce));
+
+        // init
+        final String initializeTxData = PoCoDataEncoder.encodeInitialize(predictedDealId, 0);
+        nonce = signerService.getNonce();
+        txHashes.add(signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, initializeTxData));
+
+        final SignerService worker1 = web3jService.createSigner();
+        final SignerService worker2 = web3jService.createSigner();
+
+        // contribute
+        final List<String> contributeTxHashes = Stream.of(worker1, worker2)
+                .map(worker -> workerContribute(worker, predictedChainTaskId))
+                .toList();
+        txHashes.addAll(contributeTxHashes);
+
+        // reveal
+        final List<String> revealTxHashes = Stream.of(worker1, worker2)
+                .map(worker -> workerReveal(worker, predictedChainTaskId))
+                .toList();
+        txHashes.addAll(revealTxHashes);
+
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(txHashes.toArray(String[]::new)));
+
+        // finalize
+        final String finalizeTxData = PoCoDataEncoder.encodeFinalize(predictedChainTaskId, new byte[0], new byte[0]);
+        nonce = signerService.getNonce();
+        final String finalizeTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, finalizeTxData);
+        txHashes.add(finalizeTxHash);
+
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(finalizeTxHash));
+
+        assertThat(web3jService.areTxStatusOK(txHashes.toArray(String[]::new))).isTrue();
+
+        for (final String txHash : txHashes) {
+            web3jService.showReceipt(txHash, "");
+        }
     }
 
 }

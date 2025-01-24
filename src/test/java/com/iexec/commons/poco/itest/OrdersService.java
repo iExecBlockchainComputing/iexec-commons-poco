@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.iexec.commons.poco.eip712.entity.EIP712WorkerpoolOrder;
 import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.web3j.crypto.Hash;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ public class OrdersService {
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
         final String sig = signerService.signEIP712Entity(new EIP712AppOrder(domain, appOrder));
         return appOrder.withSignature(sig);
@@ -76,30 +77,30 @@ public class OrdersService {
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
         final String sig = signerService.signEIP712Entity(new EIP712DatasetOrder(domain, datasetOrder));
         return datasetOrder.withSignature(sig);
     }
 
-    public WorkerpoolOrder buildSignedWorkerpoolOrder(String workerpoolAddress) {
+    public WorkerpoolOrder buildSignedWorkerpoolOrder(String workerpoolAddress, BigInteger trust) {
         final WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
-                .workerpoolprice(BigInteger.TEN)
+                .workerpoolprice(BigInteger.ZERO)
                 .volume(BigInteger.ONE)
                 .tag(OrderTag.TEE_SCONE.getValue())
                 .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
+                .trust(trust)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String("abcd"))
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
         final String sig = signerService.signEIP712Entity(new EIP712WorkerpoolOrder(domain, workerpoolOrder));
         return workerpoolOrder.withSignature(sig);
     }
 
-    public RequestOrder buildSignedRequestOrder(AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder) {
+    public RequestOrder buildSignedRequestOrder(AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder, BigInteger trust) {
         final TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
                 "1", "first-secret",
                 "2", "second-secret",
@@ -121,32 +122,43 @@ public class OrdersService {
                 .volume(BigInteger.ONE)
                 .tag(OrderTag.TEE_SCONE.getValue())
                 .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
+                .trust(trust)
                 .beneficiary(signerService.getAddress())
                 .callback(BytesUtils.EMPTY_ADDRESS)
                 .params(dealParams.toJsonString())
-                .salt(Hash.sha3String("abcd"))
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
         final String sig = signerService.signEIP712Entity(new EIP712RequestOrder(domain, requestOrder));
         return requestOrder.withSignature(sig);
     }
 
-    public String callMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress) throws IOException {
-        final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
+    public DealOrders buildAllSignedOrders(final String appAddress, final String datasetAddress, final String workerpoolAddress, final BigInteger trust) {
+        final AppOrder signedAppOrder = buildSignedAppOrder(appAddress);
+        final DatasetOrder signedDatasetOrder = buildSignedDatasetOrder(datasetAddress);
+        final WorkerpoolOrder signedWorkerpoolOrder = buildSignedWorkerpoolOrder(workerpoolAddress, trust);
+        final RequestOrder signedRequestOrder = buildSignedRequestOrder(
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, trust);
+        return new DealOrders(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+    }
+
+    public String callMatchOrders(final DealOrders orders) throws IOException {
+        final String matchOrdersTxData = encodeMathOrdersTxData(orders);
         return signerService.sendCall(IEXEC_HUB_ADDRESS, matchOrdersTxData);
     }
 
-    public String submitMatchOrders(String appAddress, String datasetAddress, String workerpoolAddress, BigInteger nonce) throws IOException {
-        final String matchOrdersTxData = encodeMathOrdersTxData(appAddress, datasetAddress, workerpoolAddress);
+    public String submitMatchOrders(final DealOrders orders, final BigInteger nonce) throws IOException {
+        final String matchOrdersTxData = encodeMathOrdersTxData(orders);
         return signerService.signAndSendTransaction(nonce, GAS_PRICE, IEXEC_HUB_ADDRESS, matchOrdersTxData);
     }
 
-    private String encodeMathOrdersTxData(String appAddress, String datasetAddress, String workerpoolAddress) {
-        final AppOrder signedAppOrder = buildSignedAppOrder(appAddress);
-        final DatasetOrder signedDatasetOrder = buildSignedDatasetOrder(datasetAddress);
-        final WorkerpoolOrder signedWorkerpoolOrder = buildSignedWorkerpoolOrder(workerpoolAddress);
-        final RequestOrder signedRequestOrder = buildSignedRequestOrder(
-                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder);
-        return MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+    private String encodeMathOrdersTxData(final DealOrders orders) {
+        return MatchOrdersDataEncoder.encode(
+                orders.appOrder(), orders.datasetOrder(), orders.workerpoolOrder(), orders.requestOrder());
+    }
+
+    public record DealOrders(AppOrder appOrder,
+                             DatasetOrder datasetOrder,
+                             WorkerpoolOrder workerpoolOrder,
+                             RequestOrder requestOrder) {
     }
 }
