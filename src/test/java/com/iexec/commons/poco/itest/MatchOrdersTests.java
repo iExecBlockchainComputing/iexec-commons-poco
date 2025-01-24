@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
-import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
+import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -106,7 +106,7 @@ class MatchOrdersTests {
         final String matchOrdersTxHash = signerService.signAndSendTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
 
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash));
         assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash)).isTrue();
 

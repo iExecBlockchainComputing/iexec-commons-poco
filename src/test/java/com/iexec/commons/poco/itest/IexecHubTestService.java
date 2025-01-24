@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.OrdersService.*;
-import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
+import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -91,7 +91,7 @@ public class IexecHubTestService extends IexecHubAbstractService {
         }
 
         // Wait for assets deployment to be able to call MatchOrders
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> web3jTestService.areTxMined(txHashes.toArray(String[]::new)));
 
         // check
