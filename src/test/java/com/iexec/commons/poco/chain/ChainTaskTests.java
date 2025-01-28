@@ -31,21 +31,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ChainTaskTests {
 
     @Test
-    void shouldHaveContributor() {
+    void shouldHaveContributions() {
         final ChainTask chainTask = ChainTask.builder()
                 .contributors(List.of("0x1"))
                 .build();
-        assertThat(chainTask.hasContributor("0x1")).isTrue();
+        assertThat(chainTask.hasContributions()).isTrue();
     }
 
     @Test
-    void shouldNotHavContributor() {
+    void shouldNotHaveContributions() {
+        final ChainTask chainTask = ChainTask.builder().build();
+        assertThat(chainTask.hasContributions()).isFalse();
+    }
+
+    @Test
+    void shouldHaveContributionFrom() {
         final ChainTask chainTask = ChainTask.builder()
                 .contributors(List.of("0x1"))
                 .build();
-        assertThat(chainTask.hasContributor("0x2")).isFalse();
+        assertThat(chainTask.hasContributionFrom("0x1")).isTrue();
     }
 
+    @Test
+    void shouldNotHaveContributionFrom() {
+        final ChainTask chainTask = ChainTask.builder()
+                .contributors(List.of("0x1"))
+                .build();
+        assertThat(chainTask.hasContributionFrom("0x2")).isFalse();
+    }
 
     @Test
     void shouldBeAfterDeadlines() {

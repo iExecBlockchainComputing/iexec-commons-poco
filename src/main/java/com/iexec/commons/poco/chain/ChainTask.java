@@ -40,10 +40,15 @@ public class ChainTask {
     String consensusValue;
     int revealCounter;
     int winnerCounter;
-    List<String> contributors;
+    @Builder.Default
+    List<String> contributors = List.of();
     String results;
 
-    public boolean hasContributor(final String address) {
+    public boolean hasContributions() {
+        return !contributors.isEmpty();
+    }
+
+    public boolean hasContributionFrom(final String address) {
         return contributors.contains(address);
     }
 
