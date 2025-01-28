@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2025
 
+### New Features
+
+- Enable checks on ChainTask instances with new methods. (#118)
+
 ### Quality
 
 - Upgrade source and target compatibility to Java 17. (#114)
 - Optimize gas limits per PoCo function. This will enable validators
-  to add more finalize and contributeAndFinalize transactions in a block. (#116)
+  to add more finalize and contributeAndFinalize transactions in a block. (#117)
 
 ### Breaking API changes
 

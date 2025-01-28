@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import lombok.Value;
 import org.web3j.tuples.generated.Tuple12;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.List;
 
 @Value
@@ -41,6 +42,26 @@ public class ChainTask {
     int winnerCounter;
     List<String> contributors;
     String results;
+
+    public boolean hasContributor(final String address) {
+        return contributors.contains(address);
+    }
+
+    public boolean isContributionDeadlineReached() {
+        return contributionDeadline <= Instant.now().toEpochMilli();
+    }
+
+    public boolean isRevealDeadlineReached() {
+        return revealDeadline <= Instant.now().toEpochMilli();
+    }
+
+    public boolean isRevealed() {
+        return revealCounter > 0 && (revealCounter == winnerCounter || isRevealDeadlineReached());
+    }
+
+    public boolean isFinalDeadlineReached() {
+        return finalDeadline <= Instant.now().toEpochMilli();
+    }
 
     public static ChainTask tuple2ChainTask(Tuple12<BigInteger, byte[], BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, byte[], BigInteger, BigInteger, List<String>, byte[]> chainTask) {
         if (chainTask != null) {
