@@ -17,8 +17,9 @@ All notable changes to this project will be documented in this file.
 ### Breaking API changes
 
 - Remove assets creation methods from `IexecHubAbstractService`. (#115)
-- Remove AppRegistry, DatasetRegistry and WorkerpoolRegistry generated classes. (#116)
+- Remove AppRegistry, DatasetRegistry and WorkerpoolRegistry generated Smart Contract wrappers. (#116)
 - Remove deprecated code in DealParams and TaskDescription. (#119)
+- Remove Ownable generated Smart Contract wrapper. (#120)
 
 ### Dependency Upgrades
 

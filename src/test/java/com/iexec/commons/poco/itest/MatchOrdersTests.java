@@ -132,6 +132,11 @@ class MatchOrdersTests {
         assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
         assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
 
+        // Assets ownership
+        assertThat(iexecHubService.getOwner(predictedAppAddress)).isEqualTo(signerService.getAddress());
+        assertThat(iexecHubService.getOwner(predictedDatasetAddress)).isEqualTo(signerService.getAddress());
+        assertThat(iexecHubService.getOwner(predictedWorkerpoolAddress)).isEqualTo(signerService.getAddress());
+
         // Logs
         assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
         assertThat(iexecHubService.fetchLogTopics(datasetTxHash)).isEqualTo(List.of("Transfer"));

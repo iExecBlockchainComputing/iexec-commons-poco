@@ -45,4 +45,9 @@ public class AccessorsEncoder {
      */
     public static final String FINAL_DEADLINE_RATIO_SELECTOR = "0xdb8aaa26";
 
+    /**
+     * keccak256(owner())
+     */
+    public static final String OWNER_SELECTOR = "0x8da5cb5b";
+
 }
