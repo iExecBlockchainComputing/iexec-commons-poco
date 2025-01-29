@@ -575,7 +575,7 @@ public abstract class IexecHubAbstractService {
         try {
             return Numeric.toHexStringWithPrefixZeroPadded(
                     Numeric.toBigInt(txManager.sendCall(address, OWNER_SELECTOR, DefaultBlockParameterName.LATEST)), 40);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Failed to get owner [address:{}]", address, e);
         }
         return "";
