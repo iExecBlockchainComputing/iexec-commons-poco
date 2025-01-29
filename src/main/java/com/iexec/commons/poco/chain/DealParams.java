@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -98,14 +96,7 @@ public class DealParams {
 
     @Builder.Default
     @JsonProperty("iexec_input_files")
-    List<String> iexecInputFiles = Collections.emptyList();
-
-    /**
-     * @deprecated will be removed in next major version
-     */
-    @Deprecated(forRemoval = true)
-    @JsonProperty("iexec_developer_logger")
-    boolean iexecDeveloperLoggerEnabled;
+    List<String> iexecInputFiles = List.of();
 
     @JsonProperty("iexec_result_encryption")
     boolean iexecResultEncryption;
@@ -119,21 +110,7 @@ public class DealParams {
     // Keys are app secrets indices, values are requester secrets indices
     @Builder.Default
     @JsonProperty("iexec_secrets")
-    Map<String, String> iexecSecrets = Collections.emptyMap();
-
-    /**
-     * @deprecated will be removed in next major version
-     */
-    @Deprecated(forRemoval = true)
-    @JsonProperty("iexec_tee_post_compute_image")
-    String iexecTeePostComputeImage;
-
-    /**
-     * @deprecated will be removed in next major version
-     */
-    @Deprecated(forRemoval = true)
-    @JsonProperty("iexec_tee_post_compute_fingerprint")
-    String iexecTeePostComputeFingerprint;
+    Map<String, String> iexecSecrets = Map.of();
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class DealParamsBuilder {
@@ -148,15 +125,16 @@ public class DealParams {
      *                    In the second case, every other parameters will have default values.
      * @return the created instance
      */
-    public static DealParams createFromString(String paramString) {
+    public static DealParams createFromString(final String paramString) {
         try {
             return new ObjectMapper().readValue(paramString, DealParams.class);
         } catch (IOException e) {
+            log.warn("Could not deserialize arguments to DealParams [string:{}]", paramString);
             //the requester want to execute one task with the whole string
             return DealParams.builder()
                     .iexecArgs(paramString)
-                    .iexecInputFiles(Collections.emptyList())
-                    .iexecSecrets(Collections.emptyMap())
+                    .iexecInputFiles(List.of())
+                    .iexecSecrets(Map.of())
                     .build();
         }
     }
@@ -168,7 +146,7 @@ public class DealParams {
      */
     public String toJsonString() {
         ObjectMapper mapper = new ObjectMapper();
-        Arrays.asList(NON_EMPTY, NON_DEFAULT).forEach(mapper::setSerializationInclusion);
+        List.of(NON_EMPTY, NON_DEFAULT).forEach(mapper::setSerializationInclusion);
         try {
             return mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
