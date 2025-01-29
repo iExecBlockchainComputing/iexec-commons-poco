@@ -78,7 +78,7 @@ class DealParamsTest {
     @Test
     void testSerializationWithBuilderDefaultValues() {
         DealParams params = DealParams.builder().build();
-        DealParams newParams =  DealParams.createFromString(params.toJsonString());
+        DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
                 .isEqualTo(params);
@@ -89,7 +89,6 @@ class DealParamsTest {
     @Test
     void testSerializationWithBooleanAsFalse() {
         DealParams params = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(false)
                 .iexecResultEncryption(false)
                 .build();
         DealParams newParams = DealParams.createFromString(params.toJsonString());
@@ -103,7 +102,6 @@ class DealParamsTest {
     @Test
     void testSerializationWithBooleanAsTrue() {
         DealParams params = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(true)
                 .iexecResultEncryption(true)
                 .build();
         DealParams newParams = DealParams.createFromString(params.toJsonString());

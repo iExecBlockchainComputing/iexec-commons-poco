@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
 
 @Value
 @Builder
@@ -57,11 +55,6 @@ public class TaskDescription {
     String appUri;
     String appAddress;
     TeeEnclaveConfiguration appEnclaveConfiguration;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    String cmd;
     boolean isTeeTask;
     TeeFramework teeFramework;
     int botSize;
@@ -70,32 +63,7 @@ public class TaskDescription {
     String datasetUri;
     String datasetName;
     String datasetChecksum;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    List<String> inputFiles;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    boolean isResultEncryption;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    String resultStorageProvider;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    String resultStorageProxy;
     String smsUrl;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    Map<String, String> secrets;
     @Builder.Default
     DealParams dealParams = DealParams.builder().build();
     BigInteger trust;
@@ -138,15 +106,12 @@ public class TaskDescription {
      * @return true if at least one input file is present, false otherwise
      */
     public boolean containsInputFiles() {
-        return (dealParams != null && dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty())
-                || (inputFiles != null && !inputFiles.isEmpty());
+        return dealParams != null && dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty();
     }
 
     public String getAppCommand() {
-        final String args = (dealParams != null && !StringUtils.isEmpty(dealParams.getIexecArgs())) ?
-                dealParams.getIexecArgs() : cmd;
-        return StringUtils.isEmpty(args) ? appEnclaveConfiguration.getEntrypoint() :
-                appEnclaveConfiguration.getEntrypoint() + " " + args;
+        return dealParams == null || StringUtils.isBlank(dealParams.getIexecArgs()) ? appEnclaveConfiguration.getEntrypoint() :
+                appEnclaveConfiguration.getEntrypoint() + " " + dealParams.getIexecArgs();
     }
 
     /**
@@ -207,22 +172,10 @@ public class TaskDescription {
                 .appAddress(chainDeal.getChainApp().getChainAppId())
                 .appEnclaveConfiguration(chainDeal.getChainApp()
                         .getEnclaveConfiguration())
-                .cmd(chainDeal.getParams()
-                        .getIexecArgs())
-                .inputFiles(chainDeal.getParams()
-                        .getIexecInputFiles())
                 .isTeeTask(TeeUtils
                         .isTeeTag(tag))
                 .teeFramework(TeeUtils
                         .getTeeFramework(tag))
-                .isResultEncryption(chainDeal.getParams()
-                        .isIexecResultEncryption())
-                .resultStorageProvider(chainDeal.getParams()
-                        .getIexecResultStorageProvider())
-                .resultStorageProxy(chainDeal.getParams()
-                        .getIexecResultStorageProxy())
-                .secrets(chainDeal.getParams()
-                        .getIexecSecrets())
                 .dealParams(chainDeal.getParams())
                 .datasetAddress(datasetAddress)
                 .datasetUri(datasetUri)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,12 +158,6 @@ class TaskDescriptionTests {
                 .datasetUri(DATASET_URI)
                 .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
-                .cmd(CMD)
-                .inputFiles(INPUT_FILES)
-                .isResultEncryption(IS_RESULT_ENCRYPTION)
-                .resultStorageProvider(RESULT_STORAGE_PROVIDER)
-                .resultStorageProxy(RESULT_STORAGE_PROXY)
-                .secrets(Collections.emptyMap())
                 .dealParams(dealParams)
                 .trust(TRUST)
                 .build();
@@ -252,16 +246,7 @@ class TaskDescriptionTests {
 
     // region containsInputFiles
     @Test
-    void shouldContainInputFiles() {
-        assertTrue(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(List.of("http://file1", "http://file2"))
-                .build()
-                .containsInputFiles());
-    }
-
-    @Test
-    void shouldContainsInputFilesFromDealParams() {
+    void shouldContainsInputFiles() {
         assertTrue(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
                 .dealParams(DealParams.builder().iexecInputFiles(List.of("http://file1", "http://file2")).build())
@@ -271,8 +256,8 @@ class TaskDescriptionTests {
 
     @ParameterizedTest
     @NullSource
-    @MethodSource("provideTaskDescriptionWithoutInputFiles")
-    void shouldNotContainInputFilesWhenNullDealParams(final DealParams dealParams) {
+    @MethodSource("provideDealParamsWithoutInputFiles")
+    void shouldNotContainInputFiles(final DealParams dealParams) {
         assertFalse(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
                 .dealParams(dealParams)
@@ -280,64 +265,43 @@ class TaskDescriptionTests {
                 .containsInputFiles());
     }
 
-    private static Stream<Arguments> provideTaskDescriptionWithoutInputFiles() {
+    private static Stream<Arguments> provideDealParamsWithoutInputFiles() {
         return Stream.of(
                 Arguments.of(DealParams.builder().build()),
-                Arguments.of(DealParams.builder().iexecInputFiles(null).build())
+                Arguments.of(DealParams.builder().iexecInputFiles(null).build()),
+                Arguments.of(DealParams.builder().iexecInputFiles(List.of()).build())
         );
-    }
-
-    @Test
-    void shouldNotContainInputFilesWhenEmptyInputFiles() {
-        assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(List.of())
-                .build()
-                .containsInputFiles());
-    }
-
-    @Test
-    void shouldNotContainInputFilesWhenNullInputFiles() {
-        assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(null)
-                .build()
-                .containsInputFiles());
     }
     // endregion
 
     // region getAppCommand
-    @Test
-    void shouldGenerateAppCommandWithEntrypointWhenEmptyDealParams() {
+    @ParameterizedTest
+    @NullSource
+    @MethodSource("provideDealParamsWithoutArgs")
+    void shouldGenerateAppCommandWithEntrypointOnly(final DealParams dealParams) {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(DealParams.builder().build())
+                .dealParams(dealParams)
                 .build();
         assertEquals(ENTRYPOINT, taskDescription.getAppCommand());
     }
 
-    @Test
-    void shouldGenerateAppCommandWithEntrypointWhenNullDealParams() {
-        final TaskDescription taskDescription = TaskDescription.builder()
-                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(null)
-                .build();
-        assertEquals(ENTRYPOINT, taskDescription.getAppCommand());
+    private static Stream<Arguments> provideDealParamsWithoutArgs() {
+        return Stream.of(
+                Arguments.of(DealParams.builder().build()),
+                Arguments.of(DealParams.builder().iexecArgs(null).build()),
+                Arguments.of(DealParams.builder().iexecArgs("").build()),
+                Arguments.of(DealParams.builder().iexecArgs(" ").build())
+        );
     }
 
     @Test
     void shouldGenerateAppCommandWithEntrypointAndArgs() {
-        assertEquals(ENTRYPOINT + " " + CMD, TaskDescription.builder()
+        final TaskDescription taskDescription = TaskDescription.builder()
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
                 .dealParams(DealParams.builder().iexecArgs(CMD).build())
-                .build()
-                .getAppCommand());
-        assertEquals(ENTRYPOINT + " " + CMD, TaskDescription.builder()
-                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(DealParams.builder().build())
-                .cmd(CMD)
-                .build()
-                .getAppCommand());
+                .build();
+        assertEquals(ENTRYPOINT + " " + CMD, taskDescription.getAppCommand());
     }
     // endregion
 

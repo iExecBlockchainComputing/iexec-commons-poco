@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - Remove assets creation methods from `IexecHubAbstractService`. (#115)
 - Remove AppRegistry, DatasetRegistry and WorkerpoolRegistry generated classes. (#116)
+- Remove deprecated code in DealParams and TaskDescription. (#119)
 
 ### Dependency Upgrades
 
