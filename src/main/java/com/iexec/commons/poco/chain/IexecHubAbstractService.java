@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.iexec.commons.poco.chain;
 import com.iexec.commons.poco.contract.generated.App;
 import com.iexec.commons.poco.contract.generated.Dataset;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
-import com.iexec.commons.poco.contract.generated.Ownable;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.Retryer;
@@ -457,38 +456,6 @@ public abstract class IexecHubAbstractService {
         return weight;
     }
 
-    public Ownable getOwnableContract(String address) {
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load Ownable " +
-                        "contract " + address);
-        try {
-            if (address == null || address.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-
-            return Ownable.load(address,
-                    web3jAbstractService.getWeb3j(),
-                    credentials,
-                    new DefaultGasProvider());
-        } catch (Exception e) {
-            log.error("Failed to load Ownable [address:{}]", address, e);
-        }
-        return null;
-    }
-
-    public String getOwner(String address) {
-        Ownable ownableContract = getOwnableContract(address);
-
-        if (ownableContract != null) {
-            try {
-                return ownableContract.owner().send();
-            } catch (Exception e) {
-                log.error("Failed to get owner [address:{}]", address, e);
-            }
-        }
-        return "";
-    }
-
     /**
      * get the value of MaxNbOfPeriodsForConsensus
      * written onchain.
@@ -602,6 +569,16 @@ public abstract class IexecHubAbstractService {
     private BigInteger sendCallWithFunctionSelector(final String functionSelector) throws IOException {
         return Numeric.toBigInt(
                 txManager.sendCall(iexecHubAddress, functionSelector, DefaultBlockParameterName.LATEST));
+    }
+
+    public String getOwner(final String address) {
+        try {
+            return Numeric.toHexStringWithPrefixZeroPadded(
+                    Numeric.toBigInt(txManager.sendCall(address, OWNER_SELECTOR, DefaultBlockParameterName.LATEST)), 40);
+        } catch (Exception e) {
+            log.error("Failed to get owner [address:{}]", address, e);
+        }
+        return "";
     }
 
     // endregion

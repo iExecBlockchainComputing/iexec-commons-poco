@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import static com.iexec.commons.poco.itest.IexecHubTestService.IEXEC_HUB_ADDRESS;
+import static com.iexec.commons.poco.utils.BytesUtils.EMPTY_ADDRESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("itest")
@@ -120,6 +122,18 @@ class ChainTests {
     void shouldGetFinalDeadlineRatio() throws IOException {
         final BigInteger finalDeadlineRatio = iexecHubService.getFinalDeadlineRatio();
         assertThat(finalDeadlineRatio).isEqualTo(BigInteger.valueOf(10));
+    }
+
+    @Test
+    void shouldGetOwner() {
+        final String owner = iexecHubService.getOwner(IEXEC_HUB_ADDRESS);
+        assertThat(owner).isEqualTo("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+    }
+
+    @Test
+    void shouldNotGetOwner() {
+        assertThat(iexecHubService.getOwner(EMPTY_ADDRESS)).isEmpty();
+        assertThat(iexecHubService.getOwner(credentials.getAddress())).isEmpty();
     }
 
     @ParameterizedTest

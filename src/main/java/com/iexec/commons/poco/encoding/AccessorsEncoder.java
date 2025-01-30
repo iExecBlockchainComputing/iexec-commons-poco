@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,5 +44,10 @@ public class AccessorsEncoder {
      * keccak256(final_deadline_ratio())
      */
     public static final String FINAL_DEADLINE_RATIO_SELECTOR = "0xdb8aaa26";
+
+    /**
+     * keccak256(owner())
+     */
+    public static final String OWNER_SELECTOR = "0x8da5cb5b";
 
 }
