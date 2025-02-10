@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Remove AppRegistry, DatasetRegistry and WorkerpoolRegistry generated Smart Contract wrappers. (#116)
 - Remove deprecated code in DealParams and TaskDescription. (#119)
 - Remove Ownable generated Smart Contract wrapper. (#120)
+- Remove deprecated Order and OrderSigner classes. (#121)
 
 ### Dependency Upgrades
 
