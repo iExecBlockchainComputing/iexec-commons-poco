@@ -121,6 +121,12 @@ class MatchOrdersTests {
         assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
                 .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
 
+        // tx hash
+        assertThat(web3jService.getTransactionByHash(appTxHash)).isNotNull();
+        assertThat(web3jService.getTransactionByHash(datasetTxHash)).isNotNull();
+        assertThat(web3jService.getTransactionByHash(workerpoolTxHash)).isNotNull();
+        assertThat(web3jService.getTransactionByHash(matchOrdersTxHash)).isNotNull();
+
         // Assets deployment
         assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue();
         assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse();

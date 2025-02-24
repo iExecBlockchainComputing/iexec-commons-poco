@@ -25,6 +25,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.TransactionManager;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -143,19 +145,25 @@ public abstract class Web3jAbstractService {
     }
 
     /**
-     * @deprecated Use {@link SignerService#getNonce()}
+     * Queries and returns an on-chain transaction by its hash.
+     *
+     * @param txHash The hash of the requested transaction
+     * @return the transaction if found, {@literal null} otherwise
      */
-    @Deprecated(forRemoval = true)
-    public BigInteger getNonce(String address) {
+    public Transaction getTransactionByHash(final String txHash) {
         try {
-            return web3j.ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)
-                    .send().getTransactionCount();
-        } catch (Exception e) {
-            return BigInteger.ZERO;
+            final Transaction tx = getWeb3j().ethGetTransactionByHash(txHash).send().getTransaction().orElseThrow();
+            log.debug("Transaction found [nonce:{}, blockNumber:{}]", tx.getNonce(), tx.getBlockNumberRaw());
+            return tx;
+        } catch (IOException e) {
+            log.warn("Blockchain communication error", e);
+        } catch (NoSuchElementException e) {
+            log.warn("Transaction not found", e);
         }
+        return null;
     }
 
-    public TransactionReceipt getTransactionReceipt(String txHash) {
+    public TransactionReceipt getTransactionReceipt(final String txHash) {
         try {
             return web3j.ethGetTransactionReceipt(txHash).send().getTransactionReceipt().orElse(null);
         } catch (Exception e) {

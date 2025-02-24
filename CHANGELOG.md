@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 
-- Enable checks on ChainTask instances with new methods. (#118)
+- Enable checks on `ChainTask` instances with new methods. (#118)
+- Add `getTransactionByHash` method to `Web3jAbstractService`. (#122)
 
 ### Quality
 
@@ -17,10 +18,11 @@ All notable changes to this project will be documented in this file.
 ### Breaking API changes
 
 - Remove assets creation methods from `IexecHubAbstractService`. (#115)
-- Remove AppRegistry, DatasetRegistry and WorkerpoolRegistry generated Smart Contract wrappers. (#116)
-- Remove deprecated code in DealParams and TaskDescription. (#119)
-- Remove Ownable generated Smart Contract wrapper. (#120)
-- Remove deprecated Order and OrderSigner classes. (#121)
+- Remove `AppRegistry`, `DatasetRegistry` and `WorkerpoolRegistry` generated Smart Contract wrappers. (#116)
+- Remove deprecated code in `DealParams` and `TaskDescription`. (#119)
+- Remove `Ownable` generated Smart Contract wrapper. (#120)
+- Remove deprecated `Order` and `OrderSigner` classes. (#121)
+- Remove deprecated `getNonce` method from `Web3jAbstractService`, it has been moved to `SignerService`. (#122)
 
 ### Dependency Upgrades
 
