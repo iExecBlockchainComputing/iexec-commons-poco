@@ -121,6 +121,12 @@ class MatchOrdersTests {
         assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
                 .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
 
+        // Assets transactions and logs
+        for (final String txHash : List.of(appTxHash, datasetTxHash, workerpoolTxHash)) {
+            assertThat(web3jService.getTransactionByHash(txHash)).isNotNull();
+            assertThat(iexecHubService.fetchLogTopics(txHash)).isEqualTo(List.of("Transfer"));
+        }
+
         // Assets deployment
         assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue();
         assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse();
@@ -133,14 +139,12 @@ class MatchOrdersTests {
         assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
 
         // Assets ownership
-        assertThat(iexecHubService.getOwner(predictedAppAddress)).isEqualTo(signerService.getAddress());
-        assertThat(iexecHubService.getOwner(predictedDatasetAddress)).isEqualTo(signerService.getAddress());
-        assertThat(iexecHubService.getOwner(predictedWorkerpoolAddress)).isEqualTo(signerService.getAddress());
+        for (final String predictedAssetAddress : List.of(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress)) {
+            assertThat(iexecHubService.getOwner(predictedAssetAddress)).isEqualTo(signerService.getAddress());
+        }
 
-        // Logs
-        assertThat(iexecHubService.fetchLogTopics(appTxHash)).isEqualTo(List.of("Transfer"));
-        assertThat(iexecHubService.fetchLogTopics(datasetTxHash)).isEqualTo(List.of("Transfer"));
-        assertThat(iexecHubService.fetchLogTopics(workerpoolTxHash)).isEqualTo(List.of("Transfer"));
+        // matchOrders transaction and logs
+        assertThat(web3jService.getTransactionByHash(matchOrdersTxHash)).isNotNull();
         assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
                 .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
     }

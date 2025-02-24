@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.itest.IexecHubTestService.IEXEC_HUB_ADDRESS;
 import static com.iexec.commons.poco.utils.BytesUtils.EMPTY_ADDRESS;
+import static com.iexec.commons.poco.utils.BytesUtils.EMPTY_HEX_STRING_32;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("itest")
@@ -170,16 +171,35 @@ class ChainTests {
         assertThat(web3jService.hasEnoughGas(credentials.getAddress())).isTrue();
     }
 
+    // region deal and task
+
     @Test
     void shouldNotGetChainDeal() {
-        assertThat(iexecHubService.getChainDeal("0x0")).isEmpty();
-        assertThat(iexecHubService.getChainDealWithDetails("0x0")).isEmpty();
+        assertThat(iexecHubService.getChainDeal(EMPTY_HEX_STRING_32)).isEmpty();
+        assertThat(iexecHubService.getChainDealWithDetails(EMPTY_HEX_STRING_32)).isEmpty();
     }
 
     @Test
     void shouldNotGetChainTask() {
-        assertThat(iexecHubService.getChainTask("0x0")).isEmpty();
+        assertThat(iexecHubService.getChainTask(EMPTY_HEX_STRING_32)).isEmpty();
     }
+
+    // endregion
+
+    // region getTransactionByHash
+
+    @Test
+    void shouldNotGetTransactionByHashOnEmptyHash() {
+        assertThat(web3jService.getTransactionByHash(EMPTY_HEX_STRING_32)).isNull();
+    }
+
+    @Test
+    void shouldNotGetTransactionByHashOnBlockchainCommunicationError() {
+        final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress, 1.0f, 22_000_000_000L);
+        assertThat(badWeb3jService.getTransactionByHash(EMPTY_HEX_STRING_32)).isNull();
+    }
+
+    // endregion
 
     @Test
     void shouldValidateSmartContract() {
