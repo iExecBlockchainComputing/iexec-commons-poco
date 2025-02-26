@@ -217,24 +217,23 @@ class IexecHubAbstractServiceTest {
     // region isTeeTask
     @Test
     void shouldReturnFalseWhenTaskCanNotBeRetrieved() {
-        when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, 1000, 0))
-                .thenReturn(Optional.empty());
+        when(iexecHubAbstractService.getTaskDescription(CHAIN_TASK_ID)).thenReturn(null);
         when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
         assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isFalse();
     }
 
     @Test
     void shouldReturnFalseWhenStdTask() {
-        when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, 1000, 0))
-                .thenReturn(Optional.of(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(false).build()));
+        when(iexecHubAbstractService.getTaskDescription(CHAIN_TASK_ID))
+                .thenReturn(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(false).build());
         when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
         assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isFalse();
     }
 
     @Test
     void shouldReturnTrueWhenTeeTask() {
-        when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, 1000, 0))
-                .thenReturn(Optional.of(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(true).build()));
+        when(iexecHubAbstractService.getTaskDescription(CHAIN_TASK_ID))
+                .thenReturn(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(true).build());
         when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
         assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isTrue();
     }
@@ -279,6 +278,7 @@ class IexecHubAbstractServiceTest {
                 .chainApp(ChainApp.builder().uri("").build())
                 .params(DealParams.builder().build())
                 .chainCategory(ChainCategory.builder().build())
+                .startTime(BigInteger.TEN)
                 .botSize(BigInteger.ONE)
                 .botFirst(BigInteger.ONE)
                 .build();

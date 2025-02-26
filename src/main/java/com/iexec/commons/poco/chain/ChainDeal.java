@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,13 @@ import java.math.BigInteger;
 public class ChainDeal {
 
     String chainDealId;
-    // deal_pt1
     ChainApp chainApp;
+    ChainDataset chainDataset;
+    ChainCategory chainCategory;
+    // deal_pt1
+    String dappPointer;
     String dappOwner;
     BigInteger dappPrice;
-    ChainDataset chainDataset;
     String dataPointer;
     String dataOwner;
     BigInteger dataPrice;
@@ -42,6 +44,7 @@ public class ChainDeal {
 
     // deal_pt2
     BigInteger trust;
+    BigInteger category;
     String tag;
     String requester;
     String beneficiary;
@@ -49,7 +52,6 @@ public class ChainDeal {
     DealParams params;
 
     // config
-    ChainCategory chainCategory;
     BigInteger startTime;
     BigInteger botFirst;
     BigInteger botSize;
@@ -80,21 +82,24 @@ public class ChainDeal {
         return ChainDeal.builder()
                 .chainDealId(chainDealId)
                 .chainApp(app)
+                .chainDataset(dataset)
+                .chainCategory(category)
+                .dappPointer(deal.app.pointer)
                 .dappOwner(deal.app.owner)
                 .dappPrice(deal.app.price)
-                .chainDataset(dataset)
+                .dataPointer(deal.dataset.pointer)
                 .dataOwner(deal.dataset.owner)
                 .dataPrice(deal.dataset.price)
                 .poolPointer(deal.workerpool.pointer)
                 .poolOwner(deal.workerpool.owner)
                 .poolPrice(deal.workerpool.price)
                 .trust(deal.trust)
+                .category(deal.category)
                 .tag(BytesUtils.bytesToString(deal.tag))
                 .requester(deal.requester)
                 .beneficiary(deal.beneficiary)
                 .callback(deal.callback)
                 .params(DealParams.createFromString(deal.params))
-                .chainCategory(category)
                 .startTime(deal.startTime)
                 .botFirst(deal.botFirst)
                 .botSize(deal.botSize)
