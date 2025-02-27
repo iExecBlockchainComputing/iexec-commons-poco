@@ -383,7 +383,6 @@ public abstract class IexecHubAbstractService {
         try {
             chainAppBuilder
                     .chainAppId(app.getContractAddress())
-                    .name(app.m_appName().send())
                     .type(app.m_appType().send())
                     .uri(BytesUtils.bytesToString(app.m_appMultiaddr().send()))
                     .checksum(BytesUtils.bytesToString(app.m_appChecksum().send()));
@@ -420,8 +419,6 @@ public abstract class IexecHubAbstractService {
             try {
                 return Optional.of(ChainDataset.builder()
                         .chainDatasetId(dataset.getContractAddress())
-                        .owner(dataset.owner().send())
-                        .name(dataset.m_datasetName().send())
                         .uri(BytesUtils.bytesToString(dataset.m_datasetMultiaddr().send()))
                         .checksum(BytesUtils.bytesToString(dataset.m_datasetChecksum().send()))
                         .build());
@@ -521,9 +518,7 @@ public abstract class IexecHubAbstractService {
     }
 
     public boolean isTeeTask(String chainTaskId) {
-        // Magical non-null retry delay to ease testing and because there are no retries
-        final TaskDescription taskDescription = repeatGetTaskDescriptionFromChain(chainTaskId, 1000, 0)
-                .orElse(null);
+        final TaskDescription taskDescription = getTaskDescription(chainTaskId);
 
         if (taskDescription == null) {
             log.error("Couldn't get task description from chain [chainTaskId:{}]",

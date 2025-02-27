@@ -41,33 +41,36 @@ public class TaskDescription {
     String chainTaskId;
 
     // assets
+    DappType appType;
+    String appUri;
+    TeeEnclaveConfiguration appEnclaveConfiguration;
+    String datasetUri;
+    String datasetChecksum;
+
+    // deal
+    String appAddress;
     String appOwner;
     BigInteger appPrice;
+    String datasetAddress;
     String datasetOwner;
     BigInteger datasetPrice;
+    String workerpoolAddress;
     String workerpoolOwner;
     BigInteger workerpoolPrice;
-
+    BigInteger trust;
+    BigInteger category;
+    boolean isTeeTask;
+    TeeFramework teeFramework;
     String requester;
     String beneficiary;
     String callback;
-    DappType appType;
-    String appUri;
-    String appAddress;
-    TeeEnclaveConfiguration appEnclaveConfiguration;
-    boolean isTeeTask;
-    TeeFramework teeFramework;
-    int botSize;
-    int botFirstIndex;
-    String datasetAddress;
-    String datasetUri;
-    String datasetName;
-    String datasetChecksum;
-    String smsUrl;
     @Builder.Default
     DealParams dealParams = DealParams.builder().build();
-    BigInteger trust;
-    // from task
+    long startTime;
+    int botSize;
+    int botFirstIndex;
+
+    // task
     int botIndex;
     long maxExecutionTime; // timeref ?
     long contributionDeadline;
@@ -141,50 +144,43 @@ public class TaskDescription {
         if (chainDeal == null || chainTask == null) {
             return null;
         }
-        String datasetAddress = "";
         String datasetUri = "";
-        String datasetName = "";
         String datasetChecksum = "";
         if (chainDeal.containsDataset()) {
-            datasetAddress = chainDeal.getChainDataset().getChainDatasetId();
             datasetUri = MultiAddressHelper.convertToURI(chainDeal.getChainDataset().getUri());
-            datasetName = chainDeal.getChainDataset().getName();
             datasetChecksum = chainDeal.getChainDataset().getChecksum();
         }
         final String tag = chainDeal.getTag();
         return TaskDescription.builder()
                 .chainTaskId(chainTask.getChainTaskId())
+                // assets
+                .appType(DappType.DOCKER)
+                .appUri(BytesUtils.hexStringToAscii(chainDeal.getChainApp().getUri()))
+                .appEnclaveConfiguration(chainDeal.getChainApp().getEnclaveConfiguration())
+                .datasetUri(datasetUri)
+                .datasetChecksum(datasetChecksum)
+                // deal
+                .appAddress(chainDeal.getDappPointer())
                 .appOwner(chainDeal.getDappOwner())
                 .appPrice(chainDeal.getDappPrice())
+                .datasetAddress(chainDeal.getDataPointer())
                 .datasetOwner(chainDeal.getDataOwner())
                 .datasetPrice(chainDeal.getDataPrice())
+                .workerpoolAddress(chainDeal.getPoolPointer())
                 .workerpoolOwner(chainDeal.getPoolOwner())
                 .workerpoolPrice(chainDeal.getPoolPrice())
-                .requester(chainDeal
-                        .getRequester())
-                .beneficiary(chainDeal
-                        .getBeneficiary())
-                .callback(chainDeal
-                        .getCallback())
-                .appType(DappType.DOCKER)
-                .appUri(BytesUtils.hexStringToAscii(chainDeal.getChainApp()
-                        .getUri()))
-                .appAddress(chainDeal.getChainApp().getChainAppId())
-                .appEnclaveConfiguration(chainDeal.getChainApp()
-                        .getEnclaveConfiguration())
-                .isTeeTask(TeeUtils
-                        .isTeeTag(tag))
-                .teeFramework(TeeUtils
-                        .getTeeFramework(tag))
+                .trust(chainDeal.getTrust())
+                .category(chainDeal.getCategory())
+                .isTeeTask(TeeUtils.isTeeTag(tag))
+                .teeFramework(TeeUtils.getTeeFramework(tag))
+                .requester(chainDeal.getRequester())
+                .beneficiary(chainDeal.getBeneficiary())
+                .callback(chainDeal.getCallback())
                 .dealParams(chainDeal.getParams())
-                .datasetAddress(datasetAddress)
-                .datasetUri(datasetUri)
-                .datasetName(datasetName)
-                .datasetChecksum(datasetChecksum)
+                .startTime(chainDeal.getStartTime().longValue())
                 .botSize(chainDeal.getBotSize().intValue())
                 .botFirstIndex(chainDeal.getBotFirst().intValue())
-                .trust(chainDeal.getTrust())
-                // from task
+                // task
                 .botIndex(chainTask.getIdx())
                 .maxExecutionTime(chainDeal.getChainCategory().getMaxExecutionTime()) // https://github.com/iExecBlockchainComputing/PoCo/blob/v5/contracts/modules/delegates/IexecPoco2Delegate.sol#L111
                 .contributionDeadline(chainTask.getContributionDeadline())

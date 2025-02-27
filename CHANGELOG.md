@@ -7,13 +7,14 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Enable checks on `ChainTask` instances with new methods. (#118)
-- Add `getTransactionByHash` method to `Web3jAbstractService`. (#122)
+- Add `getTransactionByHash` method to `Web3jAbstractService`. (#123)
 
 ### Quality
 
 - Upgrade source and target compatibility to Java 17. (#114)
 - Optimize gas limits per PoCo function. This will enable validators
   to add more finalize and contributeAndFinalize transactions in a block. (#117)
+- Remove unnecessary blockchain calls to diminish pressure on Ethereum JSON-RPC API. (#124)
 
 ### Breaking API changes
 
@@ -22,7 +23,8 @@ All notable changes to this project will be documented in this file.
 - Remove deprecated code in `DealParams` and `TaskDescription`. (#119)
 - Remove `Ownable` generated Smart Contract wrapper. (#120)
 - Remove deprecated `Order` and `OrderSigner` classes. (#121)
-- Remove deprecated `getNonce` method from `Web3jAbstractService`, it has been moved to `SignerService`. (#122)
+- Remove deprecated `getNonce` method from `Web3jAbstractService`, it has been moved to `SignerService`. (#123)
+- Update `ChainApp`, `ChainDataset` and `TaskDescription` models in relation with blockchain calls removal. (#124)
 
 ### Dependency Upgrades
 
