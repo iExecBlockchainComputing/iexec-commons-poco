@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Remove deprecated `Order` and `OrderSigner` classes. (#121)
 - Remove deprecated `getNonce` method from `Web3jAbstractService`, it has been moved to `SignerService`. (#123)
 - Update `ChainApp`, `ChainDataset` and `TaskDescription` models in relation with blockchain calls removal. (#124)
+- Remove `TaskAbortCause`, it has been moved to `iexec-core-library`. (#125)
 
 ### Dependency Upgrades
 
