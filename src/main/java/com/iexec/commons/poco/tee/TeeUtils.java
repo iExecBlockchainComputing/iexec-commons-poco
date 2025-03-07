@@ -17,7 +17,6 @@
 package com.iexec.commons.poco.tee;
 
 import com.iexec.commons.poco.utils.BytesUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -90,7 +89,7 @@ public class TeeUtils {
      * or {@literal null} if tag is not a TEE tag or if there is no match.
      */
     public static TeeFramework getTeeFramework(String hexTag) {
-        for (Map.Entry<Integer, TeeFramework> teeFramework: TEE_BITS_TO_FRAMEWORK.entrySet()) {
+        for (Map.Entry<Integer, TeeFramework> teeFramework : TEE_BITS_TO_FRAMEWORK.entrySet()) {
             if (hasTeeRuntimeFrameworkBitsInTag(teeFramework.getKey(), hexTag)) {
                 return teeFramework.getValue();
             }
@@ -102,17 +101,4 @@ public class TeeUtils {
     public static boolean isTeeChallenge(String challenge) {
         return challenge != null && !challenge.equals(BytesUtils.EMPTY_ADDRESS);
     }
-
-    /*
-     * CAS does not accept boolean in yml (Failed to generateSecureSession)
-     * We need to convert boolean into String
-     * */
-    public static String booleanToYesNo(boolean isTrue) {
-        return BooleanUtils.toStringYesNo(isTrue);
-    }
-
-    public static boolean booleanFromYesNo(String isYes) {
-        return isYes != null && isYes.equals("yes");
-    }
-
 }
