@@ -17,11 +17,14 @@
 package com.iexec.commons.poco.utils;
 
 import io.ipfs.multiaddr.MultiAddress;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.web3j.utils.Numeric;
 
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MultiAddressHelper {
 
     public static final List<String> IPFS_GATEWAYS = List.of(
@@ -29,10 +32,6 @@ public class MultiAddressHelper {
             "https://gateway.ipfs.io",
             "https://gateway.pinata.cloud"
     );
-
-    private MultiAddressHelper() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Converts the hexadecimal String stored in an on-chain deal to a human-readable format.
@@ -46,10 +45,25 @@ public class MultiAddressHelper {
      * @return Conversion result
      */
     public static String convertToURI(String hexaString) {
+        return convertToURI(Numeric.hexStringToByteArray(hexaString));
+    }
+
+    /**
+     * Converts the bytes stored in an on-chain deal to a human-readable format.
+     * <p>
+     * IPFS addresses are stored in a specific format and have to be converted with the {@link MultiAddress} constructor.
+     * If a {@link MultiAddress} instance can be constructed, the URI it represents has been successfully converted.
+     * In other cases, the value is considered to be a string encoded in hexadecimal and will be converted with
+     * {@link BytesUtils#hexStringToAscii(String)}.
+     *
+     * @param bytes String to convert
+     * @return Conversion result
+     */
+    public static String convertToURI(byte[] bytes) {
         try {
-            return new MultiAddress(Numeric.hexStringToByteArray(hexaString)).toString();
+            return new MultiAddress(bytes).toString();
         } catch (Exception e) {
-            return BytesUtils.hexStringToAscii(hexaString);
+            return new String(bytes);
         }
     }
 

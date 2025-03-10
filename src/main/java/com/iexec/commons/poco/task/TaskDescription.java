@@ -25,7 +25,6 @@ import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
-import com.iexec.commons.poco.utils.MultiAddressHelper;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
@@ -147,7 +146,7 @@ public class TaskDescription {
         String datasetUri = "";
         String datasetChecksum = "";
         if (chainDeal.containsDataset()) {
-            datasetUri = MultiAddressHelper.convertToURI(chainDeal.getChainDataset().getUri());
+            datasetUri = chainDeal.getChainDataset().getMultiaddr();
             datasetChecksum = chainDeal.getChainDataset().getChecksum();
         }
         final String tag = chainDeal.getTag();
@@ -155,7 +154,7 @@ public class TaskDescription {
                 .chainTaskId(chainTask.getChainTaskId())
                 // assets
                 .appType(DappType.DOCKER)
-                .appUri(BytesUtils.hexStringToAscii(chainDeal.getChainApp().getUri()))
+                .appUri(chainDeal.getChainApp().getMultiaddr())
                 .appEnclaveConfiguration(chainDeal.getChainApp().getEnclaveConfiguration())
                 .datasetUri(datasetUri)
                 .datasetChecksum(datasetChecksum)

@@ -23,6 +23,6 @@ import lombok.Value;
 @Builder
 public class ChainDataset {
     String chainDatasetId;
-    String uri;
+    String multiaddr;
     String checksum;
 }

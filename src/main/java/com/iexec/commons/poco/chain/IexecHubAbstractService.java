@@ -16,28 +16,25 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.contract.generated.App;
-import com.iexec.commons.poco.contract.generated.Dataset;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
+import com.iexec.commons.poco.utils.MultiAddressHelper;
 import com.iexec.commons.poco.utils.Retryer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
@@ -130,6 +127,7 @@ public abstract class IexecHubAbstractService {
                         txManager,
                         contractGasProvider);
             } catch (EnsResolutionException e) {
+                log.warn("EnsResolution error", e);
                 throw exceptionInInitializerError;
             }
         } else {
@@ -143,48 +141,6 @@ public abstract class IexecHubAbstractService {
     public IexecHubContract getHubContract() {
         return iexecHubContract;
     }
-
-    // region app
-    public App getAppContract(String appAddress) {
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load App " +
-                        "contract address " + appAddress);
-        try {
-            if (appAddress == null || appAddress.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-
-            return App.load(appAddress,
-                    web3jAbstractService.getWeb3j(),
-                    credentials,
-                    new DefaultGasProvider());
-        } catch (Exception e) {
-            log.error("Failed to load chainApp [address:{}]", appAddress, e);
-        }
-        return null;
-    }
-    // endregion
-
-    // region dataset
-    public Dataset getDatasetContract(String datasetAddress) {
-        ExceptionInInitializerError exceptionInInitializerError =
-                new ExceptionInInitializerError("Failed to load Dataset " +
-                        "contract address " + datasetAddress);
-        try {
-            if (datasetAddress == null || datasetAddress.isEmpty()) {
-                throw exceptionInInitializerError;
-            }
-
-            return Dataset.load(datasetAddress,
-                    web3jAbstractService.getWeb3j(),
-                    credentials,
-                    new DefaultGasProvider());
-        } catch (Exception e) {
-            log.error("Failed to load chainDataset [address:{}]", datasetAddress, e);
-        }
-        return null;
-    }
-    // endregion
 
     /**
      * Retrieves on-chain deal with a retryer
@@ -248,7 +204,7 @@ public abstract class IexecHubAbstractService {
         try {
             final IexecHubContract.Deal deal = iexecHubContract.viewDeal(chainDealIdBytes).send();
 
-            final ChainApp app = getChainApp(getAppContract(deal.app.pointer)).orElse(null);
+            final ChainApp app = getChainApp(deal.app.pointer).orElse(null);
             if (app == null) {
                 return Optional.empty();
             }
@@ -256,7 +212,7 @@ public abstract class IexecHubAbstractService {
             if (category == null) {
                 return Optional.empty();
             }
-            final ChainDataset dataset = getChainDataset(getDatasetContract(deal.dataset.pointer)).orElse(null);
+            final ChainDataset dataset = getChainDataset(deal.dataset.pointer).orElse(null);
 
             final ChainDeal chainDeal = ChainDeal.parts2ChainDeal(chainDealId, deal, app, category, dataset);
 
@@ -373,30 +329,28 @@ public abstract class IexecHubAbstractService {
         return Optional.empty();
     }
 
-    public Optional<ChainApp> getChainApp(App app) {
-        if (app == null ||
-                StringUtils.isEmpty(app.getContractAddress()) ||
-                app.getContractAddress().equals(BytesUtils.EMPTY_ADDRESS)) {
+    public Optional<ChainApp> getChainApp(final String appAddress) {
+        if (appAddress == null || appAddress.equals(BytesUtils.EMPTY_ADDRESS)) {
             return Optional.empty();
         }
-        ChainApp.ChainAppBuilder chainAppBuilder = ChainApp.builder();
+        final ChainApp.ChainAppBuilder chainAppBuilder = ChainApp.builder();
         try {
             chainAppBuilder
-                    .chainAppId(app.getContractAddress())
-                    .type(app.m_appType().send())
-                    .uri(BytesUtils.bytesToString(app.m_appMultiaddr().send()))
-                    .checksum(BytesUtils.bytesToString(app.m_appChecksum().send()));
+                    .chainAppId(appAddress)
+                    .type(sendCallAndDecodeDynamicBytes(appAddress, M_APPTYPE_SELECTOR))
+                    .multiaddr(sendCallAndDecodeDynamicBytes(appAddress, M_APPMULTIADDR_SELECTOR))
+                    .checksum(sendCallAndGetRawResult(appAddress, M_APPCHECKSUM_SELECTOR));
         } catch (Exception e) {
             log.error("Failed to get chain app [chainAppId:{}]",
-                    app.getContractAddress(), e);
+                    appAddress, e);
             return Optional.empty();
         }
         String mrEnclave;
         try {
-            mrEnclave = new String(app.m_appMREnclave().send());
+            mrEnclave = sendCallAndDecodeDynamicBytes(appAddress, M_APPMRENCLAVE_SELECTOR);
         } catch (Exception e) {
             log.error("Failed to get chain app mrenclave [chainAppId:{}]",
-                    app.getContractAddress(), e);
+                    appAddress, e);
             return Optional.empty();
         }
         if (StringUtils.isEmpty(mrEnclave)) {
@@ -408,26 +362,51 @@ public abstract class IexecHubAbstractService {
                     buildEnclaveConfigurationFromJsonString(mrEnclave));
         } catch (Exception e) {
             log.error("Failed to get tee chain app enclave configuration [chainAppId:{}, mrEnclave:{}]",
-                    app.getContractAddress(), mrEnclave, e);
+                    appAddress, mrEnclave, e);
             return Optional.empty();
         }
         return Optional.of(chainAppBuilder.build());
     }
 
-    public Optional<ChainDataset> getChainDataset(Dataset dataset) {
-        if (dataset != null && !dataset.getContractAddress().equals(BytesUtils.EMPTY_ADDRESS)) {
+    public Optional<ChainDataset> getChainDataset(final String datasetAddress) {
+        if (datasetAddress != null && !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS)) {
             try {
                 return Optional.of(ChainDataset.builder()
-                        .chainDatasetId(dataset.getContractAddress())
-                        .uri(BytesUtils.bytesToString(dataset.m_datasetMultiaddr().send()))
-                        .checksum(BytesUtils.bytesToString(dataset.m_datasetChecksum().send()))
+                        .chainDatasetId(datasetAddress)
+                        .multiaddr(sendCallAndDecodeDynamicBytes(datasetAddress, M_DATASETMULTIADDR_SELECTOR))
+                        .checksum(sendCallAndGetRawResult(datasetAddress, M_DATASETCHECKSUM_SELECTOR))
                         .build());
             } catch (Exception e) {
                 log.error("Failed to get ChainDataset [chainDatasetId:{}]",
-                        dataset.getContractAddress(), e);
+                        datasetAddress, e);
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Send a call to a Smart contract to retrieve a single value corresponding to a dynamic type and decode it.
+     *
+     * @param address  Smart Contract address (can be an App or a Dataset in PoCo)
+     * @param selector Function selector
+     * @return The decoded String result returned by the call
+     * @throws IOException on communication error
+     */
+    private String sendCallAndDecodeDynamicBytes(final String address, final String selector) throws IOException {
+        return MultiAddressHelper.convertToURI(
+                FunctionReturnDecoder.decodeDynamicBytes(sendCallAndGetRawResult(address, selector)));
+    }
+
+    /**
+     * Send a call to a Smart contract to retrieve a single value.
+     *
+     * @param address  Smart Contract address (can be an App or a Dataset in PoCo)
+     * @param selector Function selector
+     * @return The hexadecimal representation of retrieved bytes, may need further decoding
+     * @throws IOException on communication error
+     */
+    private String sendCallAndGetRawResult(final String address, final String selector) throws IOException {
+        return txManager.sendCall(address, selector, DefaultBlockParameterName.LATEST);
     }
 
     public Optional<Integer> getWorkerScore(String address) {

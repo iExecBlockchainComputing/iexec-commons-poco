@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
 - Update `ChainApp`, `ChainDataset` and `TaskDescription` models in relation with blockchain calls removal. (#124)
 - Remove `TaskAbortCause`, it has been moved to `iexec-core-library`. (#125)
 - Remove boolean to yes/no conversion methods from `TeeUtils`. (#126)
+- Remove `App` and `Dataset` generated Smart Contract wrappers. (#127)
+- Rename `ChainApp` and `ChainDataset` `uri` field to `multiaddr` to be consistent with Smart Contracts. (#127)
 
 ### Dependency Upgrades
 
