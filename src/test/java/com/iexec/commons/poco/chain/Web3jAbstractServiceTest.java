@@ -18,13 +18,11 @@ package com.iexec.commons.poco.chain;
 
 import org.junit.jupiter.api.Test;
 
-import java.math.BigInteger;
 import java.time.Duration;
 
-import static com.iexec.commons.poco.chain.Web3jAbstractService.GAS_LIMIT_CAP;
-import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class Web3jAbstractServiceTest {
 
@@ -67,30 +65,5 @@ class Web3jAbstractServiceTest {
         assertThat(web3jAbstractService.isConnected()).isFalse();
     }
     // endregion
-
-    @Test
-    void getGasLimitForFunction() {
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_INITIALIZE),
-                BigInteger.valueOf(300_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_CONTRIBUTE),
-                BigInteger.valueOf(500_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_REVEAL),
-                BigInteger.valueOf(100_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_FINALIZE),
-                BigInteger.valueOf(500_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_CONTRIBUTEANDFINALIZE),
-                BigInteger.valueOf(700_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction(FUNC_REOPEN),
-                BigInteger.valueOf(500_000));
-        assertEquals(Web3jAbstractService
-                        .getGasLimitForFunction("randomfunction"),
-                BigInteger.valueOf(GAS_LIMIT_CAP));
-    }
 
 }

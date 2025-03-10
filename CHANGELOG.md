@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Enable checks on `ChainTask` instances with new methods. (#118)
 - Add `getTransactionByHash` method to `Web3jAbstractService`. (#123)
+- Move `getGasLimitPerFunction` to `PoCoDataEncoder`. (#129)
 
 ### Quality
 
