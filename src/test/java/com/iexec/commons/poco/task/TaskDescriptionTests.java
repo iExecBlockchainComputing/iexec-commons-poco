@@ -21,7 +21,6 @@ import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
-import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,7 +29,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -93,12 +91,12 @@ class TaskDescriptionTests {
         final ChainApp chainApp = ChainApp.builder()
                 .chainAppId(APP_ADDRESS)
                 .type(APP_TYPE.toString())
-                .uri(BytesUtils.bytesToString(APP_URI.getBytes(StandardCharsets.UTF_8)))
+                .multiaddr(APP_URI)
                 .enclaveConfiguration(enclaveConfiguration)
                 .build();
         final ChainDataset chainDataset = ChainDataset.builder()
                 .chainDatasetId(DATASET_ADDRESS)
-                .uri(BytesUtils.bytesToString(DATASET_URI.getBytes(StandardCharsets.UTF_8)))
+                .multiaddr(DATASET_URI)
                 .checksum(DATASET_CHECKSUM)
                 .build();
         final DealParams dealParams = DealParams.builder()

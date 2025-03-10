@@ -25,7 +25,7 @@ import lombok.Value;
 public class ChainApp {
     String chainAppId;
     String type;
-    String uri;
+    String multiaddr;
     String checksum;
     TeeEnclaveConfiguration enclaveConfiguration;
 }

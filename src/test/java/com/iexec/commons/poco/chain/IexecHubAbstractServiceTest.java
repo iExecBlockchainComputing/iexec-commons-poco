@@ -275,7 +275,7 @@ class IexecHubAbstractServiceTest {
 
     private ChainDeal getMockDeal() {
         return ChainDeal.builder()
-                .chainApp(ChainApp.builder().uri("").build())
+                .chainApp(ChainApp.builder().multiaddr("").build())
                 .params(DealParams.builder().build())
                 .chainCategory(ChainCategory.builder().build())
                 .startTime(BigInteger.TEN)
