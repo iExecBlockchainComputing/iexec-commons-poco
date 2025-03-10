@@ -16,11 +16,11 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.encoding.PoCoDataEncoder;
 import com.iexec.commons.poco.utils.WaitUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -41,12 +41,11 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
-import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
 
 @Slf4j
 public abstract class Web3jAbstractService {
 
-    static final long GAS_LIMIT_CAP = 1_000_000;
+    public static final long GAS_LIMIT_CAP = 1_000_000;
 
     @Getter
     private final int chainId;
@@ -318,7 +317,7 @@ public abstract class Web3jAbstractService {
 
             @Override
             public BigInteger getGasLimit(String functionName) {
-                return getGasLimitForFunction(functionName);
+                return PoCoDataEncoder.getGasLimitForFunction(functionName);
             }
 
             @Override
@@ -326,20 +325,6 @@ public abstract class Web3jAbstractService {
                 return BigInteger.valueOf(GAS_LIMIT_CAP);
             }
         };
-    }
-
-    @NotNull
-    static BigInteger getGasLimitForFunction(String functionName) {
-        final long gasLimit = switch (functionName) {
-            case FUNC_INITIALIZE -> 300_000; // 237399 measured
-            case FUNC_CONTRIBUTE -> 500_000; // 417035 measured - more gas when reaching consensus
-            case FUNC_REVEAL -> 100_000; // 92905 measured
-            case FUNC_FINALIZE -> 500_000; // 277899 measured + 200_000 for callback
-            case FUNC_CONTRIBUTEANDFINALIZE -> 700_000; // 440073 measured + 200_000 for callback
-            case FUNC_REOPEN -> 500_000; // seen 43721
-            default -> GAS_LIMIT_CAP;
-        };
-        return BigInteger.valueOf(gasLimit);
     }
 
     /*
