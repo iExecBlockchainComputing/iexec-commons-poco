@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
-import static com.iexec.commons.poco.chain.Web3jAbstractService.GAS_LIMIT_CAP;
+import static com.iexec.commons.poco.encoding.PoCoDataEncoder.GAS_LIMIT_CAP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PoCoDataEncoderTests {

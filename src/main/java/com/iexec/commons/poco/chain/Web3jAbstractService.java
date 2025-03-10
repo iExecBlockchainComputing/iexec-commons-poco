@@ -41,11 +41,10 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
+import static com.iexec.commons.poco.encoding.PoCoDataEncoder.GAS_LIMIT_CAP;
 
 @Slf4j
 public abstract class Web3jAbstractService {
-
-    public static final long GAS_LIMIT_CAP = 1_000_000;
 
     @Getter
     private final int chainId;

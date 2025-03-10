@@ -24,11 +24,12 @@ import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 
-import static com.iexec.commons.poco.chain.Web3jAbstractService.GAS_LIMIT_CAP;
 import static com.iexec.commons.poco.encoding.Utils.toHexString;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PoCoDataEncoder {
+
+    public static final long GAS_LIMIT_CAP = 1_000_000;
 
     private static final String INITIALIZE_SELECTOR = "0x5b36c66b";
     private static final String CONTRIBUTE_SELECTOR = "0x34623484";
