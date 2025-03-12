@@ -35,7 +35,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
 import static com.iexec.commons.poco.encoding.PoCoDataEncoder.GAS_LIMIT_CAP;
@@ -296,16 +296,17 @@ public abstract class Web3jAbstractService {
         };
     }
 
-    /*
+    /**
+     * Repeat a check until a condition is met or the max number of tries have been done.
+     * <p>
      * Below method:
-     *
-     * - checks any function `boolean myMethod(String s1, String s2, ...)`
-     * - waits a certain amount of time between checks (waits a certain number of blocks)
-     * - stops checking after a certain number of tries
-     *
-     * */
-    //TODO: Add a cache for getAverageTimePerBlock();
-    public boolean repeatCheck(int nbBlocksToWaitPerTry, int maxTry, String logTag, Function<String[], Boolean> function, String... functionArgs) {
+     * <ul>
+     * <li>checks any function `boolean myMethod(String s1, String s2, ...)`
+     * <li>waits a certain amount of time between checks (waits a certain number of blocks)
+     * <li>stops checking after a certain number of tries
+     * </ul>
+     */
+    public boolean repeatCheck(int nbBlocksToWaitPerTry, int maxTry, String logTag, Predicate<String[]> predicate, String... functionArgs) {
         if (maxTry < 1) {
             maxTry = 1;
         }
@@ -314,12 +315,12 @@ public abstract class Web3jAbstractService {
             nbBlocksToWaitPerTry = 1;
         }
 
-        long timePerBlock = this.getAverageTimePerBlock();
+        long timePerBlock = blockTime.toMillis();
         long msToWait = nbBlocksToWaitPerTry * timePerBlock;
 
         int i = 0;
         while (i < maxTry) {
-            if (function.apply(functionArgs)) {
+            if (predicate.test(functionArgs)) {
                 log.info("Verified check [try:{}, function:{}, args:{}, maxTry:{}, msToWait:{}, msPerBlock:{}]",
                         i + 1, logTag, functionArgs, maxTry, msToWait, timePerBlock);
                 return true;
