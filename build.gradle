@@ -53,6 +53,9 @@ dependencies {
 
     // jakarta annotations like PostConstruct
     implementation 'jakarta.annotation:jakarta.annotation-api'
+
+    // necessary dependencies for validation to work correctly
+    implementation 'jakarta.validation:jakarta.validation-api'
 }
 
 java {
@@ -82,6 +85,9 @@ testing {
                 implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
                 // logback
                 runtimeOnly 'ch.qos.logback:logback-classic'
+
+                runtimeOnly 'org.glassfish.expressly:expressly:5.0.0'
+                runtimeOnly 'org.hibernate.validator:hibernate-validator'
             }
         }
     }
