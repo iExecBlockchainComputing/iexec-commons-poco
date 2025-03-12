@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Optimize gas limits per PoCo function. This will enable validators
   to add more finalize and contributeAndFinalize transactions in a block. (#117)
 - Remove unnecessary blockchain calls to diminish pressure on Ethereum JSON-RPC API. (#124)
+- Harmonize YML internal variables to proper case. (#130)
 
 ### Breaking API changes
 
