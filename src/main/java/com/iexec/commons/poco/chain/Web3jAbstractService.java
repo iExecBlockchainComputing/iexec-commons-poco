@@ -22,13 +22,10 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Async;
 
@@ -117,9 +114,6 @@ public abstract class Web3jAbstractService {
     }
 
     // region JSON-RPC
-    public EthBlock.Block getLatestBlock() throws IOException {
-        return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
-    }
 
     /**
      * Gets the latest block number from the blockchain network.
@@ -137,11 +131,6 @@ public abstract class Web3jAbstractService {
         return 0L;
     }
 
-    public EthBlock.Block getBlock(long blockNumber) throws IOException {
-        return web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
-                false).send().getBlock();
-    }
-
     /**
      * Queries and returns an on-chain transaction by its hash.
      *
@@ -151,12 +140,12 @@ public abstract class Web3jAbstractService {
     public Transaction getTransactionByHash(final String txHash) {
         try {
             final Transaction tx = getWeb3j().ethGetTransactionByHash(txHash).send().getTransaction().orElseThrow();
-            log.debug("Transaction found [nonce:{}, blockNumber:{}]", tx.getNonce(), tx.getBlockNumberRaw());
+            log.debug("Transaction found [hash:{}, nonce:{}, blockNumber:{}]", txHash, tx.getNonce(), tx.getBlockNumberRaw());
             return tx;
         } catch (IOException e) {
-            log.warn("Blockchain communication error", e);
+            log.warn("Blockchain communication error [hash:{}]", txHash, e);
         } catch (NoSuchElementException e) {
-            log.warn("Transaction not found", e);
+            log.warn("Transaction not found [hash:{}]", txHash, e);
         }
         return null;
     }
@@ -198,25 +187,6 @@ public abstract class Web3jAbstractService {
         }
 
         return false;
-    }
-
-    public long getAverageTimePerBlock() {//in ms
-        long defaultTime = TransactionManager.DEFAULT_POLLING_FREQUENCY; // 15sec
-        int NB_OF_BLOCKS = 10;
-
-        try {
-            EthBlock.Block latestBlock = getLatestBlock();
-
-            long latestBlockNumber = latestBlock.getNumber().longValue();
-
-            BigInteger latestBlockTimestamp = latestBlock.getTimestamp();
-            BigInteger tenBlocksAgoTimestamp = getBlock(latestBlockNumber - NB_OF_BLOCKS).getTimestamp();
-
-            defaultTime = ((latestBlockTimestamp.longValue() - tenBlocksAgoTimestamp.longValue()) / NB_OF_BLOCKS) * 1000L;
-        } catch (IOException e) {
-            log.error("Failed to getAverageTimePerBlock", e);
-        }
-        return defaultTime;
     }
 
     public boolean hasEnoughGas(String address) {

@@ -18,7 +18,6 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.ChainAccount;
 import com.iexec.commons.poco.chain.ChainCategory;
-import com.iexec.commons.poco.contract.IexecHubSmartContractValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
-import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,12 +91,9 @@ class ChainTests {
     }
 
     @Test
-    void shouldGetBlockNumber() throws IOException {
+    void shouldGetBlockNumber() {
         final long blockNumber = web3jService.getLatestBlockNumber();
-        final EthBlock.Block block = web3jService.getLatestBlock();
-        assertThat(blockNumber).isNotZero();
-        assertThat(block.getNumber().longValue()).isBetween(blockNumber, blockNumber + 1);
-        assertThat(web3jService.getBlock(block.getNumber().longValue())).isEqualTo(block);
+        assertThat(blockNumber).isPositive();
     }
 
     @Test
@@ -200,11 +195,6 @@ class ChainTests {
     }
 
     // endregion
-
-    @Test
-    void shouldValidateSmartContract() {
-        assertThat(IexecHubSmartContractValidator.validate(iexecHubService.getHubContract())).isTrue();
-    }
 
     // region gas price
     @Test

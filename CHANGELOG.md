@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Remove `App` and `Dataset` generated Smart Contract wrappers. (#127)
 - Rename `ChainApp` and `ChainDataset` `uri` field to `multiaddr` to be consistent with Smart Contracts. (#127)
 - Move `ValidNonZeroEthereumAddress` from `iexec-common` to `iexec-commons-poco`. (#130)
+- Remove `ChainAppParams` and `IexecHubSmartContractValidator` classes as well as several methods. (#131)
 
 ### Dependency Upgrades
 

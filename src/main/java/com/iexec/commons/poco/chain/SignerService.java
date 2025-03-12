@@ -195,7 +195,7 @@ public class SignerService {
         final EthSendTransaction transactionResponse = txManager.signAndSend(rawTx);
         if (transactionResponse.hasError()) {
             final Response.Error responseError = transactionResponse.getError();
-            log.error("transaction failed [message:{}, code:{}, data:{}]",
+            log.error("Transaction failed [message:{}, code:{}, data:{}]",
                     responseError.getMessage(), responseError.getCode(), responseError.getData());
             throw new JsonRpcError(responseError);
         }
