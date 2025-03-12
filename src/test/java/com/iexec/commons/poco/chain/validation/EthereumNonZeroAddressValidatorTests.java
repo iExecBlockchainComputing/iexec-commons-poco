@@ -19,8 +19,8 @@ package com.iexec.commons.poco.chain.validation;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -28,13 +28,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Set;
 
 class EthereumNonZeroAddressValidatorTests {
-
-    private static Validator validator;
-
-    @BeforeEach
-    void beforeEach() {
-        validator = Validation.buildDefaultValidatorFactory().getValidator();
-    }
 
     @Test
     void shouldValidateAddress() {
@@ -51,9 +44,12 @@ class EthereumNonZeroAddressValidatorTests {
     }
 
     private void assertViolations(String address, int i) {
-        Account account = new Account(address);
-        Set<ConstraintViolation<Account>> violations = validator.validate(account);
-        Assertions.assertEquals(i, violations.size());
+        final Account account = new Account(address);
+        try (final ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            final Validator validator = factory.getValidator();
+            final Set<ConstraintViolation<Account>> violations = validator.validate(account);
+            Assertions.assertEquals(i, violations.size());
+        }
     }
 
     static class Account {
