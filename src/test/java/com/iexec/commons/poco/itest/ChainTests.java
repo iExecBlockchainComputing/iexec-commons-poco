@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -34,6 +35,8 @@ import org.web3j.crypto.WalletUtils;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.Duration;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.itest.IexecHubTestService.IEXEC_HUB_ADDRESS;
@@ -219,6 +222,26 @@ class ChainTests {
     void shouldReturnGasPriceCapOnBlockchainCommunicationError() {
         final Web3jTestService badWeb3jService = new Web3jTestService(badBlockchainAddress, 1.0f, 22_000_000_000L);
         assertThat(badWeb3jService.getUserGasPrice()).isEqualTo(22_000_000_000L);
+    }
+    // endregion
+
+    // region repeatCheck
+    @Test
+    void shouldSucceedToCheck() {
+        ReflectionTestUtils.setField(web3jService, "blockTime", Duration.ofMillis(100));
+        final Predicate<String[]> predicate = a -> a[0].contains(a[1]);
+        final boolean result = web3jService.repeatCheck(
+                0, 0, "check", predicate, "empty", "mpt");
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void shouldFailToCheck() {
+        ReflectionTestUtils.setField(web3jService, "blockTime", Duration.ofMillis(100));
+        final Predicate<String[]> predicate = a -> a[0].contains(a[1]);
+        final boolean result = web3jService.repeatCheck(
+                0, 0, "check", predicate, "empty", "tpm");
+        assertThat(result).isFalse();
     }
     // endregion
 
