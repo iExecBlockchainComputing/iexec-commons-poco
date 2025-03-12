@@ -16,7 +16,6 @@ All notable changes to this project will be documented in this file.
 - Optimize gas limits per PoCo function. This will enable validators
   to add more finalize and contributeAndFinalize transactions in a block. (#117)
 - Remove unnecessary blockchain calls to diminish pressure on Ethereum JSON-RPC API. (#124)
-- Harmonize YML internal variables to proper case. (#130)
 
 ### Breaking API changes
 
@@ -31,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - Remove boolean to yes/no conversion methods from `TeeUtils`. (#126)
 - Remove `App` and `Dataset` generated Smart Contract wrappers. (#127)
 - Rename `ChainApp` and `ChainDataset` `uri` field to `multiaddr` to be consistent with Smart Contracts. (#127)
+- Move ValidNonZeroEthereumAddress from common to commons-poco. (#130)
 
 ### Dependency Upgrades
 
