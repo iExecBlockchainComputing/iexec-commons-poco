@@ -30,7 +30,7 @@ All notable changes to this project will be documented in this file.
 - Remove boolean to yes/no conversion methods from `TeeUtils`. (#126)
 - Remove `App` and `Dataset` generated Smart Contract wrappers. (#127)
 - Rename `ChainApp` and `ChainDataset` `uri` field to `multiaddr` to be consistent with Smart Contracts. (#127)
-- Move ValidNonZeroEthereumAddress from common to commons-poco. (#130)
+- Move `ValidNonZeroEthereumAddress` from `iexec-common` to `iexec-commons-poco`. (#130)
 
 ### Dependency Upgrades
 
