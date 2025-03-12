@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,8 @@ class SignatureUtilsTests {
         final Credentials credentials = Credentials.create(privateKey);
         final Signature expectedSig =
                 new Signature("0x873c63aa363337dd2d5b3e7ca0659f62e1602116e199ba47bea3084fa8bad8752d054ba48a665448e87638a8228b666a20509425e7b7c411f9d3ed76e9db79da1b");
-        final Signature sig1 = SignatureUtils.hashAndSign("challenge", credentials.getEcKeyPair());
-        final Signature sig2 = SignatureUtils.hashAndSign("challenge", credentials.getAddress(), credentials.getEcKeyPair());
-        assertThat(sig1).isEqualTo(expectedSig);
-        assertThat(sig2).isEqualTo(sig1);
+        final Signature sig = SignatureUtils.hashAndSign("challenge", credentials.getEcKeyPair());
+        assertThat(sig).isEqualTo(expectedSig);
     }
 
     @Test
