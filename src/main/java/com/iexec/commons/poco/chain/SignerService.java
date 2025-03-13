@@ -200,13 +200,7 @@ public class SignerService {
             throw new JsonRpcError(responseError);
         }
         final String txHash = transactionResponse.getTransactionHash();
-        log.info("Transaction submitted [txHash:{}]", txHash);
-        for (int i = 0; i < 5; i++) {
-            if (verifyTransaction(txHash)) {
-                return txHash;
-            }
-        }
-        log.warn("Could not verify transaction by hash [txHash:{}]", txHash);
+        log.info("Transaction submitted [nonce:{}, txHash:{}]", nonce, txHash);
         return txHash;
     }
 
@@ -221,7 +215,7 @@ public class SignerService {
      * @param txHash hash of the transaction
      * @return {@literal true} if the transaction was found, {@literal false} otherwise
      */
-    boolean verifyTransaction(final String txHash) {
+    public boolean verifyTransaction(final String txHash) {
         if (!BytesUtils.isNonZeroedBytes32(txHash)) {
             log.warn("Invalid transaction hash [txHash:{}]", txHash);
             return false;
