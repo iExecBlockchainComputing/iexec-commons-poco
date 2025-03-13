@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,14 +79,6 @@ public class SignatureUtils {
 
         String addressRecovered = "0x" + Keys.getAddress(publicKey);
         return addressRecovered.equalsIgnoreCase(signerAddress);
-    }
-
-    /**
-     * @deprecated Use {@link #hashAndSign(String, ECKeyPair)}
-     */
-    @Deprecated(forRemoval = true)
-    public static Signature hashAndSign(String stringToSign, String walletAddress, ECKeyPair ecKeyPair) {
-        return hashAndSign(stringToSign, ecKeyPair);
     }
 
     public static Signature hashAndSign(String stringToSign, ECKeyPair ecKeyPair) {

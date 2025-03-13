@@ -22,13 +22,10 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Async;
 
@@ -38,7 +35,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
 import static com.iexec.commons.poco.encoding.PoCoDataEncoder.GAS_LIMIT_CAP;
@@ -117,9 +114,6 @@ public abstract class Web3jAbstractService {
     }
 
     // region JSON-RPC
-    public EthBlock.Block getLatestBlock() throws IOException {
-        return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
-    }
 
     /**
      * Gets the latest block number from the blockchain network.
@@ -137,11 +131,6 @@ public abstract class Web3jAbstractService {
         return 0L;
     }
 
-    public EthBlock.Block getBlock(long blockNumber) throws IOException {
-        return web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
-                false).send().getBlock();
-    }
-
     /**
      * Queries and returns an on-chain transaction by its hash.
      *
@@ -151,12 +140,12 @@ public abstract class Web3jAbstractService {
     public Transaction getTransactionByHash(final String txHash) {
         try {
             final Transaction tx = getWeb3j().ethGetTransactionByHash(txHash).send().getTransaction().orElseThrow();
-            log.debug("Transaction found [nonce:{}, blockNumber:{}]", tx.getNonce(), tx.getBlockNumberRaw());
+            log.debug("Transaction found [hash:{}, nonce:{}, blockNumber:{}]", txHash, tx.getNonce(), tx.getBlockNumberRaw());
             return tx;
         } catch (IOException e) {
-            log.warn("Blockchain communication error", e);
+            log.warn("Blockchain communication error [hash:{}]", txHash, e);
         } catch (NoSuchElementException e) {
-            log.warn("Transaction not found", e);
+            log.warn("Transaction not found [hash:{}]", txHash, e);
         }
         return null;
     }
@@ -198,25 +187,6 @@ public abstract class Web3jAbstractService {
         }
 
         return false;
-    }
-
-    public long getAverageTimePerBlock() {//in ms
-        long defaultTime = TransactionManager.DEFAULT_POLLING_FREQUENCY; // 15sec
-        int NB_OF_BLOCKS = 10;
-
-        try {
-            EthBlock.Block latestBlock = getLatestBlock();
-
-            long latestBlockNumber = latestBlock.getNumber().longValue();
-
-            BigInteger latestBlockTimestamp = latestBlock.getTimestamp();
-            BigInteger tenBlocksAgoTimestamp = getBlock(latestBlockNumber - NB_OF_BLOCKS).getTimestamp();
-
-            defaultTime = ((latestBlockTimestamp.longValue() - tenBlocksAgoTimestamp.longValue()) / NB_OF_BLOCKS) * 1000L;
-        } catch (IOException e) {
-            log.error("Failed to getAverageTimePerBlock", e);
-        }
-        return defaultTime;
     }
 
     public boolean hasEnoughGas(String address) {
@@ -326,16 +296,17 @@ public abstract class Web3jAbstractService {
         };
     }
 
-    /*
+    /**
+     * Repeat a check until a condition is met or the max number of tries have been done.
+     * <p>
      * Below method:
-     *
-     * - checks any function `boolean myMethod(String s1, String s2, ...)`
-     * - waits a certain amount of time between checks (waits a certain number of blocks)
-     * - stops checking after a certain number of tries
-     *
-     * */
-    //TODO: Add a cache for getAverageTimePerBlock();
-    public boolean repeatCheck(int nbBlocksToWaitPerTry, int maxTry, String logTag, Function<String[], Boolean> function, String... functionArgs) {
+     * <ul>
+     * <li>checks any function `boolean myMethod(String s1, String s2, ...)`
+     * <li>waits a certain amount of time between checks (waits a certain number of blocks)
+     * <li>stops checking after a certain number of tries
+     * </ul>
+     */
+    public boolean repeatCheck(int nbBlocksToWaitPerTry, int maxTry, String logTag, Predicate<String[]> predicate, String... functionArgs) {
         if (maxTry < 1) {
             maxTry = 1;
         }
@@ -344,12 +315,12 @@ public abstract class Web3jAbstractService {
             nbBlocksToWaitPerTry = 1;
         }
 
-        long timePerBlock = this.getAverageTimePerBlock();
+        long timePerBlock = blockTime.toMillis();
         long msToWait = nbBlocksToWaitPerTry * timePerBlock;
 
         int i = 0;
         while (i < maxTry) {
-            if (function.apply(functionArgs)) {
+            if (predicate.test(functionArgs)) {
                 log.info("Verified check [try:{}, function:{}, args:{}, maxTry:{}, msToWait:{}, msPerBlock:{}]",
                         i + 1, logTag, functionArgs, maxTry, msToWait, timePerBlock);
                 return true;
