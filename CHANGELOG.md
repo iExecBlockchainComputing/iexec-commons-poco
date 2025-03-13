@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - Add `getTransactionByHash` method to `Web3jAbstractService`. (#123)
 - Move `getGasLimitPerFunction` to `PoCoDataEncoder`. (#129)
 
+### Bug Fixes
+
+- Remove unnecessary check on newly submitted transaction. (#132)
+
 ### Quality
 
 - Upgrade source and target compatibility to Java 17. (#114)
