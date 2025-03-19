@@ -174,6 +174,12 @@ public class SignerService {
     public BigInteger estimateGas(String to, String data) throws IOException {
         final EthEstimateGas estimateGas = this.web3j.ethEstimateGas(org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
                 credentials.getAddress(), to, data)).send();
+        if (estimateGas.hasError()) {
+            final Response.Error responseError = estimateGas.getError();
+            log.error("estimateGas failed [message:{}, code:{}, data:{}]",
+                    responseError.getMessage(), responseError.getCode(), responseError.getData());
+            throw new JsonRpcError(responseError);
+        }
         log.debug("estimateGas [amountUsed:{}]", estimateGas.getAmountUsed());
         return estimateGas.getAmountUsed();
     }

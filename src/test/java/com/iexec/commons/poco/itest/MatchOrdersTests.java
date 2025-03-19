@@ -35,6 +35,7 @@ import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.JsonRpcError;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
 import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
@@ -147,6 +149,11 @@ class MatchOrdersTests {
         assertThat(web3jService.getTransactionByHash(matchOrdersTxHash)).isNotNull();
         assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
                 .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
+
+        // estimate gas revert
+        assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("Reverted 0x694578656356352d6d617463684f72646572732d30783630");
     }
 
 }

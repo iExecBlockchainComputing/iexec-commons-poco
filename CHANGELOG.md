@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Remove unnecessary check on newly submitted transaction. (#132)
+- Add error handling on `estimateGas` blockchain call. (#134)
 
 ### Quality
 
