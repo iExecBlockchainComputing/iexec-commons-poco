@@ -312,7 +312,7 @@ public abstract class IexecHubAbstractService {
         if (!categories.containsKey(id)) {
             retrieveCategory(id);
         }
-        return Optional.of(categories.get(id));
+        return Optional.ofNullable(categories.get(id));
     }
 
     /**
