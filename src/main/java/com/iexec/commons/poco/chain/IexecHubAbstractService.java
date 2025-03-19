@@ -34,7 +34,9 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
@@ -61,6 +63,7 @@ public abstract class IexecHubAbstractService {
     private long maxNbOfPeriodsForConsensus = -1;
     private final long retryDelay;// ms
     private final int maxRetries;
+    private final Map<Long, ChainCategory> categories = new HashMap<>();
     private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
 
     protected IexecHubAbstractService(
@@ -297,17 +300,32 @@ public abstract class IexecHubAbstractService {
     }
 
     /**
-     * Retrieves on-chain category with its blockchain ID
+     * Retrieves on-chain category with its blockchain ID from cache
+     * <p>
+     * If no key exists for the category, the {@link #retrieveCategory(long)} method is called
+     * to fetch the category properties in the PoCo smart contracts.
+     *
+     * @param id blockchain ID of the category
+     * @return category object
+     */
+    public Optional<ChainCategory> getChainCategory(final long id) {
+        if (!categories.containsKey(id)) {
+            retrieveCategory(id);
+        }
+        return Optional.ofNullable(categories.get(id));
+    }
+
+    /**
+     * Retrieves on-chain category with its blockchainID and add it to cache
      * <p>
      * Note:
      * If `max execution time` is invalid, it is likely a blockchain issue.
-     * In this case, in order to protect workflows based on top of it, the category
-     * won't be accessible from this method
+     * In this case, in order to protect workflows based on top of it, the cache won't be updated
+     * to allow another try on next request.
      *
-     * @param id blockchain ID of the category (e.g: 0x123..abc)
-     * @return category object
+     * @param id blockchain ID of the category
      */
-    public Optional<ChainCategory> getChainCategory(long id) {
+    private void retrieveCategory(final long id) {
         try {
             Tuple3<String, String, BigInteger> category = iexecHubContract
                     .viewCategoryABILegacy(BigInteger.valueOf(id)).send();
@@ -320,13 +338,11 @@ public abstract class IexecHubAbstractService {
                 log.error("Category max execution time should be greater than zero " +
                                 "(likely a blockchain issue) [categoryId:{}, maxExecutionTime:{}]",
                         id, chainCategory.getMaxExecutionTime());
-                return Optional.empty();
             }
-            return Optional.of(chainCategory);
+            categories.put(id, chainCategory);
         } catch (Exception e) {
-            log.error("Failed to get ChainCategory [id:{}]", id, e);
+            log.error("Failed to get all categories", e);
         }
-        return Optional.empty();
     }
 
     public Optional<ChainApp> getChainApp(final String appAddress) {
