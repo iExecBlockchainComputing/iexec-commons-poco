@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,34 @@
 package com.iexec.commons.poco.chain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.iexec.commons.poco.security.Signature;
+import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.HashUtils;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
+@Value
 @AllArgsConstructor
 @Builder
+@JsonDeserialize(builder = WorkerpoolAuthorization.WorkerpoolAuthorizationBuilder.class)
 public class WorkerpoolAuthorization {
 
-    private String chainTaskId;
-    private String workerWallet;
-    private String enclaveChallenge;
-    private Signature signature;
+    @Builder.Default
+    String chainTaskId = BytesUtils.EMPTY_HEX_STRING_32;
+    @Builder.Default
+    String dealId = BytesUtils.EMPTY_HEX_STRING_32;
+    @Builder.Default
+    int taskIndex = 0;
+    String workerWallet;
+    String enclaveChallenge;
+    Signature signature;
 
     @JsonIgnore
     public String getHash() {
         return HashUtils.concatenateAndHash(workerWallet, chainTaskId, enclaveChallenge);
     }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class WorkerpoolAuthorizationBuilder {}
 }
