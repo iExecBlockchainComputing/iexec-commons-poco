@@ -28,7 +28,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @JsonDeserialize(builder = WorkerpoolAuthorization.WorkerpoolAuthorizationBuilder.class)
-class WorkerpoolAuthorization {
+public class WorkerpoolAuthorization {
 
     @Builder.Default
     String chainTaskId = BytesUtils.EMPTY_HEX_STRING_32;
