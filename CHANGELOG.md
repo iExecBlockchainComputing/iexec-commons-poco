@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Add `getTransactionByHash` method to `Web3jAbstractService`. (#123)
 - Move `getGasLimitPerFunction` to `PoCoDataEncoder`. (#129)
 - Add cache mechanism to retain PoCo categories data. (#133)
+- Turn `WorkerpoolAuthorization` into an immutable class and add `dealId`/`taskIndex` fields. (#135)
 
 ### Bug Fixes
 

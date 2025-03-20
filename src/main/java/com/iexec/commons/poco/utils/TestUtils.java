@@ -19,8 +19,6 @@ package com.iexec.commons.poco.utils;
 import com.iexec.commons.poco.chain.ChainDeal;
 import com.iexec.commons.poco.chain.ChainTask;
 import com.iexec.commons.poco.chain.ChainTaskStatus;
-import com.iexec.commons.poco.chain.WorkerpoolAuthorization;
-import com.iexec.commons.poco.security.Signature;
 
 public class TestUtils {
 
@@ -67,15 +65,4 @@ public class TestUtils {
         return ChainTask.builder().dealid(DEAL_ID).status(status).build();
     }
 
-    // contribution authorization
-    public static WorkerpoolAuthorization getTeeWorkerpoolAuth() {
-        String hash = HashUtils.concatenateAndHash(WORKER_ADDRESS, CHAIN_TASK_ID, ENCLAVE_ADDRESS);
-        Signature signature = SignatureUtils.signMessageHashAndGetSignature(hash, POOL_PRIVATE);
-        return WorkerpoolAuthorization.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .workerWallet(WORKER_ADDRESS)
-                .enclaveChallenge(ENCLAVE_ADDRESS)
-                .signature(signature)
-                .build();
-    }
 }
