@@ -37,7 +37,7 @@ dependencies {
     implementation platform('org.springframework.boot:spring-boot-dependencies:3.3.8')
 
     // web3j
-    api 'org.web3j:core:4.9.7'
+    api 'org.web3j:core:4.12.3'
 
     // apache commons.lang3
     implementation 'org.apache.commons:commons-lang3'
@@ -83,9 +83,8 @@ testing {
                 // spring-test for ReflectionTestUtils
                 implementation 'org.springframework:spring-test'
                 implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
-                // logback
+                // runtime
                 runtimeOnly 'ch.qos.logback:logback-classic'
-
                 runtimeOnly 'org.glassfish.expressly:expressly:5.0.0'
                 runtimeOnly 'org.hibernate.validator:hibernate-validator'
             }
