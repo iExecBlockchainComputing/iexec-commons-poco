@@ -44,6 +44,7 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade to Java 17. (#114)
 - Upgarde to Spring Boot 3.3.8. (#122)
+- Upgrade to `web3j` 4.12.3. (#136)
 
 ## [[4.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.2.0) 2024-12-18
 

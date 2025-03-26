@@ -15,23 +15,21 @@ web3j -v
 Version: 1.4.2
 ```
 
-After, you need to clone `Poco-dev` repository
+After, you need to clone `Poco` repository
 ```
-git clone https://github.com/iExecBlockchainComputing/PoCo-dev/
-cd PoCo-dev
+git clone https://github.com/iExecBlockchainComputing/PoCo/
+cd PoCo
 git checkout x.y.z
 ```
 
 Edit script `generateContractWrappers` and check lines *15* and *18*. If necessary, adjust the directories to match your local work tree.
 ``` shell
 #Put here the PoCo-dev directory that contains smart contracts (JSON files)
-POCO_DEV_CONTRACTS_DIRECTORY=${HOME}/iexecdev/PoCo-dev/build/contracts/
+POCO_DEV_CONTRACTS_DIRECTORY=${HOME}/iexecdev/PoCo/build/contracts/
 
 #Put here the src/main/java/ directory of commons-poco project
 COMMONS_POCO_WRAPPER_DIRECTORY=${HOME}/iexecdev/iexec-commons-poco/src/main/java/
 ```
-
-Clean `IexecLibOrders_v5.OrderOperationEnum` references from `IexecLibOrders_v5.json` with your favorite editor(Only in abi node).
 
 You can now run the script
 ``` shell
