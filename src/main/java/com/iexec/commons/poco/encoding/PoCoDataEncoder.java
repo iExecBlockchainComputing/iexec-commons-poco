@@ -29,6 +29,8 @@ import static com.iexec.commons.poco.encoding.Utils.toHexString;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PoCoDataEncoder {
 
+    public static final long GAS_LIMIT_CAP = 1_000_000;
+
     private static final String INITIALIZE_SELECTOR = "0x5b36c66b";
     private static final String CONTRIBUTE_SELECTOR = "0x34623484";
     private static final String REVEAL_SELECTOR = "0xfc334e8c";
@@ -105,6 +107,25 @@ public class PoCoDataEncoder {
                 resultsCallbackContrib +
                 enclaveSignContrib +
                 authorizationSignContrib;
+    }
+
+    /**
+     * Return gas limit per PoCo function.
+     *
+     * @param functionName Name of the function
+     * @return A gas limit, the transaction will be rejected if the limit is reached
+     */
+    public static BigInteger getGasLimitForFunction(final String functionName) {
+        final long gasLimit = switch (functionName) {
+            case "initialize" -> 300_000; // 237399 measured
+            case "contribute" -> 500_000; // 417035 measured - more gas when reaching consensus
+            case "reveal" -> 100_000; // 92905 measured
+            case "finalize" -> 500_000; // 277899 measured + 200_000 for callback
+            case "contributeAndFinalize" -> 700_000; // 440073 measured + 200_000 for callback
+            case "reopen" -> 500_000; // seen 43721
+            default -> GAS_LIMIT_CAP;
+        };
+        return BigInteger.valueOf(gasLimit);
     }
 
 }

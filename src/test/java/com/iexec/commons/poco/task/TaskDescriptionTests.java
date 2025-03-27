@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
-import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,7 +29,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -40,37 +38,40 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TaskDescriptionTests {
 
+    private static final String CHAIN_TASK_ID = "chainTaskId";
+
+    private static final String APP_ADDRESS = "appAddress";
     private static final String APP_OWNER = "0x1";
     private static final BigInteger APP_PRICE = BigInteger.ZERO;
-    private static final String DATA_OWNER = "0x2";
-    private static final BigInteger DATA_PRICE = BigInteger.ONE;
+    private static final String DATASET_ADDRESS = "datasetAddress";
+    private static final String DATASET_OWNER = "0x2";
+    private static final BigInteger DATASET_PRICE = BigInteger.ONE;
+    private static final String WORKERPOOL_ADDRESS = "";
     private static final String WORKERPOOL_OWNER = "0x3";
     private static final BigInteger WORKERPOOL_PRICE = BigInteger.TEN;
+    private static final BigInteger TRUST = BigInteger.ONE;
+    private static final BigInteger CATEGORY = BigInteger.ZERO;
 
-    private static final String CHAIN_TASK_ID = "chainTaskId";
     private static final String REQUESTER = "requester";
     private static final String BENEFICIARY = "beneficiary";
     private static final String CALLBACK = "callback";
     private static final DappType APP_TYPE = DappType.DOCKER;
     private static final String APP_URI = "https://uri";
-    private static final String APP_ADDRESS = "appAddress";
     private static final String ENTRYPOINT = "entrypoint";
     private static final String CMD = "cmd";
     private static final int MAX_EXECUTION_TIME = 1;
     private static final boolean IS_TEE_TASK = true;
     private static final TeeFramework TEE_FRAMEWORK = TeeFramework.SCONE;
+    private static final long START_TIME = 1_000_000L;
     private static final int BOT_SIZE = 1;
     private static final int BOT_FIRST = 2;
     private static final int TASK_IDX = 3;
-    private static final String DATASET_ADDRESS = "datasetAddress";
     private static final String DATASET_URI = "https://datasetUri";
-    private static final String DATASET_NAME = "datasetName";
     private static final String DATASET_CHECKSUM = "datasetChecksum";
     private static final List<String> INPUT_FILES = Collections.singletonList("inputFiles");
     private static final boolean IS_RESULT_ENCRYPTION = true;
     private static final String RESULT_STORAGE_PROVIDER = "resultStorageProvider";
     private static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
-    private static final BigInteger TRUST = BigInteger.ONE;
 
     @Test
     void toTaskDescriptionWithNullDeal() {
@@ -90,13 +91,12 @@ class TaskDescriptionTests {
         final ChainApp chainApp = ChainApp.builder()
                 .chainAppId(APP_ADDRESS)
                 .type(APP_TYPE.toString())
-                .uri(BytesUtils.bytesToString(APP_URI.getBytes(StandardCharsets.UTF_8)))
+                .multiaddr(APP_URI)
                 .enclaveConfiguration(enclaveConfiguration)
                 .build();
         final ChainDataset chainDataset = ChainDataset.builder()
                 .chainDatasetId(DATASET_ADDRESS)
-                .name(DATASET_NAME)
-                .uri(BytesUtils.bytesToString(DATASET_URI.getBytes(StandardCharsets.UTF_8)))
+                .multiaddr(DATASET_URI)
                 .checksum(DATASET_CHECKSUM)
                 .build();
         final DealParams dealParams = DealParams.builder()
@@ -107,23 +107,28 @@ class TaskDescriptionTests {
                 .iexecResultEncryption(IS_RESULT_ENCRYPTION)
                 .build();
         final ChainDeal chainDeal = ChainDeal.builder()
+                .chainApp(chainApp)
+                .chainDataset(chainDataset)
+                .chainCategory(chainCategory)
+                .dappPointer(APP_ADDRESS)
                 .dappOwner(APP_OWNER)
                 .dappPrice(APP_PRICE)
-                .dataOwner(DATA_OWNER)
-                .dataPrice(DATA_PRICE)
+                .dataPointer(DATASET_ADDRESS)
+                .dataOwner(DATASET_OWNER)
+                .dataPrice(DATASET_PRICE)
+                .poolPointer(WORKERPOOL_ADDRESS)
                 .poolOwner(WORKERPOOL_OWNER)
                 .poolPrice(WORKERPOOL_PRICE)
+                .trust(TRUST)
+                .category(CATEGORY)
+                .tag(TeeUtils.TEE_SCONE_ONLY_TAG) // any supported TEE tag
                 .requester(REQUESTER)
                 .beneficiary(BENEFICIARY)
                 .callback(CALLBACK)
-                .chainApp(chainApp)
                 .params(dealParams)
-                .chainDataset(chainDataset)
-                .tag(TeeUtils.TEE_SCONE_ONLY_TAG) // any supported TEE tag
-                .chainCategory(chainCategory)
+                .startTime(BigInteger.valueOf(START_TIME))
                 .botFirst(BigInteger.valueOf(BOT_FIRST))
                 .botSize(BigInteger.valueOf(BOT_SIZE))
-                .trust(TRUST)
                 .build();
         final ChainTask chainTask = ChainTask.builder()
                 .dealid(chainDeal.getChainDealId())
@@ -135,37 +140,36 @@ class TaskDescriptionTests {
 
         final TaskDescription expectedTaskDescription = TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
+                // assets
+                .appType(APP_TYPE)
+                .appUri(APP_URI)
+                .appEnclaveConfiguration(enclaveConfiguration)
+                // deals
+                .appAddress(APP_ADDRESS)
                 .appOwner(APP_OWNER)
                 .appPrice(APP_PRICE)
-                .datasetOwner(DATA_OWNER)
-                .datasetPrice(DATA_PRICE)
+                .datasetAddress(DATASET_ADDRESS)
+                .datasetOwner(DATASET_OWNER)
+                .datasetPrice(DATASET_PRICE)
+                .workerpoolAddress(WORKERPOOL_ADDRESS)
                 .workerpoolOwner(WORKERPOOL_OWNER)
                 .workerpoolPrice(WORKERPOOL_PRICE)
+                .trust(TRUST)
+                .category(CATEGORY)
+                .isTeeTask(IS_TEE_TASK)
+                .teeFramework(TEE_FRAMEWORK)
                 .requester(REQUESTER)
                 .beneficiary(BENEFICIARY)
                 .callback(CALLBACK)
-                .appType(APP_TYPE)
-                .appUri(APP_URI)
-                .appAddress(APP_ADDRESS)
-                .appEnclaveConfiguration(enclaveConfiguration)
-                .maxExecutionTime(MAX_EXECUTION_TIME)
-                .isTeeTask(IS_TEE_TASK)
-                .teeFramework(TEE_FRAMEWORK)
-                .botSize(BOT_SIZE)
-                .botFirstIndex(BOT_FIRST)
-                .botIndex(TASK_IDX)
-                .datasetAddress(DATASET_ADDRESS)
-                .datasetUri(DATASET_URI)
-                .datasetName(DATASET_NAME)
-                .datasetChecksum(DATASET_CHECKSUM)
-                .cmd(CMD)
-                .inputFiles(INPUT_FILES)
-                .isResultEncryption(IS_RESULT_ENCRYPTION)
-                .resultStorageProvider(RESULT_STORAGE_PROVIDER)
-                .resultStorageProxy(RESULT_STORAGE_PROXY)
-                .secrets(Collections.emptyMap())
                 .dealParams(dealParams)
-                .trust(TRUST)
+                .startTime(START_TIME)
+                .botFirstIndex(BOT_FIRST)
+                .botSize(BOT_SIZE)
+                // task
+                .maxExecutionTime(MAX_EXECUTION_TIME)
+                .botIndex(TASK_IDX)
+                .datasetUri(DATASET_URI)
+                .datasetChecksum(DATASET_CHECKSUM)
                 .build();
 
         assertEquals(expectedTaskDescription, task);
@@ -178,7 +182,6 @@ class TaskDescriptionTests {
         assertTrue(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
-                .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
@@ -186,7 +189,6 @@ class TaskDescriptionTests {
         assertTrue(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
-                // .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
@@ -197,7 +199,6 @@ class TaskDescriptionTests {
         assertFalse(TaskDescription.builder()
                 // .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
-                .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
@@ -205,7 +206,6 @@ class TaskDescriptionTests {
         assertFalse(TaskDescription.builder()
                 .datasetAddress(EMPTY_ADDRESS)
                 .datasetUri(DATASET_URI)
-                .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
@@ -213,7 +213,6 @@ class TaskDescriptionTests {
         assertFalse(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 // .datasetUri(DATASET_URI)
-                .datasetName(DATASET_NAME)
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
@@ -221,7 +220,6 @@ class TaskDescriptionTests {
         assertFalse(TaskDescription.builder()
                 .datasetAddress(DATASET_ADDRESS)
                 .datasetUri(DATASET_URI)
-                .datasetName(DATASET_NAME)
                 // .datasetChecksum(DATASET_CHECKSUM)
                 .build()
                 .containsDataset());
@@ -252,16 +250,7 @@ class TaskDescriptionTests {
 
     // region containsInputFiles
     @Test
-    void shouldContainInputFiles() {
-        assertTrue(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(List.of("http://file1", "http://file2"))
-                .build()
-                .containsInputFiles());
-    }
-
-    @Test
-    void shouldContainsInputFilesFromDealParams() {
+    void shouldContainsInputFiles() {
         assertTrue(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
                 .dealParams(DealParams.builder().iexecInputFiles(List.of("http://file1", "http://file2")).build())
@@ -271,8 +260,8 @@ class TaskDescriptionTests {
 
     @ParameterizedTest
     @NullSource
-    @MethodSource("provideTaskDescriptionWithoutInputFiles")
-    void shouldNotContainInputFilesWhenNullDealParams(final DealParams dealParams) {
+    @MethodSource("provideDealParamsWithoutInputFiles")
+    void shouldNotContainInputFiles(final DealParams dealParams) {
         assertFalse(TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
                 .dealParams(dealParams)
@@ -280,64 +269,43 @@ class TaskDescriptionTests {
                 .containsInputFiles());
     }
 
-    private static Stream<Arguments> provideTaskDescriptionWithoutInputFiles() {
+    private static Stream<Arguments> provideDealParamsWithoutInputFiles() {
         return Stream.of(
                 Arguments.of(DealParams.builder().build()),
-                Arguments.of(DealParams.builder().iexecInputFiles(null).build())
+                Arguments.of(DealParams.builder().iexecInputFiles(null).build()),
+                Arguments.of(DealParams.builder().iexecInputFiles(List.of()).build())
         );
-    }
-
-    @Test
-    void shouldNotContainInputFilesWhenEmptyInputFiles() {
-        assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(List.of())
-                .build()
-                .containsInputFiles());
-    }
-
-    @Test
-    void shouldNotContainInputFilesWhenNullInputFiles() {
-        assertFalse(TaskDescription.builder()
-                .chainTaskId(CHAIN_TASK_ID)
-                .inputFiles(null)
-                .build()
-                .containsInputFiles());
     }
     // endregion
 
     // region getAppCommand
-    @Test
-    void shouldGenerateAppCommandWithEntrypointWhenEmptyDealParams() {
+    @ParameterizedTest
+    @NullSource
+    @MethodSource("provideDealParamsWithoutArgs")
+    void shouldGenerateAppCommandWithEntrypointOnly(final DealParams dealParams) {
         final TaskDescription taskDescription = TaskDescription.builder()
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(DealParams.builder().build())
+                .dealParams(dealParams)
                 .build();
         assertEquals(ENTRYPOINT, taskDescription.getAppCommand());
     }
 
-    @Test
-    void shouldGenerateAppCommandWithEntrypointWhenNullDealParams() {
-        final TaskDescription taskDescription = TaskDescription.builder()
-                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(null)
-                .build();
-        assertEquals(ENTRYPOINT, taskDescription.getAppCommand());
+    private static Stream<Arguments> provideDealParamsWithoutArgs() {
+        return Stream.of(
+                Arguments.of(DealParams.builder().build()),
+                Arguments.of(DealParams.builder().iexecArgs(null).build()),
+                Arguments.of(DealParams.builder().iexecArgs("").build()),
+                Arguments.of(DealParams.builder().iexecArgs(" ").build())
+        );
     }
 
     @Test
     void shouldGenerateAppCommandWithEntrypointAndArgs() {
-        assertEquals(ENTRYPOINT + " " + CMD, TaskDescription.builder()
+        final TaskDescription taskDescription = TaskDescription.builder()
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
                 .dealParams(DealParams.builder().iexecArgs(CMD).build())
-                .build()
-                .getAppCommand());
-        assertEquals(ENTRYPOINT + " " + CMD, TaskDescription.builder()
-                .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
-                .dealParams(DealParams.builder().build())
-                .cmd(CMD)
-                .build()
-                .getAppCommand());
+                .build();
+        assertEquals(ENTRYPOINT + " " + CMD, taskDescription.getAppCommand());
     }
     // endregion
 

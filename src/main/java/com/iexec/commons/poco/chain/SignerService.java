@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.web3j.crypto.*;
+import org.web3j.crypto.exception.CipherException;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -174,6 +175,12 @@ public class SignerService {
     public BigInteger estimateGas(String to, String data) throws IOException {
         final EthEstimateGas estimateGas = this.web3j.ethEstimateGas(org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
                 credentials.getAddress(), to, data)).send();
+        if (estimateGas.hasError()) {
+            final Response.Error responseError = estimateGas.getError();
+            log.error("estimateGas failed [message:{}, code:{}, data:{}]",
+                    responseError.getMessage(), responseError.getCode(), responseError.getData());
+            throw new JsonRpcError(responseError);
+        }
         log.debug("estimateGas [amountUsed:{}]", estimateGas.getAmountUsed());
         return estimateGas.getAmountUsed();
     }
@@ -195,18 +202,12 @@ public class SignerService {
         final EthSendTransaction transactionResponse = txManager.signAndSend(rawTx);
         if (transactionResponse.hasError()) {
             final Response.Error responseError = transactionResponse.getError();
-            log.error("transaction failed [message:{}, code:{}, data:{}]",
+            log.error("Transaction failed [message:{}, code:{}, data:{}]",
                     responseError.getMessage(), responseError.getCode(), responseError.getData());
             throw new JsonRpcError(responseError);
         }
         final String txHash = transactionResponse.getTransactionHash();
-        log.info("Transaction submitted [txHash:{}]", txHash);
-        for (int i = 0; i < 5; i++) {
-            if (verifyTransaction(txHash)) {
-                return txHash;
-            }
-        }
-        log.warn("Could not verify transaction by hash [txHash:{}]", txHash);
+        log.info("Transaction submitted [nonce:{}, txHash:{}]", nonce, txHash);
         return txHash;
     }
 
@@ -221,7 +222,7 @@ public class SignerService {
      * @param txHash hash of the transaction
      * @return {@literal true} if the transaction was found, {@literal false} otherwise
      */
-    boolean verifyTransaction(final String txHash) {
+    public boolean verifyTransaction(final String txHash) {
         if (!BytesUtils.isNonZeroedBytes32(txHash)) {
             log.warn("Invalid transaction hash [txHash:{}]", txHash);
             return false;

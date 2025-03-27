@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,32 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.encoding.PoCoDataEncoder;
 import com.iexec.commons.poco.utils.WaitUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Async;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
-import static com.iexec.commons.poco.contract.generated.AppRegistry.FUNC_CREATEAPP;
-import static com.iexec.commons.poco.contract.generated.DatasetRegistry.FUNC_CREATEDATASET;
-import static com.iexec.commons.poco.contract.generated.IexecHubContract.*;
-import static com.iexec.commons.poco.contract.generated.WorkerpoolRegistry.FUNC_CREATEWORKERPOOL;
+import static com.iexec.commons.poco.encoding.PoCoDataEncoder.GAS_LIMIT_CAP;
 
 @Slf4j
 public abstract class Web3jAbstractService {
-
-    static final long GAS_LIMIT_CAP = 1_000_000;
 
     @Getter
     private final int chainId;
@@ -120,9 +114,6 @@ public abstract class Web3jAbstractService {
     }
 
     // region JSON-RPC
-    public EthBlock.Block getLatestBlock() throws IOException {
-        return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
-    }
 
     /**
      * Gets the latest block number from the blockchain network.
@@ -140,25 +131,26 @@ public abstract class Web3jAbstractService {
         return 0L;
     }
 
-    public EthBlock.Block getBlock(long blockNumber) throws IOException {
-        return web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)),
-                false).send().getBlock();
-    }
-
     /**
-     * @deprecated Use {@link SignerService#getNonce()}
+     * Queries and returns an on-chain transaction by its hash.
+     *
+     * @param txHash The hash of the requested transaction
+     * @return the transaction if found, {@literal null} otherwise
      */
-    @Deprecated(forRemoval = true)
-    public BigInteger getNonce(String address) {
+    public Transaction getTransactionByHash(final String txHash) {
         try {
-            return web3j.ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)
-                    .send().getTransactionCount();
-        } catch (Exception e) {
-            return BigInteger.ZERO;
+            final Transaction tx = getWeb3j().ethGetTransactionByHash(txHash).send().getTransaction().orElseThrow();
+            log.debug("Transaction found [hash:{}, nonce:{}, blockNumber:{}]", txHash, tx.getNonce(), tx.getBlockNumberRaw());
+            return tx;
+        } catch (IOException e) {
+            log.warn("Blockchain communication error [hash:{}]", txHash, e);
+        } catch (NoSuchElementException e) {
+            log.warn("Transaction not found [hash:{}]", txHash, e);
         }
+        return null;
     }
 
-    public TransactionReceipt getTransactionReceipt(String txHash) {
+    public TransactionReceipt getTransactionReceipt(final String txHash) {
         try {
             return web3j.ethGetTransactionReceipt(txHash).send().getTransactionReceipt().orElse(null);
         } catch (Exception e) {
@@ -195,25 +187,6 @@ public abstract class Web3jAbstractService {
         }
 
         return false;
-    }
-
-    public long getAverageTimePerBlock() {//in ms
-        long defaultTime = TransactionManager.DEFAULT_POLLING_FREQUENCY; // 15sec
-        int NB_OF_BLOCKS = 10;
-
-        try {
-            EthBlock.Block latestBlock = getLatestBlock();
-
-            long latestBlockNumber = latestBlock.getNumber().longValue();
-
-            BigInteger latestBlockTimestamp = latestBlock.getTimestamp();
-            BigInteger tenBlocksAgoTimestamp = getBlock(latestBlockNumber - NB_OF_BLOCKS).getTimestamp();
-
-            defaultTime = ((latestBlockTimestamp.longValue() - tenBlocksAgoTimestamp.longValue()) / NB_OF_BLOCKS) * 1000L;
-        } catch (IOException e) {
-            log.error("Failed to getAverageTimePerBlock", e);
-        }
-        return defaultTime;
     }
 
     public boolean hasEnoughGas(String address) {
@@ -313,7 +286,7 @@ public abstract class Web3jAbstractService {
 
             @Override
             public BigInteger getGasLimit(String functionName) {
-                return getGasLimitForFunction(functionName);
+                return PoCoDataEncoder.getGasLimitForFunction(functionName);
             }
 
             @Override
@@ -323,52 +296,17 @@ public abstract class Web3jAbstractService {
         };
     }
 
-    @NotNull
-    static BigInteger getGasLimitForFunction(String functionName) {
-        long gasLimit;
-        switch (functionName) {
-            case FUNC_INITIALIZE:
-                gasLimit = 300_000;//seen 176340
-                break;
-            case FUNC_CONTRIBUTE:
-                gasLimit = 500_000;//seen 333541
-                break;
-            case FUNC_REVEAL:
-                gasLimit = 100_000;//seen 56333
-                break;
-            case FUNC_CONTRIBUTEANDFINALIZE:
-            case FUNC_FINALIZE:
-                // Multiply with a factor of 10 for callback gas consumption
-                gasLimit = 3_000_000;//seen 175369 (242641 in reopen case)
-                break;
-            case FUNC_REOPEN:
-                gasLimit = 500_000;//seen 43721
-                break;
-            case FUNC_CREATEAPP:
-                gasLimit = 900_000;//800000 might not be enough
-                break;
-            case FUNC_CREATEWORKERPOOL:
-                gasLimit = 700_000;
-                break;
-            case FUNC_CREATEDATASET:
-                gasLimit = 700_000;//seen 608878
-                break;
-            default:
-                gasLimit = GAS_LIMIT_CAP;
-        }
-        return BigInteger.valueOf(gasLimit);
-    }
-
-    /*
+    /**
+     * Repeat a check until a condition is met or the max number of tries have been done.
+     * <p>
      * Below method:
-     *
-     * - checks any function `boolean myMethod(String s1, String s2, ...)`
-     * - waits a certain amount of time between checks (waits a certain number of blocks)
-     * - stops checking after a certain number of tries
-     *
-     * */
-    //TODO: Add a cache for getAverageTimePerBlock();
-    public boolean repeatCheck(int nbBlocksToWaitPerTry, int maxTry, String logTag, Function<String[], Boolean> function, String... functionArgs) {
+     * <ul>
+     * <li>checks any function `boolean myMethod(String s1, String s2, ...)`
+     * <li>waits a certain amount of time between checks (waits a certain number of blocks)
+     * <li>stops checking after a certain number of tries
+     * </ul>
+     */
+    public boolean repeatCheck(int nbBlocksToWaitPerTry, int maxTry, String logTag, Predicate<String[]> predicate, String... functionArgs) {
         if (maxTry < 1) {
             maxTry = 1;
         }
@@ -377,12 +315,12 @@ public abstract class Web3jAbstractService {
             nbBlocksToWaitPerTry = 1;
         }
 
-        long timePerBlock = this.getAverageTimePerBlock();
+        long timePerBlock = blockTime.toMillis();
         long msToWait = nbBlocksToWaitPerTry * timePerBlock;
 
         int i = 0;
         while (i < maxTry) {
-            if (function.apply(functionArgs)) {
+            if (predicate.test(functionArgs)) {
                 log.info("Verified check [try:{}, function:{}, args:{}, maxTry:{}, msToWait:{}, msPerBlock:{}]",
                         i + 1, logTag, functionArgs, maxTry, msToWait, timePerBlock);
                 return true;

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 
-###################################################################
-#Script Name	: generateContractWrappers                                                                                             
-#Description	: Script to facilitate the generation of java wrappers                                                                               
-#Args         : list of smart contracts json files without extension
-#Exemple      : ./generateContractWrappers App AppRegistry                                                                                    
-#Author       : iExec                                             
-###################################################################
+######################################################################
+#Script Name : generateContractWrappers
+#Description : Script to facilitate the generation of java wrappers
+#Args        : list of smart contracts json files without extension
+#Example     : ./generateContractWrappers IexecInterfaceTokenABILegacy
+#Author      : iExec
+######################################################################
 
 set -Eeuo pipefail
 
 
 #Put here the PoCo-dev directory that contains smart contracts (JSON files)
-POCO_DEV_CONTRACTS_DIRECTORY=${HOME}/iexecdev/PoCo-dev/build/contracts/
+POCO_DEV_CONTRACTS_DIRECTORY=${HOME}/iexecdev/PoCo/build/contracts/
 
 #Put here the src/main/java/ directory of commons-poco project 
 COMMONS_POCO_WRAPPER_DIRECTORY=${HOME}/iexecdev/iexec-commons-poco/src/main/java/

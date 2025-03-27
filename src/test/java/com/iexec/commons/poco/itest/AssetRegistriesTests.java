@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package com.iexec.commons.poco.itest;
 
+import com.iexec.commons.poco.chain.ChainApp;
+import com.iexec.commons.poco.chain.ChainDataset;
 import com.iexec.commons.poco.chain.SignerService;
+import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -24,19 +27,22 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
+import org.web3j.crypto.exception.CipherException;
 import org.web3j.tx.exceptions.ContractCallException;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
-import static com.iexec.commons.poco.itest.Web3jTestService.BLOCK_TIME;
+import static com.iexec.commons.poco.itest.IexecHubTestService.ASSET_CHECKSUM;
+import static com.iexec.commons.poco.itest.IexecHubTestService.ASSET_MULTI_ADDRESS;
+import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -93,7 +99,7 @@ class AssetRegistriesTests {
         nonce = nonce.add(BigInteger.ONE);
         final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, workerpoolName);
 
-        await().atMost(BLOCK_TIME, TimeUnit.SECONDS)
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash));
         assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash)).isTrue();
 
@@ -128,6 +134,25 @@ class AssetRegistriesTests {
                 () -> assertThatThrownBy(() -> iexecHubService.callCreateWorkerpool(workerpoolName), "Should have failed to call createWorkerpool")
                         .isInstanceOf(ContractCallException.class)
                         .hasMessage(errorMessage)
+        );
+
+        final Optional<ChainApp> chainApp = iexecHubService.getChainApp(predictedAppAddress);
+        assertThat(chainApp).contains(
+                ChainApp.builder()
+                        .chainAppId(predictedAppAddress)
+                        .checksum("0x" + ASSET_CHECKSUM)
+                        .multiaddr(ASSET_MULTI_ADDRESS)
+                        .enclaveConfiguration(TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString("{}"))
+                        .type("DOCKER")
+                        .build()
+        );
+        final Optional<ChainDataset> chainDataset = iexecHubService.getChainDataset(predictedDatasetAddress);
+        assertThat(chainDataset).contains(
+                ChainDataset.builder()
+                        .chainDatasetId(predictedDatasetAddress)
+                        .checksum("0x" + ASSET_CHECKSUM)
+                        .multiaddr(ASSET_MULTI_ADDRESS)
+                        .build()
         );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class DealParamsTest {
 
     @Test
     void shouldReadArgsWithoutJson() {
-        DealParams params = DealParams.createFromString(ARGS);
+        final DealParams params = DealParams.createFromString(ARGS);
         assertEquals(ARGS, params.getIexecArgs());
         assertThat(params.getIexecInputFiles()).isNotNull();
         assertThat(params.getIexecInputFiles()).isEmpty();
@@ -46,7 +46,7 @@ class DealParamsTest {
 
     @Test
     void shouldReadArgsInJson() {
-        DealParams params = DealParams.createFromString("{\"iexec_args\":\"" + ARGS + "\"}");
+        final DealParams params = DealParams.createFromString("{\"iexec_args\":\"" + ARGS + "\"}");
         assertThat(params.getIexecArgs()).isEqualTo(ARGS);
         assertThat(params.getIexecInputFiles()).isNotNull();
         assertThat(params.getIexecInputFiles()).isEmpty();
@@ -56,7 +56,7 @@ class DealParamsTest {
 
     @Test
     void shouldReadArgsInJsonAndEmptyInputFilesAndEmptySecrets() {
-        DealParams params = DealParams.createFromString("{\"iexec_args\":\"" + ARGS + "\"," +
+        final DealParams params = DealParams.createFromString("{\"iexec_args\":\"" + ARGS + "\"," +
                 "\"iexec_input_files\":[],\"iexec_secrets\":{}}");
         assertThat(params.getIexecArgs()).isEqualTo(ARGS);
         assertThat(params.getIexecInputFiles()).isNotNull();
@@ -67,9 +67,9 @@ class DealParamsTest {
 
     @Test
     void shouldReadNotCorrectJsonFile() {
-        String wrongJson = "{\"wrong_field1\":\"wrong arg value\"," +
+        final String wrongJson = "{\"wrong_field1\":\"wrong arg value\"," +
                 "\"iexec_input_files\":[\"http://file1\"]}";
-        DealParams params = DealParams.createFromString(wrongJson);
+        final DealParams params = DealParams.createFromString(wrongJson);
         assertThat(params.getIexecArgs()).isEqualTo(wrongJson);
         assertThat(params.getIexecInputFiles()).isNotNull();
         assertThat(params.getIexecInputFiles()).isEmpty();
@@ -77,8 +77,8 @@ class DealParamsTest {
 
     @Test
     void testSerializationWithBuilderDefaultValues() {
-        DealParams params = DealParams.builder().build();
-        DealParams newParams =  DealParams.createFromString(params.toJsonString());
+        final DealParams params = DealParams.builder().build();
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
                 .isEqualTo(params);
@@ -88,11 +88,10 @@ class DealParamsTest {
 
     @Test
     void testSerializationWithBooleanAsFalse() {
-        DealParams params = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(false)
+        final DealParams params = DealParams.builder()
                 .iexecResultEncryption(false)
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
                 .isEqualTo(params);
@@ -102,11 +101,10 @@ class DealParamsTest {
 
     @Test
     void testSerializationWithBooleanAsTrue() {
-        DealParams params = DealParams.builder()
-                .iexecDeveloperLoggerEnabled(true)
+        final DealParams params = DealParams.builder()
                 .iexecResultEncryption(true)
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams)
                 .usingRecursiveComparison()
                 .isEqualTo(params);
@@ -116,10 +114,10 @@ class DealParamsTest {
 
     @Test
     void testSerializationForInputFiles() {
-        DealParams params = DealParams.builder()
+        final DealParams params = DealParams.builder()
                 .iexecInputFiles(List.of(FILE1, FILE2))
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(params)
                 .usingRecursiveComparison()
                 .isEqualTo(newParams);
@@ -130,10 +128,10 @@ class DealParamsTest {
 
     @Test
     void testSerializationForSecrets() {
-        DealParams params = DealParams.builder()
+        final DealParams params = DealParams.builder()
                 .iexecSecrets(Map.of("0", "secretA", "3", "secretX"))
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(params)
                 .usingRecursiveComparison()
                 .isEqualTo(newParams);
@@ -144,12 +142,12 @@ class DealParamsTest {
 
     @Test
     void testSerializationWithEmptyArgs() {
-        DealParams params = DealParams.builder()
+        final DealParams params = DealParams.builder()
                 .iexecArgs("")
                 .iexecInputFiles(Collections.emptyList())
                 .iexecSecrets(Collections.emptyMap())
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(params)
                 .usingRecursiveComparison()
                 .ignoringFields("iexecArgs")
@@ -165,19 +163,19 @@ class DealParamsTest {
 
     @Test
     void testSerializationWithArgsAndMultipleFilesAndMultipleSecrets() {
-        DealParams params = DealParams.builder()
+        final DealParams params = DealParams.builder()
                 .iexecArgs(ARGS)
                 .iexecInputFiles(List.of(FILE2, FILE3))
                 .iexecSecrets(Map.of("2", "secretK", "1", "secretD"))
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(params).isEqualTo(newParams);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {DealParams.DROPBOX_RESULT_STORAGE_PROVIDER, DealParams.IPFS_RESULT_STORAGE_PROVIDER})
     void testSerializationWithAllParams(String storageProvider) {
-        DealParams params = DealParams.builder()
+        final DealParams params = DealParams.builder()
                 .iexecArgs(ARGS)
                 .iexecInputFiles(List.of(FILE3, FILE2, FILE1))
                 .iexecSecrets(Map.of("1", "secretC", "2", "secretB", "3", "secretA"))
@@ -185,7 +183,7 @@ class DealParamsTest {
                 .iexecResultStorageProvider(storageProvider)
                 .iexecResultStorageProxy("http://result-proxy.local:13200")
                 .build();
-        DealParams newParams = DealParams.createFromString(params.toJsonString());
+        final DealParams newParams = DealParams.createFromString(params.toJsonString());
         assertThat(newParams).isEqualTo(params);
         assertThat(newParams.getIexecArgs()).isNotBlank();
         assertThat(newParams.getIexecInputFiles()).isNotEmpty();

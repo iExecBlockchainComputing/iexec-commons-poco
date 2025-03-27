@@ -34,10 +34,10 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.18')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.3.8')
 
     // web3j
-    api 'org.web3j:core:4.9.7'
+    api 'org.web3j:core:4.12.3'
 
     // apache commons.lang3
     implementation 'org.apache.commons:commons-lang3'
@@ -45,26 +45,31 @@ dependencies {
     // multiaddresses (IPFS)
     implementation 'com.github.multiformats:java-multiaddr:v1.4.6'
 
-    // jaxb required with Java 11 DataTypeConverter in BytesUtils
-    implementation 'javax.xml.bind:jaxb-api'
+    // jakarta xml binding (provide DataTypeConverter for BytesUtils)
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
 
     // failsafe
     implementation 'net.jodah:failsafe:2.4.4'
-    //TODO Migrate from Awaitility to Failsafe everywhere
-    implementation 'org.awaitility:awaitility'
 
-    // javax annotations like PostConstruct
-    implementation 'javax.annotation:javax.annotation-api'
+    // jakarta annotations like PostConstruct
+    implementation 'jakarta.annotation:jakarta.annotation-api'
+
+    // necessary dependencies for validation to work correctly
+    implementation 'jakarta.validation:jakarta.validation-api'
 }
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
-    sourceCompatibility = "11"
-    targetCompatibility = "11"
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     withJavadocJar()
     withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('-parameters')
 }
 
 testing {
@@ -72,14 +77,16 @@ testing {
         test {
             useJUnitJupiter()
             dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter'
-                implementation 'org.mockito:mockito-junit-jupiter'
+                implementation 'org.awaitility:awaitility'
                 implementation 'org.assertj:assertj-core'
-                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+                implementation 'org.mockito:mockito-junit-jupiter'
                 // spring-test for ReflectionTestUtils
                 implementation 'org.springframework:spring-test'
-                // logback
+                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+                // runtime
                 runtimeOnly 'ch.qos.logback:logback-classic'
+                runtimeOnly 'org.glassfish.expressly:expressly:5.0.0'
+                runtimeOnly 'org.hibernate.validator:hibernate-validator'
             }
         }
     }

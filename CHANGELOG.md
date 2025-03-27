@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[5.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v5.0.0) 2025-03-27
+
+### New Features
+
+- Enable checks on `ChainTask` instances with new methods. (#118)
+- Add `getTransactionByHash` method to `Web3jAbstractService`. (#123)
+- Move `getGasLimitPerFunction` to `PoCoDataEncoder`. (#129)
+- Add cache mechanism to retain PoCo categories data. (#133)
+- Turn `WorkerpoolAuthorization` into an immutable class and add `dealId`/`taskIndex` fields. (#135)
+
+### Bug Fixes
+
+- Remove unnecessary check on newly submitted transaction. (#132)
+- Add error handling on `estimateGas` blockchain call. (#134)
+
+### Quality
+
+- Upgrade source and target compatibility to Java 17. (#114)
+- Optimize gas limits per PoCo function. This will enable validators
+  to add more finalize and contributeAndFinalize transactions in a block. (#117)
+- Remove unnecessary blockchain calls to diminish pressure on Ethereum JSON-RPC API. (#124)
+
+### Breaking API changes
+
+- Remove assets creation methods from `IexecHubAbstractService`. (#115)
+- Remove `AppRegistry`, `DatasetRegistry` and `WorkerpoolRegistry` generated Smart Contract wrappers. (#116)
+- Remove deprecated code in `DealParams` and `TaskDescription`. (#119)
+- Remove `Ownable` generated Smart Contract wrapper. (#120)
+- Remove deprecated `Order` and `OrderSigner` classes. (#121)
+- Remove deprecated `getNonce` method from `Web3jAbstractService`, it has been moved to `SignerService`. (#123)
+- Update `ChainApp`, `ChainDataset` and `TaskDescription` models in relation with blockchain calls removal. (#124)
+- Remove `TaskAbortCause`, it has been moved to `iexec-core-library`. (#125)
+- Remove boolean to yes/no conversion methods from `TeeUtils`. (#126)
+- Remove `App` and `Dataset` generated Smart Contract wrappers. (#127)
+- Rename `ChainApp` and `ChainDataset` `uri` field to `multiaddr` to be consistent with Smart Contracts. (#127)
+- Move `ValidNonZeroEthereumAddress` from `iexec-common` to `iexec-commons-poco`. (#130)
+- Remove `ChainAppParams` and `IexecHubSmartContractValidator` classes as well as several methods. (#131)
+- Remove `TeeEnclaveChallengeSignature` and `TestUtils` classes. (#136)
+
+### Dependency Upgrades
+
+- Upgrade to Java 17. (#114)
+- Upgarde to Spring Boot 3.3.8. (#122)
+- Upgrade to `web3j` 4.12.3. (#136)
+
 ## [[4.2.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v4.2.0) 2024-12-18
 
 ### New Features

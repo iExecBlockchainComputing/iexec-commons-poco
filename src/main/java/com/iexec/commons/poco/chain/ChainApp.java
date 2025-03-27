@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@ import lombok.Value;
 @Builder
 public class ChainApp {
     String chainAppId;
-    String name;
     String type;
-    String uri;
+    String multiaddr;
     String checksum;
     TeeEnclaveConfiguration enclaveConfiguration;
 }

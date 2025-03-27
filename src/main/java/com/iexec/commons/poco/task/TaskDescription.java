@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,11 @@ import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
-import com.iexec.commons.poco.utils.MultiAddressHelper;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
 
 @Value
 @Builder
@@ -43,63 +40,36 @@ public class TaskDescription {
     String chainTaskId;
 
     // assets
+    DappType appType;
+    String appUri;
+    TeeEnclaveConfiguration appEnclaveConfiguration;
+    String datasetUri;
+    String datasetChecksum;
+
+    // deal
+    String appAddress;
     String appOwner;
     BigInteger appPrice;
+    String datasetAddress;
     String datasetOwner;
     BigInteger datasetPrice;
+    String workerpoolAddress;
     String workerpoolOwner;
     BigInteger workerpoolPrice;
-
+    BigInteger trust;
+    BigInteger category;
+    boolean isTeeTask;
+    TeeFramework teeFramework;
     String requester;
     String beneficiary;
     String callback;
-    DappType appType;
-    String appUri;
-    String appAddress;
-    TeeEnclaveConfiguration appEnclaveConfiguration;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    String cmd;
-    boolean isTeeTask;
-    TeeFramework teeFramework;
-    int botSize;
-    int botFirstIndex;
-    String datasetAddress;
-    String datasetUri;
-    String datasetName;
-    String datasetChecksum;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    List<String> inputFiles;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    boolean isResultEncryption;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    String resultStorageProvider;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    String resultStorageProxy;
-    String smsUrl;
-    /**
-     * @deprecated Use dealParams instead
-     */
-    @Deprecated(forRemoval = true)
-    Map<String, String> secrets;
     @Builder.Default
     DealParams dealParams = DealParams.builder().build();
-    BigInteger trust;
-    // from task
+    long startTime;
+    int botSize;
+    int botFirstIndex;
+
+    // task
     int botIndex;
     long maxExecutionTime; // timeref ?
     long contributionDeadline;
@@ -138,15 +108,12 @@ public class TaskDescription {
      * @return true if at least one input file is present, false otherwise
      */
     public boolean containsInputFiles() {
-        return (dealParams != null && dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty())
-                || (inputFiles != null && !inputFiles.isEmpty());
+        return dealParams != null && dealParams.getIexecInputFiles() != null && !dealParams.getIexecInputFiles().isEmpty();
     }
 
     public String getAppCommand() {
-        final String args = (dealParams != null && !StringUtils.isEmpty(dealParams.getIexecArgs())) ?
-                dealParams.getIexecArgs() : cmd;
-        return StringUtils.isEmpty(args) ? appEnclaveConfiguration.getEntrypoint() :
-                appEnclaveConfiguration.getEntrypoint() + " " + args;
+        return dealParams == null || StringUtils.isBlank(dealParams.getIexecArgs()) ? appEnclaveConfiguration.getEntrypoint() :
+                appEnclaveConfiguration.getEntrypoint() + " " + dealParams.getIexecArgs();
     }
 
     /**
@@ -176,62 +143,43 @@ public class TaskDescription {
         if (chainDeal == null || chainTask == null) {
             return null;
         }
-        String datasetAddress = "";
         String datasetUri = "";
-        String datasetName = "";
         String datasetChecksum = "";
         if (chainDeal.containsDataset()) {
-            datasetAddress = chainDeal.getChainDataset().getChainDatasetId();
-            datasetUri = MultiAddressHelper.convertToURI(chainDeal.getChainDataset().getUri());
-            datasetName = chainDeal.getChainDataset().getName();
+            datasetUri = chainDeal.getChainDataset().getMultiaddr();
             datasetChecksum = chainDeal.getChainDataset().getChecksum();
         }
         final String tag = chainDeal.getTag();
         return TaskDescription.builder()
                 .chainTaskId(chainTask.getChainTaskId())
+                // assets
+                .appType(DappType.DOCKER)
+                .appUri(chainDeal.getChainApp().getMultiaddr())
+                .appEnclaveConfiguration(chainDeal.getChainApp().getEnclaveConfiguration())
+                .datasetUri(datasetUri)
+                .datasetChecksum(datasetChecksum)
+                // deal
+                .appAddress(chainDeal.getDappPointer())
                 .appOwner(chainDeal.getDappOwner())
                 .appPrice(chainDeal.getDappPrice())
+                .datasetAddress(chainDeal.getDataPointer())
                 .datasetOwner(chainDeal.getDataOwner())
                 .datasetPrice(chainDeal.getDataPrice())
+                .workerpoolAddress(chainDeal.getPoolPointer())
                 .workerpoolOwner(chainDeal.getPoolOwner())
                 .workerpoolPrice(chainDeal.getPoolPrice())
-                .requester(chainDeal
-                        .getRequester())
-                .beneficiary(chainDeal
-                        .getBeneficiary())
-                .callback(chainDeal
-                        .getCallback())
-                .appType(DappType.DOCKER)
-                .appUri(BytesUtils.hexStringToAscii(chainDeal.getChainApp()
-                        .getUri()))
-                .appAddress(chainDeal.getChainApp().getChainAppId())
-                .appEnclaveConfiguration(chainDeal.getChainApp()
-                        .getEnclaveConfiguration())
-                .cmd(chainDeal.getParams()
-                        .getIexecArgs())
-                .inputFiles(chainDeal.getParams()
-                        .getIexecInputFiles())
-                .isTeeTask(TeeUtils
-                        .isTeeTag(tag))
-                .teeFramework(TeeUtils
-                        .getTeeFramework(tag))
-                .isResultEncryption(chainDeal.getParams()
-                        .isIexecResultEncryption())
-                .resultStorageProvider(chainDeal.getParams()
-                        .getIexecResultStorageProvider())
-                .resultStorageProxy(chainDeal.getParams()
-                        .getIexecResultStorageProxy())
-                .secrets(chainDeal.getParams()
-                        .getIexecSecrets())
+                .trust(chainDeal.getTrust())
+                .category(chainDeal.getCategory())
+                .isTeeTask(TeeUtils.isTeeTag(tag))
+                .teeFramework(TeeUtils.getTeeFramework(tag))
+                .requester(chainDeal.getRequester())
+                .beneficiary(chainDeal.getBeneficiary())
+                .callback(chainDeal.getCallback())
                 .dealParams(chainDeal.getParams())
-                .datasetAddress(datasetAddress)
-                .datasetUri(datasetUri)
-                .datasetName(datasetName)
-                .datasetChecksum(datasetChecksum)
+                .startTime(chainDeal.getStartTime().longValue())
                 .botSize(chainDeal.getBotSize().intValue())
                 .botFirstIndex(chainDeal.getBotFirst().intValue())
-                .trust(chainDeal.getTrust())
-                // from task
+                // task
                 .botIndex(chainTask.getIdx())
                 .maxExecutionTime(chainDeal.getChainCategory().getMaxExecutionTime()) // https://github.com/iExecBlockchainComputing/PoCo/blob/v5/contracts/modules/delegates/IexecPoco2Delegate.sol#L111
                 .contributionDeadline(chainTask.getContributionDeadline())
