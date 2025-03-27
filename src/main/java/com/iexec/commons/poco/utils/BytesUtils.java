@@ -17,12 +17,15 @@
 package com.iexec.commons.poco.utils;
 
 import jakarta.xml.bind.DatatypeConverter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BytesUtils {
 
     // "0x0000000000000000000000000000000000000000"
@@ -31,20 +34,11 @@ public class BytesUtils {
     public static final int BYTES_32_SIZE = 32;
     //"0x0000000000000000000000000000000000000000000000000000000000000000"
     public static final String EMPTY_HEX_STRING_32 = BytesUtils.bytesToString(new byte[BYTES_32_SIZE]);
-    /**
-     * @deprecated Use {@link BytesUtils#EMPTY_HEX_STRING_32} instead.
-     */
-    @Deprecated
-    public static final String EMPTY_HEXASTRING_64 = BytesUtils.bytesToString(new byte[BYTES_32_SIZE]);
     private static final int BYTES_32_HEX_STRING_SIZE = BYTES_32_SIZE * 2; // 64
     private static final int BYTES_32_HEX_STRING_WITH_PREFIX_SIZE = 2 + BYTES_32_HEX_STRING_SIZE;// 2 + 64
     private static final String HEX_REGEX = "\\p{XDigit}+$";
     private static final Pattern HEX_PATTERN = Pattern.compile("(?i)^(0x)?" + HEX_REGEX);
     private static final Pattern HEX_WITH_PREFIX_PATTERN = Pattern.compile("^0x" + HEX_REGEX);
-
-    private BytesUtils() {
-        throw new UnsupportedOperationException();
-    }
 
     public static String bytesToString(byte[] bytes) {
         return Numeric.toHexString(bytes);
