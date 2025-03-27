@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/vNEXT) 2025
+## [[5.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v5.0.0) 2025-03-27
 
 ### New Features
 
@@ -102,7 +102,8 @@ All notable changes to this project will be documented in this file.
 - Add encoders to allow sending transactions with `SignerService`. (#73 #74 #75)
 - Add `getAssetAddressFromReceipt` method to `AssetDataEncoder`. (#78)
 - Use `eth_call` Ethereum JSON-RPC API to predict assets on-chain address. (#79)
-- Add `PoCoDataEncoder` with `initialize`, `contribute`, `reveal`, `finalize` and `contributeAndFinalize` support. (#80 #81)
+- Add `PoCoDataEncoder` with `initialize`, `contribute`, `reveal`, `finalize` and `contributeAndFinalize` support. (#80
+  #81)
 - Add `eth_estimateGas` Ethereum JSON-RPC API support. (#82)
 - Add transaction data encoder to support `isRegistered` method call. (#83)
 - Add decoder to display log topics with human readable names. (#84)
@@ -163,7 +164,8 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- Fix regression on dataset URI decryption in `TaskDescription`. The regression concerned bad interpretation of IPFS MultiAddress URIs. (#45)
+- Fix regression on dataset URI decryption in `TaskDescription`. The regression concerned bad interpretation of IPFS
+  MultiAddress URIs. (#45)
 
 ## [[3.0.4]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v3.0.4) 2023-06-23
 
@@ -245,4 +247,5 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Init Gradle project. (#1 #2)
-- Migrate from `iexec-common` library to this `iexec-commons-poco` library packages related to blockchain and iExec PoCo protocol. (#3)
+- Migrate from `iexec-common` library to this `iexec-commons-poco` library packages related to blockchain and iExec PoCo
+  protocol. (#3)
