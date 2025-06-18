@@ -9,14 +9,11 @@ plugins {
 group = 'com.iexec.commons'
 
 ext {
+    gitTag = 'git tag --points-at HEAD'.execute().text.trim()
     testContainersVersion = '1.20.4'
 }
 
-if (!project.hasProperty('gitBranch')) {
-    ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
-}
-
-if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
+if (gitTag.isEmpty()) {
     version += '-NEXT-SNAPSHOT'
 }
 
