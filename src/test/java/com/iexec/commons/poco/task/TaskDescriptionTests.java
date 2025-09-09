@@ -309,6 +309,38 @@ class TaskDescriptionTests {
     }
     // endregion
 
+    // region isBulkRequest
+    @Test
+    void shouldBeBulkRequest() {
+        final DealParams dealParams = DealParams.builder()
+                .bulkCid("cid")
+                .build();
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .dealParams(dealParams)
+                .build();
+        assertTrue(taskDescription.isBulkRequest());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @MethodSource("provideDealParamsWithoutBulkCid")
+    void shouldNotBeBulkRequest(final DealParams dealParams) {
+        final TaskDescription taskDescription = TaskDescription.builder()
+                .dealParams(dealParams)
+                .build();
+        assertFalse(taskDescription.isBulkRequest());
+    }
+
+    private static Stream<Arguments> provideDealParamsWithoutBulkCid() {
+        return Stream.of(
+                Arguments.of(DealParams.builder().build()),
+                Arguments.of(DealParams.builder().bulkCid(null).build()),
+                Arguments.of(DealParams.builder().bulkCid("").build()),
+                Arguments.of(DealParams.builder().bulkCid(" ").build())
+        );
+    }
+    // endregion
+
     // region isEligibleToContributeAndFinalize
     @ParameterizedTest
     @ValueSource(strings = {"", CALLBACK})
@@ -342,6 +374,47 @@ class TaskDescriptionTests {
                 .build();
 
         assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+    }
+    // endregion
+
+    // region requiresPreCompute
+    @ParameterizedTest
+    @MethodSource("provideDealParamsForTaskPreCompute")
+    void shouldRequirePreCompute(final TaskDescription taskDescription) {
+        assertTrue(taskDescription.requiresPreCompute());
+    }
+
+    private static Stream<Arguments> provideDealParamsForTaskPreCompute() {
+        return Stream.of(
+                Arguments.of(TaskDescription.builder().datasetAddress("0x01").datasetUri("http://dataset-url").datasetChecksum("0xabc").build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().bulkCid("cid").build()).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().iexecInputFiles(List.of("http://file1", "http://file2")).build()).build())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideDealParamsForTaskWithoutPreCompute")
+    void shouldNotRequirePreCompute(final TaskDescription taskDescription) {
+        assertFalse(taskDescription.requiresPreCompute());
+    }
+
+    private static Stream<Arguments> provideDealParamsForTaskWithoutPreCompute() {
+        return Stream.of(
+                Arguments.of(TaskDescription.builder().build()),
+                Arguments.of(TaskDescription.builder().datasetAddress(EMPTY_ADDRESS).build()),
+                Arguments.of(TaskDescription.builder().datasetAddress(" ").build()),
+                Arguments.of(TaskDescription.builder().datasetUri("").build()),
+                Arguments.of(TaskDescription.builder().datasetUri(" ").build()),
+                Arguments.of(TaskDescription.builder().datasetChecksum("").build()),
+                Arguments.of(TaskDescription.builder().datasetChecksum(" ").build()),
+                Arguments.of(TaskDescription.builder().dealParams(null).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().build()).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().bulkCid(null).build()).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().bulkCid("").build()).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().bulkCid(" ").build()).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().iexecInputFiles(null).build()).build()),
+                Arguments.of(TaskDescription.builder().dealParams(DealParams.builder().iexecInputFiles(List.of()).build()).build())
+        );
     }
     // endregion
 }

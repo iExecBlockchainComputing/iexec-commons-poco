@@ -47,6 +47,7 @@ public class TaskDescription {
     String datasetChecksum;
 
     // deal
+    String chainDealId;
     String appAddress;
     String appOwner;
     BigInteger appPrice;
@@ -87,10 +88,10 @@ public class TaskDescription {
      * non-empty values, false otherwise.
      */
     public boolean containsDataset() {
-        return !StringUtils.isEmpty(datasetAddress) &&
+        return !StringUtils.isBlank(datasetAddress) &&
                 !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS) &&
-                !StringUtils.isEmpty(datasetUri) &&
-                !StringUtils.isEmpty(datasetChecksum);
+                !StringUtils.isBlank(datasetUri) &&
+                !StringUtils.isBlank(datasetChecksum);
     }
 
     /**
@@ -117,6 +118,15 @@ public class TaskDescription {
     }
 
     /**
+     * Returns whether the request is for a bulk operation or not.
+     *
+     * @return {@literal true} for a bulk operation, {@literal false} otherwise
+     */
+    public boolean isBulkRequest() {
+        return dealParams != null && !StringUtils.isBlank(dealParams.getBulkCid());
+    }
+
+    /**
      * A task is eligible to the Contribute And Finalize flow
      * if it matches the following conditions:
      * <ul>
@@ -129,6 +139,15 @@ public class TaskDescription {
      */
     public boolean isEligibleToContributeAndFinalize() {
         return isTeeTask && BigInteger.ONE.equals(trust);
+    }
+
+    /**
+     * Returns whether pre-compute stage must be executed to retrieve data
+     *
+     * @return {@literal true} if pre-compute has to be executed, {@literal false}
+     */
+    public boolean requiresPreCompute() {
+        return containsDataset() || containsInputFiles() || isBulkRequest();
     }
 
     /**
@@ -159,6 +178,7 @@ public class TaskDescription {
                 .datasetUri(datasetUri)
                 .datasetChecksum(datasetChecksum)
                 // deal
+                .chainDealId(chainDeal.getChainDealId())
                 .appAddress(chainDeal.getDappPointer())
                 .appOwner(chainDeal.getDappOwner())
                 .appPrice(chainDeal.getDappPrice())
