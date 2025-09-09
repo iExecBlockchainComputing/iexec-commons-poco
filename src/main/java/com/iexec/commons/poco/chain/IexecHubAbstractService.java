@@ -30,6 +30,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
@@ -41,8 +42,6 @@ import java.util.Optional;
 import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
-import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH;
-
 
 /*
  * Contracts (located at *.contract.generated) which are used in this service are generated from:
@@ -52,13 +51,15 @@ import static org.web3j.tx.TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HA
 @Slf4j
 public abstract class IexecHubAbstractService {
 
+    public static final int POLLING_ATTEMPTS_PER_TX_HASH = 12;
     public static final int NB_BLOCKS_TO_WAIT_PER_RETRY = 6;
     public static final int MAX_RETRIES = 3;
 
     protected final Credentials credentials;
     private final String iexecHubAddress;
-    private final RawTransactionManager txManager;
-    protected IexecHubContract iexecHubContract;
+    protected final RawTransactionManager txManager;
+    protected final PollingTransactionReceiptProcessor txReceiptProcessor;
+    protected final IexecHubContract iexecHubContract;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus = -1;
     private final long retryDelay;// ms
@@ -94,12 +95,17 @@ public abstract class IexecHubAbstractService {
         this.retryDelay = nbBlocksToWaitPerRetry * this.web3jAbstractService.getBlockTime().toMillis();
         this.maxRetries = maxRetries;
 
+        txReceiptProcessor = new PollingTransactionReceiptProcessor(
+                web3jAbstractService.getWeb3j(),
+                web3jAbstractService.getBlockTime().toMillis(),
+                POLLING_ATTEMPTS_PER_TX_HASH
+        );
+
         txManager = new RawTransactionManager(
                 web3jAbstractService.getWeb3j(),
                 credentials,
                 web3jAbstractService.getChainId(),
-                DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH,
-                web3jAbstractService.getBlockTime().toMillis()
+                txReceiptProcessor
         );
 
         iexecHubContract = getHubContract(web3jAbstractService.getContractGasProvider());
