@@ -46,12 +46,13 @@ class DealParamsTest {
 
     @Test
     void shouldReadArgsInJson() {
-        final DealParams params = DealParams.createFromString("{\"iexec_args\":\"" + ARGS + "\"}");
+        final DealParams params = DealParams.createFromString("{\"iexec_args\":\"" + ARGS + "\", \"bulk_cid\":\"cid\"}");
         assertThat(params.getIexecArgs()).isEqualTo(ARGS);
         assertThat(params.getIexecInputFiles()).isNotNull();
         assertThat(params.getIexecInputFiles()).isEmpty();
         assertThat(params.getIexecSecrets()).isNotNull();
         assertThat(params.getIexecSecrets()).isEmpty();
+        assertThat(params.getBulkCid()).isEqualTo("cid");
     }
 
     @Test

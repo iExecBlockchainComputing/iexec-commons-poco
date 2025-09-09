@@ -112,6 +112,10 @@ public class DealParams {
     @JsonProperty("iexec_secrets")
     Map<String, String> iexecSecrets = Map.of();
 
+    @Builder.Default
+    @JsonProperty("bulk_cid")
+    String bulkCid = "";
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class DealParamsBuilder {
     }
@@ -129,7 +133,7 @@ public class DealParams {
         try {
             return new ObjectMapper().readValue(paramString, DealParams.class);
         } catch (IOException e) {
-            log.warn("Could not deserialize arguments to DealParams [string:{}]", paramString);
+            log.warn("Could not deserialize arguments to DealParams [string:{}]", paramString, e);
             //the requester want to execute one task with the whole string
             return DealParams.builder()
                     .iexecArgs(paramString)
