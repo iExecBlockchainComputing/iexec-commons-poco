@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.1.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.0.0...v5.1.0) (2025-09-09)
+
+
+### Features
+
+* add bulk cid to DealParams and chainDealId to TaskDescription ([#144](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/144)) ([588114c](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/588114cb82d28918c1ca1a3ffb88f7d4380aff9c))
+* add PollingTransactionReceiptProcessor as a protected field in IexecHubAbstractService ([#142](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/142)) ([6157056](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/6157056d73fbbb6ceda883b16f234c9ef3aeed2d))
+
 ## [[5.0.0]](https://github.com/iExecBlockchainComputing/iexec-commons-poco/releases/tag/v5.0.0) 2025-03-27
 
 ### New Features
