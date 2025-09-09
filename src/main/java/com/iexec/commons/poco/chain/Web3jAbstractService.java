@@ -16,7 +16,6 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.encoding.PoCoDataEncoder;
 import com.iexec.commons.poco.utils.WaitUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -27,6 +26,8 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.gas.DynamicGasProvider;
+import org.web3j.tx.gas.PriorityGasProvider;
 import org.web3j.utils.Async;
 
 import java.io.IOException;
@@ -93,7 +94,7 @@ public abstract class Web3jAbstractService {
         this.gasPriceCap = gasPriceCap;
         this.isSidechain = isSidechain;
         this.web3j = Web3j.build(new HttpService(chainNodeAddress), this.blockTime.toMillis(), Async.defaultExecutorService());
-        this.contractGasProvider = getWritingContractGasProvider();
+        this.contractGasProvider = new DynamicGasProvider(web3j, PriorityGasProvider.Priority.CUSTOM, BigDecimal.valueOf(gasPriceMultiplier));
     }
 
     @PostConstruct
@@ -269,31 +270,6 @@ public abstract class Web3jAbstractService {
      */
     public BigInteger getUserGasPrice() {
         return getUserGasPrice(gasPriceMultiplier, gasPriceCap);
-    }
-
-    private ContractGasProvider getWritingContractGasProvider() {
-        return new ContractGasProvider() {
-
-            @Override
-            public BigInteger getGasPrice(String s) {
-                return getUserGasPrice(gasPriceMultiplier, gasPriceCap);
-            }
-
-            @Override
-            public BigInteger getGasPrice() {
-                return getUserGasPrice(gasPriceMultiplier, gasPriceCap);
-            }
-
-            @Override
-            public BigInteger getGasLimit(String functionName) {
-                return PoCoDataEncoder.getGasLimitForFunction(functionName);
-            }
-
-            @Override
-            public BigInteger getGasLimit() {
-                return BigInteger.valueOf(GAS_LIMIT_CAP);
-            }
-        };
     }
 
     /**
