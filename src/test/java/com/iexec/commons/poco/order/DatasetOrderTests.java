@@ -85,7 +85,8 @@ class DatasetOrderTests {
     @Test
     void shouldSignDatasetOrder() throws Exception {
         final int chainId = 133;
-        final SignerService signer = new SignerService(null, chainId, "whatever", "./src/test/resources/wallet.json");
+        final String walletPath = getClass().getClassLoader().getResource("wallet.json").getPath();
+        final SignerService signer = new SignerService(null, chainId, "whatever", walletPath);
         final DatasetOrder datasetOrder = DatasetOrder.builder()
                 .dataset("0x2550E5B60f48742aBce2275F34417e7cBf5AcA86")
                 .datasetprice(BigInteger.valueOf(0))

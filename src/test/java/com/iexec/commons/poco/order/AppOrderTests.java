@@ -86,7 +86,8 @@ class AppOrderTests {
     @Test
     void shouldSignAppOrder() throws Exception {
         final int chainId = 133;
-        final SignerService signer = new SignerService(null, chainId, "whatever", "./src/test/resources/wallet.json");
+        final String walletPath = getClass().getClassLoader().getResource("wallet.json").getPath();
+        final SignerService signer = new SignerService(null, chainId, "whatever", walletPath);
         final AppOrder appOrder = AppOrder.builder()
                 .app("0x2EbD509d777B187E8394566bA6ec093B9dd73DF1")
                 .appprice(BigInteger.ZERO)

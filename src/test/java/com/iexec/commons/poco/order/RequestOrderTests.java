@@ -103,7 +103,8 @@ class RequestOrderTests {
     @Test
     void shouldSignRequestOrder() throws Exception {
         final int chainId = 133;
-        final SignerService signer = new SignerService(null, chainId, "whatever", "./src/test/resources/wallet.json");
+        final String walletPath = getClass().getClassLoader().getResource("wallet.json").getPath();
+        final SignerService signer = new SignerService(null, chainId, "whatever", walletPath);
         final RequestOrder requestOrder = RequestOrder.builder()
                 .app("0x6709CAe77CDa2cbA8Cb90A4F5a4eFfb5c8Fe8367")
                 .appmaxprice(BigInteger.ZERO)

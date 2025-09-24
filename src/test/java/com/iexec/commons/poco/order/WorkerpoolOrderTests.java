@@ -90,7 +90,8 @@ class WorkerpoolOrderTests {
     @Test
     void shouldSignWorkerpoolOrder() throws Exception {
         final int chainId = 133;
-        final SignerService signer = new SignerService(null, chainId, "whatever", "./src/test/resources/wallet.json");
+        final String walletPath = getClass().getClassLoader().getResource("wallet.json").getPath();
+        final SignerService signer = new SignerService(null, chainId, "whatever", walletPath);
         final WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
                 .workerpool("0x53Ef1328a96E40E125bca15b9a4da045C5e63E1A")
                 .workerpoolprice(BigInteger.ZERO)
