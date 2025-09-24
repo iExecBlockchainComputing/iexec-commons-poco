@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 @EqualsAndHashCode(callSuper = true)
 @JsonDeserialize(builder = AppOrder.AppOrderBuilder.class)
 public class AppOrder extends Order {
+
+    private static final String EIP712_TYPE = "AppOrder(address app,uint256 appprice,uint256 volume,bytes32 tag,address datasetrestrict,address workerpoolrestrict,address requesterrestrict,bytes32 salt)";
 
     String app;
     BigInteger appprice;
@@ -77,12 +79,11 @@ public class AppOrder extends Order {
 
     // region EIP-712
     public String computeMessageHash() {
-        final String type = "AppOrder(address app,uint256 appprice,uint256 volume,bytes32 tag,address datasetrestrict,address workerpoolrestrict,address requesterrestrict,bytes32 salt)";
-        final String[] encodedValues = Stream.of(type, app, appprice, volume, tag, datasetrestrict, workerpoolrestrict, requesterrestrict, salt)
+        final String[] encodedValues = Stream.of(EIP712_TYPE, app, appprice, volume, tag, datasetrestrict, workerpoolrestrict, requesterrestrict, salt)
                 .map(EIP712Utils::encodeData)
                 .toArray(String[]::new);
         if (log.isDebugEnabled()) {
-            log.debug("{}", type);
+            log.debug("{}", EIP712_TYPE);
             for (String value : encodedValues) {
                 log.debug("{}", value);
             }

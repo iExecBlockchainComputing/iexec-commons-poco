@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 @EqualsAndHashCode(callSuper = true)
 @JsonDeserialize(builder = RequestOrder.RequestOrderBuilder.class)
 public class RequestOrder extends Order {
+
+    private static final String EIP712_TYPE = "RequestOrder(address app,uint256 appmaxprice,address dataset,uint256 datasetmaxprice,address workerpool,uint256 workerpoolmaxprice,address requester,uint256 volume,bytes32 tag,uint256 category,uint256 trust,address beneficiary,address callback,string params,bytes32 salt)";
 
     String app;
     BigInteger appmaxprice;
@@ -99,12 +101,11 @@ public class RequestOrder extends Order {
 
     // region EIP-712
     public String computeMessageHash() {
-        final String type = "RequestOrder(address app,uint256 appmaxprice,address dataset,uint256 datasetmaxprice,address workerpool,uint256 workerpoolmaxprice,address requester,uint256 volume,bytes32 tag,uint256 category,uint256 trust,address beneficiary,address callback,string params,bytes32 salt)";
-        final String[] encodedValues = Stream.of(type, app, appmaxprice, dataset, datasetmaxprice, workerpool, workerpoolmaxprice, requester, volume, tag, category, trust, beneficiary, callback, params, salt)
+        final String[] encodedValues = Stream.of(EIP712_TYPE, app, appmaxprice, dataset, datasetmaxprice, workerpool, workerpoolmaxprice, requester, volume, tag, category, trust, beneficiary, callback, params, salt)
                 .map(EIP712Utils::encodeData)
                 .toArray(String[]::new);
         if (log.isDebugEnabled()) {
-            log.debug("{}", type);
+            log.debug("{}", EIP712_TYPE);
             for (String value : encodedValues) {
                 log.debug("{}", value);
             }
