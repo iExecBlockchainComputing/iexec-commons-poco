@@ -22,6 +22,7 @@ import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
+import lombok.Getter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.web3j.crypto.Hash;
 
@@ -30,8 +31,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static com.iexec.commons.poco.itest.IexecHubTestService.GAS_PRICE;
-import static com.iexec.commons.poco.itest.IexecHubTestService.IEXEC_HUB_ADDRESS;
+import static com.iexec.commons.poco.itest.IexecHubTestService.*;
 
 public class OrdersService {
 
@@ -39,8 +39,8 @@ public class OrdersService {
     static final String DATASET_NAME = "my-dataset";
     static final String WORKERPOOL_NAME = "my-workerpool";
 
-    private static final long CHAIN_ID = 65535L;
 
+    @Getter
     private final EIP712Domain domain;
     private final SignerService signerService;
 

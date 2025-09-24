@@ -577,6 +577,19 @@ public abstract class IexecHubAbstractService {
         return "";
     }
 
+    /**
+     * Read on-chain the consumption level of an order from its EIP-712 hash
+     *
+     * @param typedHash The order EIP-712 hash whose consumption level is queried
+     * @return The consumed value which is less or equal to the order volume. It will be {@literal BigInteger.ZERO} if the
+     * hash is not present on-chain and has never been matched in a deal.
+     * @throws IOException on communication error with the blockchain network
+     */
+    public BigInteger viewConsumed(final String typedHash) throws IOException {
+        return Numeric.toBigInt(
+                txManager.sendCall(iexecHubAddress, VIEW_CONSUMED_SELECTOR + Numeric.cleanHexPrefix(typedHash), DefaultBlockParameterName.LATEST));
+    }
+
     // endregion
 
     // region Purge
