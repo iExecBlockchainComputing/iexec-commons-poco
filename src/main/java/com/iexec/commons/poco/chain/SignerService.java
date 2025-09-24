@@ -131,7 +131,7 @@ public class SignerService {
      * Hashes and signs structured type data following EIP-712
      *
      * @param typedData structured data implementing {@link EIP712TypedData} to hash and sign
-     * @param domain    target EIP712Domain describing the target for which the data is hashed and signed
+     * @param domain    EIP712 domain describing the target for which the data is hashed and signed
      * @return a valid signature
      * @see <a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712</a>
      */
