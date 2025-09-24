@@ -150,7 +150,16 @@ class MatchOrdersTests {
         assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
                 .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
 
+        // orders consumption
+        assertThat(iexecHubService.viewConsumed(signedAppOrder.computeHash(ordersService.getDomain()))).isEqualTo(BigInteger.ONE);
+        assertThat(iexecHubService.viewConsumed(signedDatasetOrder.computeHash(ordersService.getDomain()))).isEqualTo(BigInteger.ONE);
+        assertThat(iexecHubService.viewConsumed(signedWorkerpoolOrder.computeHash(ordersService.getDomain()))).isEqualTo(BigInteger.ONE);
+        assertThat(iexecHubService.viewConsumed(signedRequestOrder.computeHash(ordersService.getDomain()))).isEqualTo(BigInteger.ONE);
+
         // estimate gas revert
+        // 0x694578656356352d6d617463684f72646572732d30783630 is hex string corresponding to the 'iExecV5-matchOrders-0x60' string
+        // The estimateGas calls tells us that not enough volumes are available across the 4 orders
+        // https://github.com/iExecBlockchainComputing/PoCo/blob/v6.0.0/contracts/facets/IexecPoco1Facet.sol#L311
         assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("Reverted 0x694578656356352d6d617463684f72646572732d30783630");
