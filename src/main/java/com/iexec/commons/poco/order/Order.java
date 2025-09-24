@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,18 @@
 package com.iexec.commons.poco.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.iexec.commons.poco.eip712.EIP712TypedData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
 
+@Slf4j
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class Order {
+public abstract class Order implements EIP712TypedData {
 
     protected final BigInteger volume;
     protected final String tag;

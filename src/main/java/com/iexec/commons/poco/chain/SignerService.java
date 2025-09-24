@@ -16,7 +16,10 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.eip712.EIP712Entity;
+import com.iexec.commons.poco.eip712.EIP712TypedData;
+import com.iexec.commons.poco.order.Order;
 import com.iexec.commons.poco.security.Signature;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.EthAddress;
@@ -111,6 +114,10 @@ public class SignerService {
         return SignatureUtils.signMessageHashAndGetSignature(messageHash, credentials.getEcKeyPair());
     }
 
+    /**
+     * @deprecated use signTypedDataForDomain instead
+     */
+    @Deprecated(forRemoval = true)
     public String signEIP712Entity(EIP712Entity<?> eip712Entity) {
         final String signature = eip712Entity.signMessage(credentials.getEcKeyPair());
         if (StringUtils.isEmpty(signature)) {
@@ -118,6 +125,23 @@ public class SignerService {
             return null;
         }
         return signature;
+    }
+
+    /**
+     * Hashes and signs structured type data following EIP-712
+     *
+     * @param typedData structured data implementing {@link EIP712TypedData} to hash and sign
+     * @param domain    EIP712 domain describing the target for which the data is hashed and signed
+     * @return a valid signature
+     * @see <a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712</a>
+     */
+    public String signTypedDataForDomain(final EIP712TypedData typedData, final EIP712Domain domain) {
+        return typedData.sign(credentials.getEcKeyPair(), domain);
+    }
+
+    public Order signOrderForDomain(final Order order, final EIP712Domain domain) {
+        final String sig = signTypedDataForDomain(order, domain);
+        return order.withSignature(sig);
     }
 
     /**

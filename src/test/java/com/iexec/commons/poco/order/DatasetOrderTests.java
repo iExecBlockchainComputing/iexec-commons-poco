@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.iexec.commons.poco.order;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Assertions;
@@ -78,6 +80,26 @@ class DatasetOrderTests {
                         + ", requesterrestrict=0x0000000000000000000000000000000000000000"
                         + ", salt=" + datasetOrder.getSalt() + ", sign=0x0}"
         );
+    }
+
+    @Test
+    void shouldSignDatasetOrder() throws Exception {
+        final int chainId = 133;
+        final String walletPath = getClass().getClassLoader().getResource("wallet.json").getPath();
+        final SignerService signer = new SignerService(null, chainId, "whatever", walletPath);
+        final DatasetOrder datasetOrder = DatasetOrder.builder()
+                .dataset("0x2550E5B60f48742aBce2275F34417e7cBf5AcA86")
+                .datasetprice(BigInteger.valueOf(0))
+                .volume(BigInteger.valueOf(1000000))
+                .tag("0x0000000000000000000000000000000000000000000000000000000000000001")
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt("0xc49d07f99c47096900653b6ade4ccde4c52f773a5ad68f1da0a47c993cad4595")
+                .build();
+        final EIP712Domain domain = new EIP712Domain(chainId, "0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f");
+        final DatasetOrder signedOrder = (DatasetOrder) signer.signOrderForDomain(datasetOrder, domain);
+        assertThat(signedOrder.getSign()).isEqualTo("0x94661cab25380e7a6e1c20762988f6f854c5123a17ad27c65580d7c3edcfa2025a9d255c679c4cf7d489560917c17d3af3da83737b3722824918d39aecfedf711c");
     }
 
 }

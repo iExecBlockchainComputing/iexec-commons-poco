@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.iexec.commons.poco.order;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
@@ -96,6 +98,33 @@ class RequestOrderTests {
                         + ", callback=0x0000000000000000000000000000000000000000, params=null"
                         + ", salt=" + requestOrder.getSalt() + ", sign=0x0}"
         );
+    }
+
+    @Test
+    void shouldSignRequestOrder() throws Exception {
+        final int chainId = 133;
+        final String walletPath = getClass().getClassLoader().getResource("wallet.json").getPath();
+        final SignerService signer = new SignerService(null, chainId, "whatever", walletPath);
+        final RequestOrder requestOrder = RequestOrder.builder()
+                .app("0x6709CAe77CDa2cbA8Cb90A4F5a4eFfb5c8Fe8367")
+                .appmaxprice(BigInteger.ZERO)
+                .dataset(BytesUtils.EMPTY_ADDRESS)
+                .datasetmaxprice(BigInteger.ZERO)
+                .workerpool("0x506fA5EaCa52B5d2F133452a45FFA68aD1CfB3C5")
+                .workerpoolmaxprice(BigInteger.ZERO)
+                .requester("0x1ec09e1782a43a770d54e813379c730e0b29ad4b")
+                .volume(BigInteger.ONE)
+                .tag(BytesUtils.toByte32HexString(0x1)) // any tag here
+                .category(BigInteger.ZERO)
+                .trust(BigInteger.ZERO)
+                .beneficiary(BytesUtils.EMPTY_ADDRESS)
+                .callback(BytesUtils.EMPTY_ADDRESS)
+                .params("{\"iexec_tee_post_compute_fingerprint\":\"76bfdee97e692b729e989694f3a566cf0e1de95fc456ff5ee88c75b1cb865e33|1eb627c1c94bbca03178b099b13fb4d1|13076027fc67accba753a3ed2edf03227dfd013b450d68833a5589ec44132100\",\"iexec_tee_post_compute_image\":\"iexechub/tee-worker-post-compute:1.0.0\",\"iexec_result_storage_provider\":\"ipfs\",\"iexec_result_storage_proxy\":\"https://result.viviani.iex.ec\",\"iexec_result_encryption\":false,\"iexec_input_files\":[],\"iexec_args\":\"Alice\"}")
+                .salt("0xee5c64cd59eaa084f59dbaa8f20b87260c4d6ac35c83214da657681bfe4e7632")
+                .build();
+        final EIP712Domain domain = new EIP712Domain(chainId, "0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f");
+        final RequestOrder signedOrder = (RequestOrder) signer.signOrderForDomain(requestOrder, domain);
+        assertThat(signedOrder.getSign()).isEqualTo("0x611511fa5169dff40f7b4c0013e9f149e79dfddacd80a19852a1e9b42294eaef4329367f01eb48930f990a418befed0c5634e493809f2e9a6a60727137964df51c");
     }
 
 }

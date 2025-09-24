@@ -19,10 +19,6 @@ package com.iexec.commons.poco.itest;
 import com.iexec.commons.poco.chain.DealParams;
 import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.eip712.EIP712Domain;
-import com.iexec.commons.poco.eip712.entity.EIP712AppOrder;
-import com.iexec.commons.poco.eip712.entity.EIP712DatasetOrder;
-import com.iexec.commons.poco.eip712.entity.EIP712RequestOrder;
-import com.iexec.commons.poco.eip712.entity.EIP712WorkerpoolOrder;
 import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
@@ -64,8 +60,7 @@ public class OrdersService {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712AppOrder(domain, appOrder));
-        return appOrder.withSignature(sig);
+        return (AppOrder) signerService.signOrderForDomain(appOrder, domain);
     }
 
     public DatasetOrder buildSignedDatasetOrder(String datasetAddress) {
@@ -79,8 +74,7 @@ public class OrdersService {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712DatasetOrder(domain, datasetOrder));
-        return datasetOrder.withSignature(sig);
+        return (DatasetOrder) signerService.signOrderForDomain(datasetOrder, domain);
     }
 
     public WorkerpoolOrder buildSignedWorkerpoolOrder(String workerpoolAddress, BigInteger trust) {
@@ -96,8 +90,7 @@ public class OrdersService {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712WorkerpoolOrder(domain, workerpoolOrder));
-        return workerpoolOrder.withSignature(sig);
+        return (WorkerpoolOrder) signerService.signOrderForDomain(workerpoolOrder, domain);
     }
 
     public RequestOrder buildSignedRequestOrder(AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder, BigInteger trust) {
@@ -128,8 +121,7 @@ public class OrdersService {
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712RequestOrder(domain, requestOrder));
-        return requestOrder.withSignature(sig);
+        return (RequestOrder) signerService.signOrderForDomain(requestOrder, domain);
     }
 
     public DealOrders buildAllSignedOrders(final String appAddress, final String datasetAddress, final String workerpoolAddress, final BigInteger trust) {
