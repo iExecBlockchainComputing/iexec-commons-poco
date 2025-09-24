@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.Getter;
 
-@Getter
 public enum OrderTag {
 
     STANDARD(BytesUtils.EMPTY_HEX_STRING_32),
     TEE_SCONE(TeeUtils.TEE_SCONE_ONLY_TAG),
-    TEE_GRAMINE(TeeUtils.TEE_GRAMINE_ONLY_TAG);
+    TEE_GRAMINE(TeeUtils.TEE_GRAMINE_ONLY_TAG),
+    TEE_TDX(TeeUtils.TEE_TDX_ONLY_TAG);
 
+    @Getter
     private final String value;
 
     OrderTag(String value) {
