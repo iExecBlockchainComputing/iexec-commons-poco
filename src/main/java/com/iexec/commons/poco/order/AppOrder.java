@@ -19,13 +19,18 @@ package com.iexec.commons.poco.order;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.eip712.EIP712Utils;
+import com.iexec.commons.poco.utils.HashUtils;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
+@Slf4j
 @Value
 @EqualsAndHashCode(callSuper = true)
 @JsonDeserialize(builder = AppOrder.AppOrderBuilder.class)
@@ -70,6 +75,26 @@ public class AppOrder extends Order {
         );
     }
 
+    // region EIP-712
+    public String computeMessageHash() {
+        final String type = "AppOrder(address app,uint256 appprice,uint256 volume,bytes32 tag,address datasetrestrict,address workerpoolrestrict,address requesterrestrict,bytes32 salt)";
+        final String[] encodedValues = Stream.of(type, app, appprice, volume, tag, datasetrestrict, workerpoolrestrict, requesterrestrict, salt)
+                .map(EIP712Utils::encodeData)
+                .toArray(String[]::new);
+        if (log.isDebugEnabled()) {
+            log.debug("{}", type);
+            for (String value : encodedValues) {
+                log.debug("{}", value);
+            }
+        }
+        return HashUtils.concatenateAndHash(encodedValues);
+    }
+    // endregion
+
+    /**
+     * @deprecated no more used
+     */
+    @Deprecated(forRemoval = true)
     public IexecHubContract.AppOrder toHubContract() {
         return new IexecHubContract.AppOrder(
                 this.app,

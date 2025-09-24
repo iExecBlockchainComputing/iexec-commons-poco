@@ -27,6 +27,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * @deprecated implements {@code EIP712TypedData} interface instead
+ */
+@Deprecated(forRemoval = true)
 @Slf4j
 @NoArgsConstructor
 public abstract class EIP712Entity<M> implements EIP712<M> {

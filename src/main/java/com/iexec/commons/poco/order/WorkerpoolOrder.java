@@ -19,17 +19,20 @@ package com.iexec.commons.poco.order;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.eip712.EIP712Utils;
+import com.iexec.commons.poco.utils.HashUtils;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
+@Slf4j
 @Value
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @JsonDeserialize(builder = WorkerpoolOrder.WorkerpoolOrderBuilder.class)
 public class WorkerpoolOrder extends Order {
 
@@ -78,6 +81,26 @@ public class WorkerpoolOrder extends Order {
         );
     }
 
+    // region EIP-712
+    public String computeMessageHash() {
+        final String type = "WorkerpoolOrder(address workerpool,uint256 workerpoolprice,uint256 volume,bytes32 tag,uint256 category,uint256 trust,address apprestrict,address datasetrestrict,address requesterrestrict,bytes32 salt)";
+        final String[] encodedValues = Stream.of(type, workerpool, workerpoolprice, volume, tag, category, trust, apprestrict, datasetrestrict, requesterrestrict, salt)
+                .map(EIP712Utils::encodeData)
+                .toArray(String[]::new);
+        if (log.isDebugEnabled()) {
+            log.debug("{}", type);
+            for (String value : encodedValues) {
+                log.debug("{}", value);
+            }
+        }
+        return HashUtils.concatenateAndHash(encodedValues);
+    }
+    // endregion
+
+    /**
+     * @deprecated no more used
+     */
+    @Deprecated(forRemoval = true)
     public IexecHubContract.WorkerpoolOrder toHubContract() {
         return new IexecHubContract.WorkerpoolOrder(
                 this.workerpool,
