@@ -50,6 +50,8 @@ public class AccessorsEncoder {
      */
     public static final String OWNER_SELECTOR = "0x8da5cb5b";
 
+    public static final String VIEW_CONSUMED_SELECTOR = "0x4b2bec8c";
+
     // app
     public static final String M_APPCHECKSUM_SELECTOR = "0x84aaf12e";
     public static final String M_APPMRENCLAVE_SELECTOR = "0xe30d26a8";
