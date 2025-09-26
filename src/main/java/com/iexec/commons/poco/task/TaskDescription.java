@@ -46,8 +46,7 @@ public class TaskDescription {
     String datasetUri;
     String datasetChecksum;
 
-    // deal
-    String chainDealId;
+    // Deal in IexecLibCore_v5.sol
     String appAddress;
     String appOwner;
     BigInteger appPrice;
@@ -59,20 +58,24 @@ public class TaskDescription {
     BigInteger workerpoolPrice;
     BigInteger trust;
     BigInteger category;
-    boolean isTeeTask;
-    TeeFramework teeFramework;
+    String tag;
     String requester;
     String beneficiary;
     String callback;
     @Builder.Default
     DealParams dealParams = DealParams.builder().build();
     long startTime;
-    int botSize;
     int botFirstIndex;
+    int botSize;
 
-    // task
-    int botIndex;
-    long maxExecutionTime; // timeref ?
+    // TEE from tag
+    boolean isTeeTask;
+    TeeFramework teeFramework;
+
+    // Task in IexecLibCore_v5.sol
+    String chainDealId;
+    int botIndex; // idx
+    long maxExecutionTime; // timeref in PoCo
     long contributionDeadline;
     long finalDeadline;
 
@@ -178,7 +181,6 @@ public class TaskDescription {
                 .datasetUri(datasetUri)
                 .datasetChecksum(datasetChecksum)
                 // deal
-                .chainDealId(chainDeal.getChainDealId())
                 .appAddress(chainDeal.getDappPointer())
                 .appOwner(chainDeal.getDappOwner())
                 .appPrice(chainDeal.getDappPrice())
@@ -190,16 +192,19 @@ public class TaskDescription {
                 .workerpoolPrice(chainDeal.getPoolPrice())
                 .trust(chainDeal.getTrust())
                 .category(chainDeal.getCategory())
-                .isTeeTask(TeeUtils.isTeeTag(tag))
-                .teeFramework(TeeUtils.getTeeFramework(tag))
+                .tag(tag)
                 .requester(chainDeal.getRequester())
                 .beneficiary(chainDeal.getBeneficiary())
                 .callback(chainDeal.getCallback())
                 .dealParams(chainDeal.getParams())
                 .startTime(chainDeal.getStartTime().longValue())
-                .botSize(chainDeal.getBotSize().intValue())
                 .botFirstIndex(chainDeal.getBotFirst().intValue())
+                .botSize(chainDeal.getBotSize().intValue())
+                // tee
+                .isTeeTask(TeeUtils.isTeeTag(tag))
+                .teeFramework(TeeUtils.getTeeFramework(tag))
                 // task
+                .chainDealId(chainDeal.getChainDealId())
                 .botIndex(chainTask.getIdx())
                 .maxExecutionTime(chainDeal.getChainCategory().getMaxExecutionTime()) // https://github.com/iExecBlockchainComputing/PoCo/blob/v5/contracts/modules/delegates/IexecPoco2Delegate.sol#L111
                 .contributionDeadline(chainTask.getContributionDeadline())

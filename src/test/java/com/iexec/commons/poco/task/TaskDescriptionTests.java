@@ -156,6 +156,7 @@ class TaskDescriptionTests {
                 .workerpoolPrice(WORKERPOOL_PRICE)
                 .trust(TRUST)
                 .category(CATEGORY)
+                .tag(TeeUtils.TEE_SCONE_ONLY_TAG)
                 .isTeeTask(IS_TEE_TASK)
                 .teeFramework(TEE_FRAMEWORK)
                 .requester(REQUESTER)
