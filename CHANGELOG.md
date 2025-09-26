@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.2.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.1.0...v5.2.0) (2025-09-26)
+
+
+### Features
+
+* add new 0x9 tag for TDX TEE framework ([#148](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/148)) ([91566eb](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/91566eb2a31062861b2091866c9fa1fbbe2b6606))
+* add ordersDomain EIP712Domain field to IexecHubAbstractService ([#149](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/149)) ([003563f](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/003563fee358ee0abaa25a284cf340361ccc43be))
+* implement viewConsumed to see orders consumption level on-chain ([#147](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/147)) ([c65e59e](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/c65e59e4fe279826cfa399bdb351b8c5035514e4))
+* refactor EIP-712 implementation with a new interface and applies it to iExec orders ([#145](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/145)) ([c07cf70](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/c07cf703f8618de71afdf7df43af520216a6d2ec))
+
 ## [5.1.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.0.0...v5.1.0) (2025-09-09)
 
 
