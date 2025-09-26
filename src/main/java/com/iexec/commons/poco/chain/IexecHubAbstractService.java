@@ -17,10 +17,12 @@
 package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.MultiAddressHelper;
 import com.iexec.commons.poco.utils.Retryer;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -56,10 +58,12 @@ public abstract class IexecHubAbstractService {
     public static final int MAX_RETRIES = 3;
 
     protected final Credentials credentials;
-    private final String iexecHubAddress;
     protected final RawTransactionManager txManager;
     protected final PollingTransactionReceiptProcessor txReceiptProcessor;
     protected final IexecHubContract iexecHubContract;
+    protected final String iexecHubAddress;
+    @Getter
+    private final EIP712Domain ordersDomain;
     private final Web3jAbstractService web3jAbstractService;
     private long maxNbOfPeriodsForConsensus = -1;
     private final long retryDelay;// ms
@@ -109,6 +113,7 @@ public abstract class IexecHubAbstractService {
         );
 
         iexecHubContract = getHubContract(web3jAbstractService.getContractGasProvider());
+        ordersDomain = new EIP712Domain(web3jAbstractService.getChainId(), iexecHubAddress);
 
         log.info("Abstract IexecHubService initialized (iexec proxy address) [hubAddress:{}]",
                 iexecHubContract.getContractAddress());

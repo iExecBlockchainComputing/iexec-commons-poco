@@ -72,7 +72,7 @@ class ContributeRevealFinalizeTests {
         web3jService = new Web3jTestService(chainNodeAddress);
         iexecHubService = new IexecHubTestService(credentials, web3jService);
         signerService = new SignerService(web3jService.getWeb3j(), web3jService.getChainId(), credentials);
-        ordersService = new OrdersService(signerService);
+        ordersService = new OrdersService(iexecHubService.getOrdersDomain(), signerService);
     }
 
     @SneakyThrows

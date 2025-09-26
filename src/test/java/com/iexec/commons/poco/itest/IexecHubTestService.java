@@ -40,15 +40,14 @@ import static org.awaitility.Awaitility.await;
 public class IexecHubTestService extends IexecHubAbstractService {
     static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     static final BigInteger GAS_LIMIT = BigInteger.valueOf(1_000_000L);
-    static final long CHAIN_ID = 65535L;
     static final String IEXEC_HUB_ADDRESS = "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7";
 
     static final String ASSET_MULTI_ADDRESS = "multiAddress";
     static final String ASSET_CHECKSUM = Numeric.toHexStringNoPrefix(new byte[32]);
 
-    private static final String APP_REGISTRY_SELECTOR = "0x45b637a9";
-    private static final String DATASET_REGISTRY_SELECTOR = "0xb1b11d2c";
-    private static final String WORKERPOOL_REGISTRY_SELECTOR = "0x90a0f546";
+    static final String APP_REGISTRY_SELECTOR = "0x45b637a9";
+    static final String DATASET_REGISTRY_SELECTOR = "0xb1b11d2c";
+    static final String WORKERPOOL_REGISTRY_SELECTOR = "0x90a0f546";
 
     private final String ownerAddress;
     private final SignerService signerService;
