@@ -69,6 +69,10 @@ public class TaskDescription {
     int botSize;
 
     // TEE from tag
+    /**
+     * @deprecated use more specialized requiresSgx()/requiresTdx() instead
+     */
+    @Deprecated(forRemoval = true)
     boolean isTeeTask;
     TeeFramework teeFramework;
 
@@ -133,15 +137,14 @@ public class TaskDescription {
      * A task is eligible to the Contribute And Finalize flow
      * if it matches the following conditions:
      * <ul>
-     *     <li>It is a TEE task
-     *     <li>Its trust is 1
-     *     <li>It does not contain a callback - bug in the PoCo, should be fixed
+     * <li>Its trust is 1
+     * <li>It is a TEE task requiring a known SGX or TDX framework
      * </ul>
      *
      * @return {@literal true} if eligible, {@literal false} otherwise.
      */
     public boolean isEligibleToContributeAndFinalize() {
-        return isTeeTask && BigInteger.ONE.equals(trust);
+        return BigInteger.ONE.equals(trust) && (requiresSgx() || requiresTdx());
     }
 
     /**
@@ -151,6 +154,24 @@ public class TaskDescription {
      */
     public boolean requiresPreCompute() {
         return containsDataset() || containsInputFiles() || isBulkRequest();
+    }
+
+    /**
+     * Returns whether the SGX TEE framework is required or not
+     *
+     * @return {@literal true} if SGX is needed, {@literal false} otherwise
+     */
+    public boolean requiresSgx() {
+        return teeFramework == TeeFramework.SCONE || teeFramework == TeeFramework.GRAMINE;
+    }
+
+    /**
+     * Returns whether the TDX TEE framework is required or not
+     *
+     * @return {@literal true} if TDX is needed, {@literal false} otherwise
+     */
+    public boolean requiresTdx() {
+        return teeFramework == TeeFramework.TDX;
     }
 
     /**

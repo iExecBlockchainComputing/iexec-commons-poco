@@ -26,7 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.Collections;
@@ -344,37 +344,71 @@ class TaskDescriptionTests {
 
     // region isEligibleToContributeAndFinalize
     @ParameterizedTest
-    @ValueSource(strings = {"", CALLBACK})
-    void shouldBeEligibleToContributeAndFinalize(final String callback) {
+    @MethodSource("provideEligibleToContributeAndFinalizeParams")
+    void shouldBeEligibleToContributeAndFinalize(final String tag, final String callback) {
         final TaskDescription taskDescription = TaskDescription.builder()
-                .isTeeTask(true)
                 .trust(BigInteger.ONE)
+                .tag(tag)
                 .callback(callback)
+                .teeFramework(TeeUtils.getTeeFramework(tag))
                 .build();
 
         assertTrue(taskDescription.isEligibleToContributeAndFinalize());
     }
 
-    @Test
-    void shouldNotBeEligibleToContributeAndFinalizeSinceNotTee() {
+    static Stream<Arguments> provideEligibleToContributeAndFinalizeParams() {
+        return Stream.of(
+                Arguments.of(TeeUtils.TEE_SCONE_ONLY_TAG, ""),
+                Arguments.of(TeeUtils.TEE_SCONE_ONLY_TAG, CALLBACK),
+                Arguments.of(TeeUtils.TEE_GRAMINE_ONLY_TAG, ""),
+                Arguments.of(TeeUtils.TEE_GRAMINE_ONLY_TAG, CALLBACK),
+                Arguments.of(TeeUtils.TEE_TDX_ONLY_TAG, ""),
+                Arguments.of(TeeUtils.TEE_TDX_ONLY_TAG, CALLBACK)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideNotEligibleToContributeAndFinalizeTags")
+    void shouldNotBeEligibleToContributeAndFinalizeWithInvalidTag(final String tag) {
         final TaskDescription taskDescription = TaskDescription.builder()
-                .isTeeTask(false)
                 .trust(BigInteger.ONE)
+                .tag(tag)
                 .callback("")
+                .teeFramework(TeeUtils.getTeeFramework(tag))
                 .build();
 
         assertFalse(taskDescription.isEligibleToContributeAndFinalize());
     }
 
-    @Test
-    void shouldNotBeEligibleToContributeAndFinalizeSinceWrongTrust() {
+    static Stream<String> provideNotEligibleToContributeAndFinalizeTags() {
+        return Stream.of(
+                Numeric.toHexStringWithPrefixZeroPadded(BigInteger.valueOf(0x0), 32),
+                Numeric.toHexStringWithPrefixZeroPadded(BigInteger.valueOf(0x1), 32),
+                Numeric.toHexStringWithPrefixZeroPadded(BigInteger.valueOf(0x2), 32),
+                Numeric.toHexStringWithPrefixZeroPadded(BigInteger.valueOf(0x4), 32),
+                Numeric.toHexStringWithPrefixZeroPadded(BigInteger.valueOf(0x8), 32)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideEligibleToContributeAndFinalizeTags")
+    void shouldNotBeEligibleToContributeAndFinalizeSinceWrongTrust(final String tag) {
         final TaskDescription taskDescription = TaskDescription.builder()
-                .isTeeTask(true)
                 .trust(BigInteger.TEN)
+                .tag(tag)
                 .callback("")
+                .teeFramework(TeeUtils.getTeeFramework(tag))
                 .build();
 
         assertFalse(taskDescription.isEligibleToContributeAndFinalize());
+    }
+
+    static Stream<String> provideEligibleToContributeAndFinalizeTags() {
+        return Stream.of(
+                TeeUtils.TEE_SCONE_ONLY_TAG,
+                TeeUtils.TEE_GRAMINE_ONLY_TAG,
+                TeeUtils.TEE_TDX_ONLY_TAG
+        );
     }
     // endregion
 
