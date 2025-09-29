@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.2.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.1.0...v5.2.0) (2025-09-29)
+
+
+### Features
+
+* add new 0x9 tag for TDX TEE framework ([#148](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/148)) ([91566eb](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/91566eb2a31062861b2091866c9fa1fbbe2b6606))
+* add ordersDomain EIP712Domain field to IexecHubAbstractService ([#149](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/149)) ([003563f](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/003563fee358ee0abaa25a284cf340361ccc43be))
+* add tag field to TaskDescription ([#150](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/150)) ([4aface8](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/4aface829d235f803367ce14a3f972ff13a21ed8))
+* implement viewConsumed to see orders consumption level on-chain ([#147](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/147)) ([c65e59e](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/c65e59e4fe279826cfa399bdb351b8c5035514e4))
+* improve TaskDescription with SGX or TDX requirements instead of generic TEE ([#151](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/151)) ([5bffaf8](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/5bffaf87cdce9c242094f7866b2a3471eda60085))
+* refactor EIP-712 implementation with a new interface and applies it to iExec orders ([#145](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/145)) ([c07cf70](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/c07cf703f8618de71afdf7df43af520216a6d2ec))
+
 ## [5.1.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.0.0...v5.1.0) (2025-09-09)
 
 
