@@ -157,7 +157,7 @@ public class TaskDescription {
     }
 
     /**
-     * Returns if the SGX TEE framework is required
+     * Returns whether the SGX TEE framework is required or not
      *
      * @return {@literal true} if SGX is needed, {@literal false} otherwise
      */
@@ -166,9 +166,9 @@ public class TaskDescription {
     }
 
     /**
-     * Returns if the SGX TEE framework is required
+     * Returns whether the TDX TEE framework is required or not
      *
-     * @return {@literal true} if SGX is needed, {@literal false} otherwise
+     * @return {@literal true} if TDX is needed, {@literal false} otherwise
      */
     public boolean requiresTdx() {
         return teeFramework == TeeFramework.TDX;
