@@ -42,12 +42,16 @@ public class TeeUtils {
 
     /**
      * Check if hexTag asks for a known TEE runtime framework.
+     * <p>
+     * To avoid breaking change, this will only deal with SGX
      *
      * @param hexTag tag of the deal
      * @return true if a known TEE runtime framework is requested
+     * @deprecated for dedicated methods in {@code TaskDescription}
      */
+    @Deprecated(forRemoval = true)
     public static boolean isTeeTag(final String hexTag) {
-        return hasTeeSconeInTag(hexTag) || hasTeeGramineInTag(hexTag) || hasTeeTdxInTag(hexTag);
+        return hasTeeSconeInTag(hexTag) || hasTeeGramineInTag(hexTag);
     }
 
     /**

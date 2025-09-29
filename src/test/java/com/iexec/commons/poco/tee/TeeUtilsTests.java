@@ -44,7 +44,7 @@ class TeeUtilsTests {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {0x3, 0x5, 0x9, 0xf3, 0xf5, 0xf9})
+    @ValueSource(ints = {0x3, 0x5, 0xf3, 0xf5})
     void isTeeTag(int tag) {
         assertThat(TeeUtils.isTeeTag(toByte32HexString(tag))).isTrue();
     }
@@ -53,7 +53,7 @@ class TeeUtilsTests {
     @ValueSource(ints = {
             0b0000, 0b0001, 0b0010,
             0b0100, 0b0110, 0b0111,
-            0b1000, 0b1010, 0b1011,
+            0b1000, 0b1001, 0b1010, 0b1011,
             0b1100, 0b1101, 0b1110, 0b1111
     })
     void isNotTeeTag(int tag) {
