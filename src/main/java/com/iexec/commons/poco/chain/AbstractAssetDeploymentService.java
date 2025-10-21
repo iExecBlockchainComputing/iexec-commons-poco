@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
 
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toEthereumAddress;
+
 @Slf4j
 public abstract class AbstractAssetDeploymentService {
     private static final String ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED =
@@ -59,10 +61,5 @@ public abstract class AbstractAssetDeploymentService {
     public String submitAssetTxData(BigInteger nonce, BigInteger gasPrice, String assetTxData) throws IOException {
         Objects.requireNonNull(assetRegistryAddress, ASSET_REGISTRY_ADDRESS_INITIALIZATION_NEEDED);
         return signerService.signAndSendTransaction(nonce, gasPrice, assetRegistryAddress, assetTxData);
-    }
-
-    private String toEthereumAddress(String hexaString) {
-        return Numeric.toHexStringWithPrefixZeroPadded(
-                Numeric.toBigInt(hexaString), 40);
     }
 }

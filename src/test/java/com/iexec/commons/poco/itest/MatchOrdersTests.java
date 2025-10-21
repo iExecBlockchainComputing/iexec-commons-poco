@@ -18,13 +18,12 @@ package com.iexec.commons.poco.itest;
 
 import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.eip712.EIP712TypedData;
 import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
-import com.iexec.commons.poco.order.AppOrder;
-import com.iexec.commons.poco.order.DatasetOrder;
-import com.iexec.commons.poco.order.RequestOrder;
-import com.iexec.commons.poco.order.WorkerpoolOrder;
+import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -32,6 +31,8 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.crypto.exception.CipherException;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -40,9 +41,12 @@ import org.web3j.protocol.exceptions.JsonRpcError;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.iexec.commons.poco.encoding.MatchOrdersDataEncoder.encodeAssertDatasetDealCompatibility;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
@@ -55,6 +59,8 @@ import static org.awaitility.Awaitility.await;
 @Tag("itest")
 @Testcontainers
 class MatchOrdersTests {
+
+    private static final String CHAIN_DEAL_ID = "0xc9b8098ec186899ae95cb349edabab76e6185625d4de5c82595147a7df458202";
 
     private SignerService signerService;
     private IexecHubTestService iexecHubService;
@@ -83,34 +89,56 @@ class MatchOrdersTests {
     }
 
     @Test
-    void shouldMatchOrdersWithSignerService() throws IOException {
-        final String appName = "my-app";
-        final String datasetName = "my-dataset";
-        final String workerpoolName = "my-workerpool";
-        final String predictedAppAddress = iexecHubService.callCreateApp(appName);
-        final String predictedDatasetAddress = iexecHubService.callCreateDataset(datasetName);
-        final String predictedWorkerpoolAddress = iexecHubService.callCreateWorkerpool(workerpoolName);
-        BigInteger nonce = signerService.getNonce();
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, appName);
-        nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, datasetName);
-        nonce = nonce.add(BigInteger.ONE);
-        final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, workerpoolName);
+    void shouldFailAssertDatasetDealCompatibilityWhenBadlySignedWhenConsumed() throws IOException {
+        final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
+        final DatasetOrder datasetOrder = getValidOrderBuilder(deployedAddresses.get("dataset")).volume(BigInteger.ZERO).build();
+        final DatasetOrder signedDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(datasetOrder, iexecHubService.getOrdersDomain());
+        final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
+        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("Dataset order is revoked or fully consumed");
+    }
 
-        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(predictedAppAddress);
-        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(predictedDatasetAddress);
-        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(predictedWorkerpoolAddress, BigInteger.ONE);
+    @Test
+    void shouldFailAssertDatasetDealCompatibilityWhenBadlySigned() throws IOException, GeneralSecurityException {
+        final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
+        final DatasetOrder datasetOrder = getValidOrderBuilder(deployedAddresses.get("dataset")).build();
+        final SignerService otherSigner = new SignerService(null, web3jService.getChainId(), Credentials.create(Keys.createEcKeyPair()));
+        final DatasetOrder signedDatasetOrder = (DatasetOrder) otherSigner.signOrderForDomain(datasetOrder, iexecHubService.getOrdersDomain());
+        final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
+        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("Invalid dataset order signature");
+    }
+
+    @Test
+    void shouldFailAssertDatasetCompatibilityWhenDealNotFound() throws IOException {
+        final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"));
+        final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
+        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("Deal not found");
+    }
+
+    @Test
+    void shouldMatchOrdersWithDataset() throws IOException {
+        final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
+
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(deployedAddresses.get("app"));
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"));
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(deployedAddresses.get("workerpool"), BigInteger.ONE);
         final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
                 signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, BigInteger.ONE);
 
-        nonce = nonce.add(BigInteger.ONE);
+        final BigInteger nonce = signerService.getNonce();
         final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
         final String matchOrdersTxHash = signerService.signAndSendTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
 
         await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
-                .until(() -> web3jService.areTxMined(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash));
-        assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash, matchOrdersTxHash)).isTrue();
+                .until(() -> web3jService.areTxMined(matchOrdersTxHash));
+        assertThat(web3jService.areTxStatusOK(matchOrdersTxHash)).isTrue();
 
         final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
         assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
@@ -120,28 +148,8 @@ class MatchOrdersTests {
         assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
         assertThat(iexecHubService.getChainDealWithDetails(chainDealId)).isPresent();
 
-        assertThat(web3jService.getDeployedAssets(appTxHash, datasetTxHash, workerpoolTxHash))
-                .containsExactly(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress);
-
-        // Assets transactions and logs
-        for (final String txHash : List.of(appTxHash, datasetTxHash, workerpoolTxHash)) {
-            assertThat(web3jService.getTransactionByHash(txHash)).isNotNull();
-            assertThat(iexecHubService.fetchLogTopics(txHash)).isEqualTo(List.of("Transfer"));
-        }
-
-        // Assets deployment
-        assertThat(iexecHubService.isAppPresent(predictedAppAddress)).isTrue();
-        assertThat(iexecHubService.isAppPresent(predictedDatasetAddress)).isFalse();
-        assertThat(iexecHubService.isAppPresent(predictedWorkerpoolAddress)).isFalse();
-        assertThat(iexecHubService.isDatasetPresent(predictedAppAddress)).isFalse();
-        assertThat(iexecHubService.isDatasetPresent(predictedDatasetAddress)).isTrue();
-        assertThat(iexecHubService.isDatasetPresent(predictedWorkerpoolAddress)).isFalse();
-        assertThat(iexecHubService.isWorkerpoolPresent(predictedAppAddress)).isFalse();
-        assertThat(iexecHubService.isWorkerpoolPresent(predictedDatasetAddress)).isFalse();
-        assertThat(iexecHubService.isWorkerpoolPresent(predictedWorkerpoolAddress)).isTrue();
-
         // Assets ownership
-        for (final String predictedAssetAddress : List.of(predictedAppAddress, predictedDatasetAddress, predictedWorkerpoolAddress)) {
+        for (final String predictedAssetAddress : List.of(deployedAddresses.get("app"), deployedAddresses.get("dataset"), deployedAddresses.get("workerpool"))) {
             assertThat(iexecHubService.getOwner(predictedAssetAddress)).isEqualTo(signerService.getAddress());
         }
 
@@ -151,18 +159,108 @@ class MatchOrdersTests {
                 .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
 
         // orders consumption
-        assertThat(iexecHubService.viewConsumed(signedAppOrder.computeHash(iexecHubService.getOrdersDomain()))).isEqualTo(BigInteger.ONE);
-        assertThat(iexecHubService.viewConsumed(signedDatasetOrder.computeHash(iexecHubService.getOrdersDomain()))).isEqualTo(BigInteger.ONE);
-        assertThat(iexecHubService.viewConsumed(signedWorkerpoolOrder.computeHash(iexecHubService.getOrdersDomain()))).isEqualTo(BigInteger.ONE);
-        assertThat(iexecHubService.viewConsumed(signedRequestOrder.computeHash(iexecHubService.getOrdersDomain()))).isEqualTo(BigInteger.ONE);
+        for (final EIP712TypedData typedData : List.of(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder)) {
+            assertThat(iexecHubService.viewConsumed(typedData.computeHash(iexecHubService.getOrdersDomain()))).isOne();
+        }
 
-        // estimate gas revert
-        // 0x694578656356352d6d617463684f72646572732d30783630 is hex string corresponding to the 'iExecV5-matchOrders-0x60' string
-        // The estimateGas calls tells us that not enough volumes are available across the 4 orders
+        // estimate gas revert telling us that not enough volumes are available across the 4 orders
         // https://github.com/iExecBlockchainComputing/PoCo/blob/v6.0.0/contracts/facets/IexecPoco1Facet.sol#L311
         assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("Reverted 0x694578656356352d6d617463684f72646572732d30783630");
+                .hasMessage("iExecV5-matchOrders-0x60");
+
+        // assertDatasetDealCompatibility reverts for fully consumed dataset
+        final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, chainDealId);
+        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("Dataset order is revoked or fully consumed");
+        // assertDatasetDealCompatibility reverts if deal has a dataset
+        final DatasetOrder invalidDatasetOrder = getValidOrderBuilder(deployedAddresses.get("dataset")).build();
+        final DatasetOrder signedInvalidDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(invalidDatasetOrder, iexecHubService.getOrdersDomain());
+        final String txData = MatchOrdersDataEncoder.encodeAssertDatasetDealCompatibility(signedInvalidDatasetOrder, chainDealId);
+        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, txData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("Deal already has a dataset");
     }
+
+    @Test
+    void shouldMatchOrdersWithoutDataset() throws IOException {
+        final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
+
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(deployedAddresses.get("app"));
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(BytesUtils.EMPTY_ADDRESS);
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(deployedAddresses.get("workerpool"), BigInteger.ONE);
+        final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, BigInteger.ONE);
+
+        final BigInteger nonce = signerService.getNonce();
+        final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        final String matchOrdersTxHash = signerService.signAndSendTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, IEXEC_HUB_ADDRESS, matchOrdersTxData);
+
+        await().atMost(MINING_TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> web3jService.areTxMined(matchOrdersTxHash));
+        assertThat(web3jService.areTxStatusOK(matchOrdersTxHash)).isTrue();
+
+        final TransactionReceipt receipt = web3jService.getTransactionReceipt(matchOrdersTxHash);
+        assertThat(IexecHubContract.getOrdersMatchedEvents(receipt)).hasSize(1);
+
+        final byte[] dealid = IexecHubContract.getOrdersMatchedEvents(receipt).get(0).dealid;
+        final String chainDealId = BytesUtils.bytesToString(dealid);
+        assertThat(iexecHubService.getChainDeal(chainDealId)).isPresent();
+        assertThat(iexecHubService.getChainDealWithDetails(chainDealId)).isPresent();
+
+        // matchOrders transaction and logs
+        assertThat(web3jService.getTransactionByHash(matchOrdersTxHash)).isNotNull();
+        assertThat(iexecHubService.fetchLogTopics(matchOrdersTxHash))
+                .isEqualTo(List.of("Transfer", "Lock", "Transfer", "Lock", "SchedulerNotice", "OrdersMatched"));
+
+        // estimate gas revert telling us that not enough volumes are available across the 4 orders
+        // https://github.com/iExecBlockchainComputing/PoCo/blob/v6.0.0/contracts/facets/IexecPoco1Facet.sol#L311
+        assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("iExecV5-matchOrders-0x60");
+
+        // assertDatasetDealCompatibility revert when dataset not present
+        final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, chainDealId);
+        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+                .isInstanceOf(JsonRpcError.class)
+                .hasMessage("\"revert\"");
+
+        // assertDatasetDealCompatibility checks for a deal without a dataset
+        for (final Map.Entry<DatasetOrder, String> entry : getInvalidOrders(deployedAddresses.get("dataset")).entrySet()) {
+            final DatasetOrder signedInvalidDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(entry.getKey(), iexecHubService.getOrdersDomain());
+            final String assertCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedInvalidDatasetOrder, chainDealId);
+            assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertCompatibilityTxData), entry.getValue())
+                    .isInstanceOf(JsonRpcError.class)
+                    .hasMessage(entry.getValue());
+        }
+    }
+
+    // region utils
+    private DatasetOrder.DatasetOrderBuilder getValidOrderBuilder(final String datasetAddress) {
+        return DatasetOrder.builder()
+                .dataset(datasetAddress)
+                .datasetprice(BigInteger.ZERO)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)));
+
+    }
+
+    private Map<DatasetOrder, String> getInvalidOrders(final String datasetAddress) {
+        return Map.ofEntries(
+                Map.entry(getValidOrderBuilder(datasetAddress).volume(BigInteger.ZERO).build(), "Dataset order is revoked or fully consumed"),
+                Map.entry(getValidOrderBuilder(datasetAddress).apprestrict(IEXEC_HUB_ADDRESS).build(), "App restriction not satisfied"),
+                Map.entry(getValidOrderBuilder(datasetAddress).workerpoolrestrict(IEXEC_HUB_ADDRESS).build(), "Workerpool restriction not satisfied"),
+                Map.entry(getValidOrderBuilder(datasetAddress).requesterrestrict(IEXEC_HUB_ADDRESS).build(), "Requester restriction not satisfied"),
+                Map.entry(getValidOrderBuilder(datasetAddress).tag(OrderTag.TEE_GRAMINE.getValue()).build(), "Tag compatibility not satisfied"),
+                Map.entry(getValidOrderBuilder(datasetAddress).tag(OrderTag.TEE_TDX.getValue()).build(), "Tag compatibility not satisfied")
+        );
+    }
+    // endregion
 
 }

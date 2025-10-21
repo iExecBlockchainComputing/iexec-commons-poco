@@ -16,19 +16,25 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.WaitUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.Response;
+import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.JsonRpcError;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DynamicGasProvider;
 import org.web3j.tx.gas.PriorityGasProvider;
 import org.web3j.utils.Async;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -37,12 +43,17 @@ import java.time.Duration;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.iexec.commons.poco.chain.ChainUtils.weiToEth;
 import static com.iexec.commons.poco.encoding.PoCoDataEncoder.GAS_LIMIT_CAP;
+import static org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction;
 
 @Slf4j
 public abstract class Web3jAbstractService {
+
+    public static final String GENERIC_EVM_ERROR_MESSAGE = "VM execution error.";
 
     @Getter
     private final int chainId;
@@ -190,6 +201,44 @@ public abstract class Web3jAbstractService {
         return false;
     }
 
+    /**
+     * Sends an {@code eth_call} to an Ethereum address.
+     * <p>
+     * The call is synchronous and does not modify the blockchain state.
+     * <p>
+     * The {@code sendCall} method can throw runtime exceptions, specifically {@code JsonRpcError}.
+     * Those exceptions must be caught and handled properly in the business code.
+     *
+     * @param to   Contract address to send the call to
+     * @param data Encoded data representing the method to call with its parameters
+     * @return A single value returned by the called method.
+     * @throws IOException in case of communication failure with the blockchain network.
+     * @see <a href="https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call">eth_call JSON-RPC API</a>
+     */
+    public String sendCall(final String to, final String data) throws IOException {
+        return sendCall(to, data, DefaultBlockParameterName.LATEST);
+    }
+
+    public String sendCall(final String to, final String data, final DefaultBlockParameter defaultBlockParameter) throws IOException {
+        final EthCall ethCall = web3j.ethCall(
+                createEthCallTransaction("", to, data), defaultBlockParameter).send();
+        if (ethCall.hasError()) {
+            decodeAndThrowEvmRpcError(ethCall.getError());
+        }
+        log.debug("ethCall [value:{}]", ethCall.getValue());
+        return ethCall.getValue();
+    }
+
+    private void decodeAndThrowEvmRpcError(final Response.Error error) {
+        log.error("ethCall failed [message:{}, code:{}, data:{}]",
+                error.getMessage(), error.getCode(), error.getData());
+        final String revertMessage = GENERIC_EVM_ERROR_MESSAGE.equals(error.getMessage()) ? error.getData() : error.getMessage();
+        final Pattern p = Pattern.compile("^\"?Reverted (0x[0-9A-Fa-f]+)\"?$");
+        final Matcher m = p.matcher(revertMessage);
+        final String message = m.matches() ? BytesUtils.hexStringToAscii(m.group(1)) : revertMessage;
+        throw new JsonRpcError(error.getCode(), message, null);
+    }
+
     public boolean hasEnoughGas(String address) {
         // if a sidechain is used, there is no need to check if the wallet has enough gas.
         // if mainnet is used, the check should be done.
@@ -308,5 +357,13 @@ public abstract class Web3jAbstractService {
         log.error("Still wrong check [function:{}, args:{}, maxTry:{}, msToWait:{}, msPerBlock:{}]",
                 logTag, functionArgs, maxTry, msToWait, timePerBlock);
         return false;
+    }
+
+    public static BigInteger toBigInt(final String hexString) {
+        return Numeric.toBigInt(hexString);
+    }
+
+    public static String toEthereumAddress(final String hexString) {
+        return Numeric.toHexStringWithPrefixZeroPadded(Numeric.toBigInt(hexString), 40);
     }
 }
