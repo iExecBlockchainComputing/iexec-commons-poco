@@ -49,12 +49,11 @@ import java.security.NoSuchProviderException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.iexec.commons.poco.chain.Web3jAbstractService.GENERIC_EVM_ERROR_MESSAGE;
 import static org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction;
 
 @Slf4j
 public class SignerService {
-
-    public static final String GENERIC_EVM_ERROR_MESSAGE = "VM execution error.";
 
     @Getter
     private final Credentials credentials;
