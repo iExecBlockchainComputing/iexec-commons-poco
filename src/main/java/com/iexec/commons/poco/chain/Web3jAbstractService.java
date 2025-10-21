@@ -206,7 +206,7 @@ public abstract class Web3jAbstractService {
      * <p>
      * The call is synchronous and does not modify the blockchain state.
      * <p>
-     * The {@code sendCall} method can throw runtime exceptions, specifically {@code ContractCallException}.
+     * The {@code sendCall} method can throw runtime exceptions, specifically {@code JsonRpcError}.
      * Those exceptions must be caught and handled properly in the business code.
      *
      * @param to   Contract address to send the call to
@@ -223,13 +223,13 @@ public abstract class Web3jAbstractService {
         final EthCall ethCall = web3j.ethCall(
                 createEthCallTransaction("", to, data), defaultBlockParameter).send();
         if (ethCall.hasError()) {
-            handleError(ethCall.getError());
+            decodeAndThrowEvmRpcError(ethCall.getError());
         }
         log.debug("ethCall [value:{}]", ethCall.getValue());
         return ethCall.getValue();
     }
 
-    private void handleError(final Response.Error error) {
+    private void decodeAndThrowEvmRpcError(final Response.Error error) {
         log.error("ethCall failed [message:{}, code:{}, data:{}]",
                 error.getMessage(), error.getCode(), error.getData());
         final String revertMessage = GENERIC_EVM_ERROR_MESSAGE.equals(error.getMessage()) ? error.getData() : error.getMessage();

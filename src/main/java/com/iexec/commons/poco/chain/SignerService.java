@@ -170,13 +170,12 @@ public class SignerService {
     }
 
     // TODO keep single instance with the one in Web3jAbstractService
-    private void handleError(final Response.Error error, final String label) {
+    private void decodeAndThrowEvmRpcError(final Response.Error error, final String label) {
         log.error("{}} failed [message:{}, code:{}, data:{}]",
                 label, error.getMessage(), error.getCode(), error.getData());
         final String revertMessage = GENERIC_EVM_ERROR_MESSAGE.equals(error.getMessage()) ? error.getData() : error.getMessage();
         final Pattern p = Pattern.compile("^\"?Reverted (0x[0-9A-Fa-f]+)\"?$");
         final Matcher m = p.matcher(revertMessage);
-        log.debug("matcher matches {} {}", m.matches(), m.groupCount());
         final String message = m.matches() ? BytesUtils.hexStringToAscii(m.group(1)) : revertMessage;
         throw new JsonRpcError(error.getCode(), message, null);
     }
@@ -186,7 +185,7 @@ public class SignerService {
      * <p>
      * The call is synchronous and does not modify the blockchain state.
      * <p>
-     * The {@code sendCall} method can throw runtime exceptions, specifically {@code ContractCallException}.
+     * The {@code sendCall} method can throw runtime exceptions, specifically {@code JsonRpcError}.
      * Those exceptions must be caught and handled properly in the business code.
      *
      * @param to   Contract address to send the call to
@@ -203,7 +202,7 @@ public class SignerService {
         final EthCall ethCall = web3j.ethCall(
                 createEthCallTransaction(credentials.getAddress(), to, data), defaultBlockParameter).send();
         if (ethCall.hasError()) {
-            handleError(ethCall.getError(), "ethCall");
+            decodeAndThrowEvmRpcError(ethCall.getError(), "ethCall");
         }
         log.debug("ethCall [value:{}]", ethCall.getValue());
         return ethCall.getValue();
@@ -222,7 +221,7 @@ public class SignerService {
         final EthEstimateGas estimateGas = web3j.ethEstimateGas(
                 createEthCallTransaction(credentials.getAddress(), to, data)).send();
         if (estimateGas.hasError()) {
-            handleError(estimateGas.getError(), "estimateGas");
+            decodeAndThrowEvmRpcError(estimateGas.getError(), "estimateGas");
         }
         log.debug("estimateGas [amountUsed:{}]", estimateGas.getAmountUsed());
         return estimateGas.getAmountUsed();
