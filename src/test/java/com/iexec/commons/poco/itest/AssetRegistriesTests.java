@@ -30,7 +30,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.crypto.exception.CipherException;
-import org.web3j.tx.exceptions.ContractCallException;
+import org.web3j.protocol.exceptions.JsonRpcError;
 
 import java.io.File;
 import java.io.IOException;
@@ -122,17 +122,17 @@ class AssetRegistriesTests {
         );
 
         // call on create assets should revert
-        final String errorMessage = "Contract Call has been reverted by the EVM with the reason: 'VM execution error.'.";
+        final String errorMessage = "Create2: Failed on deploy";
 
         assertAll(
                 () -> assertThatThrownBy(() -> iexecHubService.callCreateApp(appName), "Should have failed to call createApp")
-                        .isInstanceOf(ContractCallException.class)
+                        .isInstanceOf(JsonRpcError.class)
                         .hasMessage(errorMessage),
                 () -> assertThatThrownBy(() -> iexecHubService.callCreateDataset(datasetName), "Should have failed to call createDataset")
-                        .isInstanceOf(ContractCallException.class)
+                        .isInstanceOf(JsonRpcError.class)
                         .hasMessage(errorMessage),
                 () -> assertThatThrownBy(() -> iexecHubService.callCreateWorkerpool(workerpoolName), "Should have failed to call createWorkerpool")
-                        .isInstanceOf(ContractCallException.class)
+                        .isInstanceOf(JsonRpcError.class)
                         .hasMessage(errorMessage)
         );
 

@@ -77,14 +77,14 @@ class ChainTests {
     void shouldGetAccount() {
         final ChainAccount chainAccount = iexecHubService.getChainAccount(credentials.getAddress()).orElse(null);
         assertThat(chainAccount).isNotNull();
-        assertThat(chainAccount.getDeposit()).isEqualTo(40_178L);
+        assertThat(chainAccount.getDeposit()).isEqualTo(1000000000000L);
         assertThat(chainAccount.getLocked()).isZero();
     }
 
     @Test
     void shouldGetBalance() {
         final BigInteger balance = web3jService.getBalance(credentials.getAddress()).orElse(null);
-        assertThat(balance).isEqualTo(new BigInteger("3188369135434504514964210500676909925639291603846501657344"));
+        assertThat(balance).isEqualTo(new BigInteger("1000000000000000000000"));
     }
 
     @Test
@@ -144,11 +144,11 @@ class ChainTests {
 
     private static Stream<Arguments> categoryProvider() {
         return Stream.of(
-                Arguments.of(0, ChainCategory.builder().id(0).name("XS").description("{}").maxExecutionTime(300_000L).build()),
-                Arguments.of(1, ChainCategory.builder().id(1).name("S").description("{}").maxExecutionTime(1_200_000L).build()),
-                Arguments.of(2, ChainCategory.builder().id(2).name("M").description("{}").maxExecutionTime(3_600_000L).build()),
-                Arguments.of(3, ChainCategory.builder().id(3).name("L").description("{}").maxExecutionTime(10_800_000L).build()),
-                Arguments.of(4, ChainCategory.builder().id(4).name("XL").description("{}").maxExecutionTime(36_000_000L).build())
+                Arguments.of(0, ChainCategory.builder().id(0).name("XS").description("\"\"").maxExecutionTime(300_000L).build()),
+                Arguments.of(1, ChainCategory.builder().id(1).name("S").description("\"\"").maxExecutionTime(1_200_000L).build()),
+                Arguments.of(2, ChainCategory.builder().id(2).name("M").description("\"\"").maxExecutionTime(3_600_000L).build()),
+                Arguments.of(3, ChainCategory.builder().id(3).name("L").description("\"\"").maxExecutionTime(10_800_000L).build()),
+                Arguments.of(4, ChainCategory.builder().id(4).name("XL").description("\"\"").maxExecutionTime(36_000_000L).build())
         );
     }
 

@@ -18,6 +18,8 @@ package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.EIP712Domain;
+import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
+import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
 import com.iexec.commons.poco.utils.MultiAddressHelper;
@@ -28,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -41,6 +42,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toBigInt;
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toEthereumAddress;
 import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
 import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
@@ -433,7 +436,7 @@ public abstract class IexecHubAbstractService {
      * @throws IOException on communication error
      */
     private String sendCallAndGetRawResult(final String address, final String selector) throws IOException {
-        return txManager.sendCall(address, selector, DefaultBlockParameterName.LATEST);
+        return web3jAbstractService.sendCall(address, selector);
     }
 
     public Optional<Integer> getWorkerScore(String address) {
@@ -537,6 +540,11 @@ public abstract class IexecHubAbstractService {
 
     // region accessors
 
+    public void assertDatasetDealCompatibility(final DatasetOrder datasetOrder, final String dealId) throws IOException {
+        final String txData = MatchOrdersDataEncoder.encodeAssertDatasetDealCompatibility(datasetOrder, dealId);
+        web3jAbstractService.sendCall(iexecHubAddress, txData);
+    }
+
     /**
      * Send call to callbackgas() PoCo method.
      *
@@ -568,14 +576,12 @@ public abstract class IexecHubAbstractService {
     }
 
     private BigInteger sendCallWithFunctionSelector(final String functionSelector) throws IOException {
-        return Numeric.toBigInt(
-                txManager.sendCall(iexecHubAddress, functionSelector, DefaultBlockParameterName.LATEST));
+        return toBigInt(web3jAbstractService.sendCall(iexecHubAddress, functionSelector));
     }
 
     public String getOwner(final String address) {
         try {
-            return Numeric.toHexStringWithPrefixZeroPadded(
-                    Numeric.toBigInt(txManager.sendCall(address, OWNER_SELECTOR, DefaultBlockParameterName.LATEST)), 40);
+            return toEthereumAddress(web3jAbstractService.sendCall(address, OWNER_SELECTOR));
         } catch (Exception e) {
             log.error("Failed to get owner [address:{}]", address, e);
         }
@@ -591,8 +597,8 @@ public abstract class IexecHubAbstractService {
      * @throws IOException on communication error with the blockchain network
      */
     public BigInteger viewConsumed(final String typedHash) throws IOException {
-        return Numeric.toBigInt(
-                txManager.sendCall(iexecHubAddress, VIEW_CONSUMED_SELECTOR + Numeric.cleanHexPrefix(typedHash), DefaultBlockParameterName.LATEST));
+        final String payload = VIEW_CONSUMED_SELECTOR + Numeric.cleanHexPrefix(typedHash);
+        return toBigInt(web3jAbstractService.sendCall(iexecHubAddress, payload));
     }
 
     // endregion

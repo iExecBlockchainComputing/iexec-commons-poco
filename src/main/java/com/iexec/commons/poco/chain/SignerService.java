@@ -33,6 +33,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Response;
+import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthEstimateGas;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
@@ -45,9 +46,15 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction;
 
 @Slf4j
 public class SignerService {
+
+    public static final String GENERIC_EVM_ERROR_MESSAGE = "VM execution error.";
 
     @Getter
     private final Credentials credentials;
@@ -163,6 +170,18 @@ public class SignerService {
         return signedMessage == null ? null : String.join("_", hash, signedMessage, credentials.getAddress());
     }
 
+    // TODO keep single instance with the one in Web3jAbstractService
+    private void handleError(final Response.Error error, final String label) {
+        log.error("{}} failed [message:{}, code:{}, data:{}]",
+                label, error.getMessage(), error.getCode(), error.getData());
+        final String revertMessage = GENERIC_EVM_ERROR_MESSAGE.equals(error.getMessage()) ? error.getData() : error.getMessage();
+        final Pattern p = Pattern.compile("^\"?Reverted (0x[0-9A-Fa-f]+)\"?$");
+        final Matcher m = p.matcher(revertMessage);
+        log.debug("matcher matches {} {}", m.matches(), m.groupCount());
+        final String message = m.matches() ? BytesUtils.hexStringToAscii(m.group(1)) : revertMessage;
+        throw new JsonRpcError(error.getCode(), message, null);
+    }
+
     /**
      * Sends an {@code eth_call} to an Ethereum address.
      * <p>
@@ -182,9 +201,13 @@ public class SignerService {
     }
 
     public String sendCall(String to, String data, DefaultBlockParameter defaultBlockParameter) throws IOException {
-        final String value = txManager.sendCall(to, data, defaultBlockParameter);
-        log.debug("value {}", value);
-        return value;
+        final EthCall ethCall = web3j.ethCall(
+                createEthCallTransaction(credentials.getAddress(), to, data), defaultBlockParameter).send();
+        if (ethCall.hasError()) {
+            handleError(ethCall.getError(), "ethCall");
+        }
+        log.debug("ethCall [value:{}]", ethCall.getValue());
+        return ethCall.getValue();
     }
 
     /**
@@ -197,13 +220,10 @@ public class SignerService {
      * @see <a href="https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_estimategas">eth_estimateGas JSON RPC-API</a>
      */
     public BigInteger estimateGas(String to, String data) throws IOException {
-        final EthEstimateGas estimateGas = this.web3j.ethEstimateGas(org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
-                credentials.getAddress(), to, data)).send();
+        final EthEstimateGas estimateGas = web3j.ethEstimateGas(
+                createEthCallTransaction(credentials.getAddress(), to, data)).send();
         if (estimateGas.hasError()) {
-            final Response.Error responseError = estimateGas.getError();
-            log.error("estimateGas failed [message:{}, code:{}, data:{}]",
-                    responseError.getMessage(), responseError.getCode(), responseError.getData());
-            throw new JsonRpcError(responseError);
+            handleError(estimateGas.getError(), "estimateGas");
         }
         log.debug("estimateGas [amountUsed:{}]", estimateGas.getAmountUsed());
         return estimateGas.getAmountUsed();

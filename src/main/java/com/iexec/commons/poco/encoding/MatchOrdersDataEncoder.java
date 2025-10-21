@@ -36,7 +36,21 @@ import static com.iexec.commons.poco.encoding.Utils.toHexString;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MatchOrdersDataEncoder {
 
+    private static final String ASSERT_DATASET_DEAL_COMPATIBILITY_SELECTOR = "0x80f03425";
     private static final String MATCH_ORDERS_SELECTOR = "0x156194d4";
+
+    public static String encodeAssertDatasetDealCompatibility(final DatasetOrder datasetOrder, final String dealId) {
+        final StringBuilder sb = new StringBuilder(ASSERT_DATASET_DEAL_COMPATIBILITY_SELECTOR);
+        long offset = 2;
+        String datasetOrderContribOffset = toHexString(BigInteger.valueOf(offset * 32));
+        String datasetOrderContrib = createDatasetOrderTxData(datasetOrder);
+
+        sb.append(datasetOrderContribOffset);
+        sb.append(toHexString(dealId));
+        sb.append(datasetOrderContrib);
+
+        return sb.toString();
+    }
 
     /**
      * Encodes a {@code BrokerOrder} to a hexadecimal string. This string is the payload representing
