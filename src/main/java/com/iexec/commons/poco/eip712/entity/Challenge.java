@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,43 @@
 
 package com.iexec.commons.poco.eip712.entity;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.iexec.commons.poco.eip712.EIP712TypedData;
+import com.iexec.commons.poco.eip712.EIP712Utils;
+import com.iexec.commons.poco.utils.HashUtils;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.stream.Stream;
 
 /**
  * Represents the Challenge type in an EIP-712 compliant challenge.
  */
-@Data
+@Slf4j
+@Value
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class Challenge {
-    private String challenge;
+@JsonDeserialize(builder = Challenge.ChallengeBuilder.class)
+public class Challenge implements EIP712TypedData {
+    private static final String EIP712_TYPE = "Challenge(string challenge)";
+
+    String challenge;
+
+    public String computeMessageHash() {
+        final String[] encodedValues = Stream.of(EIP712_TYPE, challenge)
+                .map(EIP712Utils::encodeData)
+                .toArray(String[]::new);
+        if (log.isDebugEnabled()) {
+            log.debug("{}", EIP712_TYPE);
+            for (String value : encodedValues) {
+                log.debug("{}", value);
+            }
+        }
+        return HashUtils.concatenateAndHash(encodedValues);
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class ChallengeBuilder {
+    }
 }
