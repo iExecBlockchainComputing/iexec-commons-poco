@@ -19,7 +19,6 @@ package com.iexec.commons.poco.eip712.entity;
 import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.eip712.EIP712Entity;
 import com.iexec.commons.poco.eip712.TypeParam;
-import com.iexec.commons.poco.order.AppOrder;
 import lombok.NoArgsConstructor;
 
 import java.util.Collections;
