@@ -24,6 +24,10 @@ import org.web3j.crypto.ECKeyPair;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @deprecated only used in {@link EIP712Entity}
+ */
+@Deprecated(forRemoval = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface EIP712<M> {
 

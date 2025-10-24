@@ -26,6 +26,10 @@ import lombok.NoArgsConstructor;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @deprecated replaced with {@link AppOrder#computeHash(EIP712Domain)} )
+ */
+@Deprecated(forRemoval = true)
 @Getter
 @NoArgsConstructor
 public class EIP712AppOrder extends EIP712Entity<AppOrder> {

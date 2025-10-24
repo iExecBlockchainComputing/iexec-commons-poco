@@ -25,11 +25,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * EIP-712 compliant challenge based on {@link Challenge} type and {@link EIP712Domain}.
- * <p>
- * In the current implementation, {@link EIP712Domain} fields are {@code name}, {@code version} and {@code chainID}.
- * There is no {@code verifyingContract}.
+ * @deprecated replaced with {@link Challenge#computeHash(EIP712Domain)} )
  */
+@Deprecated(forRemoval = true)
 @NoArgsConstructor
 public class EIP712Challenge extends EIP712Entity<Challenge> {
 
