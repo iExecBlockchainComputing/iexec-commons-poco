@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.3.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.2.0...v5.3.0) (2025-10-28)
+
+
+### Features
+
+* apply EIP-712 new implementation to Challenge class ([#154](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/154)) ([ed89528](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/ed89528ee321731d818080b0682499a7b166c4ad))
+* deprecate ChainWorkerpool and IexecHubAbstractService#isTeeTask code for future removal ([#156](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/156)) ([042e5a1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/042e5a1a58bbf406846eb4e113f8f8085eef1b16))
+* deprecate classes based on deprecated EIP-712 implementation ([#155](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/155)) ([f8c83a2](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/f8c83a26d22175a19f9d58196875df4133eadc0e))
+* support assertDatasetDealCompatibility new PoCo method ([#152](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/152)) ([9e91aa1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/9e91aa171f1b3601c37a8d36c3fb027f6d34ab93))
+
+
+### Bug Fixes
+
+* Replace HashMap with ConcurrentHashMap to avoid race conditions ([#157](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/157)) ([862d3d3](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/862d3d3fa277399cb1df7a477bb06284771f1fe8))
+
 ## [5.2.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.1.0...v5.2.0) (2025-09-29)
 
 
