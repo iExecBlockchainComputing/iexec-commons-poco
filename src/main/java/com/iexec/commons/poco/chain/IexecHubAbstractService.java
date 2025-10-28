@@ -526,6 +526,10 @@ public abstract class IexecHubAbstractService {
         return taskDescription != null ? Optional.of(taskDescription) : Optional.empty();
     }
 
+    /**
+     * @deprecated single usage found in all code, directly call isTeeTask on getTaskDescription
+     */
+    @Deprecated(forRemoval = true)
     public boolean isTeeTask(String chainTaskId) {
         final TaskDescription taskDescription = getTaskDescription(chainTaskId);
 
