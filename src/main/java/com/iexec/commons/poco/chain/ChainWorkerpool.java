@@ -19,6 +19,10 @@ package com.iexec.commons.poco.chain;
 import lombok.Builder;
 import lombok.Value;
 
+/**
+ * @deprecated this was never used
+ */
+@Deprecated(forRemoval = true)
 @Value
 @Builder
 public class ChainWorkerpool {
