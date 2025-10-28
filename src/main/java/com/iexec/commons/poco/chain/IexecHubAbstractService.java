@@ -38,9 +38,9 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.iexec.commons.poco.chain.Web3jAbstractService.toBigInt;
 import static com.iexec.commons.poco.chain.Web3jAbstractService.toEthereumAddress;
@@ -71,8 +71,8 @@ public abstract class IexecHubAbstractService {
     private long maxNbOfPeriodsForConsensus = -1;
     private final long retryDelay;// ms
     private final int maxRetries;
-    private final Map<Long, ChainCategory> categories = new HashMap<>();
-    private final Map<String, TaskDescription> taskDescriptions = new HashMap<>();
+    private final Map<Long, ChainCategory> categories = new ConcurrentHashMap<>();
+    private final Map<String, TaskDescription> taskDescriptions = new ConcurrentHashMap<>();
 
     protected IexecHubAbstractService(
             Credentials credentials,
