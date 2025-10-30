@@ -94,7 +94,7 @@ class MatchOrdersTests {
         final DatasetOrder datasetOrder = getValidOrderBuilder(deployedAddresses.get("dataset")).volume(BigInteger.ZERO).build();
         final DatasetOrder signedDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(datasetOrder, iexecHubService.getOrdersDomain());
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
-        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+        assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("Dataset order is revoked or fully consumed");
     }
@@ -106,7 +106,7 @@ class MatchOrdersTests {
         final SignerService otherSigner = new SignerService(null, web3jService.getChainId(), Credentials.create(Keys.createEcKeyPair()));
         final DatasetOrder signedDatasetOrder = (DatasetOrder) otherSigner.signOrderForDomain(datasetOrder, iexecHubService.getOrdersDomain());
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
-        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+        assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("Invalid dataset order signature");
     }
@@ -116,7 +116,7 @@ class MatchOrdersTests {
         final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
         final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"));
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
-        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+        assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("Deal not found");
     }
@@ -171,14 +171,14 @@ class MatchOrdersTests {
 
         // assertDatasetDealCompatibility reverts for fully consumed dataset
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, chainDealId);
-        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+        assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("Dataset order is revoked or fully consumed");
         // assertDatasetDealCompatibility reverts if deal has a dataset
         final DatasetOrder invalidDatasetOrder = getValidOrderBuilder(deployedAddresses.get("dataset")).build();
         final DatasetOrder signedInvalidDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(invalidDatasetOrder, iexecHubService.getOrdersDomain());
         final String txData = MatchOrdersDataEncoder.encodeAssertDatasetDealCompatibility(signedInvalidDatasetOrder, chainDealId);
-        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, txData))
+        assertThatThrownBy(() -> sendCall(txData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("Deal already has a dataset");
     }
@@ -223,7 +223,7 @@ class MatchOrdersTests {
 
         // assertDatasetDealCompatibility revert when dataset not present
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, chainDealId);
-        assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertDatasetDealCompatibilityTxData))
+        assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("\"revert\"");
 
@@ -231,7 +231,7 @@ class MatchOrdersTests {
         for (final Map.Entry<DatasetOrder, String> entry : getInvalidOrders(deployedAddresses.get("dataset")).entrySet()) {
             final DatasetOrder signedInvalidDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(entry.getKey(), iexecHubService.getOrdersDomain());
             final String assertCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedInvalidDatasetOrder, chainDealId);
-            assertThatThrownBy(() -> web3jService.sendCall(IEXEC_HUB_ADDRESS, assertCompatibilityTxData), entry.getValue())
+            assertThatThrownBy(() -> sendCall(assertCompatibilityTxData), entry.getValue())
                     .isInstanceOf(JsonRpcError.class)
                     .hasMessage(entry.getValue());
         }
@@ -260,6 +260,10 @@ class MatchOrdersTests {
                 Map.entry(getValidOrderBuilder(datasetAddress).tag(OrderTag.TEE_GRAMINE.getValue()).build(), "Tag compatibility not satisfied"),
                 Map.entry(getValidOrderBuilder(datasetAddress).tag(OrderTag.TEE_TDX.getValue()).build(), "Tag compatibility not satisfied")
         );
+    }
+
+    private void sendCall(final String txData) throws IOException {
+        web3jService.sendCall(signerService.getAddress(), IEXEC_HUB_ADDRESS, txData);
     }
     // endregion
 

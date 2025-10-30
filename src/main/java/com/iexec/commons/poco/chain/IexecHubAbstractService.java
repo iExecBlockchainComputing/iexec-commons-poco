@@ -436,7 +436,7 @@ public abstract class IexecHubAbstractService {
      * @throws IOException on communication error
      */
     private String sendCallAndGetRawResult(final String address, final String selector) throws IOException {
-        return web3jAbstractService.sendCall(address, selector);
+        return web3jAbstractService.sendCall(credentials.getAddress(), address, selector);
     }
 
     public Optional<Integer> getWorkerScore(String address) {
@@ -546,7 +546,7 @@ public abstract class IexecHubAbstractService {
 
     public void assertDatasetDealCompatibility(final DatasetOrder datasetOrder, final String dealId) throws IOException {
         final String txData = MatchOrdersDataEncoder.encodeAssertDatasetDealCompatibility(datasetOrder, dealId);
-        web3jAbstractService.sendCall(iexecHubAddress, txData);
+        web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData);
     }
 
     /**
@@ -580,12 +580,12 @@ public abstract class IexecHubAbstractService {
     }
 
     private BigInteger sendCallWithFunctionSelector(final String functionSelector) throws IOException {
-        return toBigInt(web3jAbstractService.sendCall(iexecHubAddress, functionSelector));
+        return toBigInt(web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, functionSelector));
     }
 
     public String getOwner(final String address) {
         try {
-            return toEthereumAddress(web3jAbstractService.sendCall(address, OWNER_SELECTOR));
+            return toEthereumAddress(web3jAbstractService.sendCall(credentials.getAddress(), address, OWNER_SELECTOR));
         } catch (Exception e) {
             log.error("Failed to get owner [address:{}]", address, e);
         }
@@ -602,7 +602,7 @@ public abstract class IexecHubAbstractService {
      */
     public BigInteger viewConsumed(final String typedHash) throws IOException {
         final String payload = VIEW_CONSUMED_SELECTOR + Numeric.cleanHexPrefix(typedHash);
-        return toBigInt(web3jAbstractService.sendCall(iexecHubAddress, payload));
+        return toBigInt(web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, payload));
     }
 
     // endregion

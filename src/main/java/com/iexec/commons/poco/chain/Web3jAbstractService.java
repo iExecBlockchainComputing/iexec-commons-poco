@@ -209,19 +209,20 @@ public abstract class Web3jAbstractService {
      * The {@code sendCall} method can throw runtime exceptions, specifically {@code JsonRpcError}.
      * Those exceptions must be caught and handled properly in the business code.
      *
+     * @param from Wallet address sending the query, mandatory on Arbitrum
      * @param to   Contract address to send the call to
      * @param data Encoded data representing the method to call with its parameters
      * @return A single value returned by the called method.
      * @throws IOException in case of communication failure with the blockchain network.
      * @see <a href="https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call">eth_call JSON-RPC API</a>
      */
-    public String sendCall(final String to, final String data) throws IOException {
-        return sendCall(to, data, DefaultBlockParameterName.LATEST);
+    public String sendCall(final String from, final String to, final String data) throws IOException {
+        return sendCall(from, to, data, DefaultBlockParameterName.LATEST);
     }
 
-    public String sendCall(final String to, final String data, final DefaultBlockParameter defaultBlockParameter) throws IOException {
+    public String sendCall(final String from, final String to, final String data, final DefaultBlockParameter defaultBlockParameter) throws IOException {
         final EthCall ethCall = web3j.ethCall(
-                createEthCallTransaction("", to, data), defaultBlockParameter).send();
+                createEthCallTransaction(from, to, data), defaultBlockParameter).send();
         if (ethCall.hasError()) {
             decodeAndThrowEvmRpcError(ethCall.getError());
         }
