@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.3.1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.3.0...v5.3.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* on Arbitrum, a sender address is required on eth_call ([#158](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/158)) ([b0268d8](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/b0268d8bf26b54d90c4c6eec1b525af556b9ba85))
+
 ## [5.3.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.2.0...v5.3.0) (2025-10-28)
 
 
