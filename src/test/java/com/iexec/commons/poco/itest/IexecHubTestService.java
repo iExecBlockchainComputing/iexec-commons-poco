@@ -26,6 +26,7 @@ import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,10 @@ public class IexecHubTestService extends IexecHubAbstractService {
     private final AssetDeploymentService datasetDeploymentService;
     private final AssetDeploymentService workerpoolDeploymentService;
 
+    private final SecureRandom random = new SecureRandom();
+    private final String appChecksum = generateChecksum();
+    private final String datasetChecksum = generateChecksum();
+
     public IexecHubTestService(Credentials credentials, Web3jTestService web3jTestService) throws IOException {
         super(credentials, web3jTestService, IEXEC_HUB_ADDRESS);
         this.signerService = new SignerService(
@@ -71,19 +76,25 @@ public class IexecHubTestService extends IexecHubAbstractService {
         workerpoolDeploymentService.initRegistryAddress(IEXEC_HUB_ADDRESS);
     }
 
+    public String generateChecksum() {
+        final byte[] checksumBytes = new byte[32];
+        random.nextBytes(checksumBytes);
+        return Numeric.toHexStringNoPrefix(checksumBytes);
+    }
+
     public Map<String, String> deployAssets() throws IOException {
-        final String predictedAppAddress = callPredictApp(APP_NAME);
-        final String predictedDatasetAddress = callPredictDataset(DATASET_NAME);
+        final String predictedAppAddress = callPredictApp(APP_NAME, ASSET_CHECKSUM);
+        final String predictedDatasetAddress = callPredictDataset(DATASET_NAME, ASSET_CHECKSUM);
         final String predictedWorkerpoolAddress = callPredictWorkerpool(WORKERPOOL_NAME);
 
         BigInteger nonce = signerService.getNonce();
         final List<String> txHashes = new ArrayList<>();
         if (!isAppPresent(predictedAppAddress)) {
-            txHashes.add(submitCreateAppTx(nonce, APP_NAME));
+            txHashes.add(submitCreateAppTx(nonce, APP_NAME, ASSET_CHECKSUM));
             nonce = nonce.add(BigInteger.ONE);
         }
         if (!isDatasetPresent(predictedDatasetAddress)) {
-            txHashes.add(submitCreateDatasetTx(nonce, DATASET_NAME));
+            txHashes.add(submitCreateDatasetTx(nonce, DATASET_NAME, ASSET_CHECKSUM));
             nonce = nonce.add(BigInteger.ONE);
         }
         if (!isWorkerpoolPresent(predictedWorkerpoolAddress)) {
@@ -110,94 +121,94 @@ public class IexecHubTestService extends IexecHubAbstractService {
     }
 
     // region createApp
-    public String callCreateApp(String name) throws IOException {
+    public String callCreateApp(final String name, final String checksum) throws IOException {
         log.info("callCreateApp");
-        final String appTxData = createAppTxData(name);
+        final String appTxData = createAppTxData(name, checksum);
         return appDeploymentService.callCreateAsset(appTxData);
     }
 
-    public String callPredictApp(String name) throws IOException {
+    public String callPredictApp(final String name, final String checksum) throws IOException {
         log.info("callPredictApp");
         final String appTxData = AssetDataEncoder.encodePredictApp(
-                ownerAddress, name, "DOCKER", ASSET_MULTI_ADDRESS, ASSET_CHECKSUM, "{}");
+                ownerAddress, name, "DOCKER", ASSET_MULTI_ADDRESS, checksum, "{}");
         return appDeploymentService.callCreateAsset(appTxData);
     }
 
-    public String submitCreateAppTx(BigInteger nonce, String name) throws IOException {
+    public String submitCreateAppTx(final BigInteger nonce, final String name, final String checksum) throws IOException {
         log.info("submitCreateAppTx");
-        final String appTxData = createAppTxData(name);
+        final String appTxData = createAppTxData(name, checksum);
         final String appTxHash = appDeploymentService.submitAssetTxData(nonce, GAS_PRICE, appTxData);
         log.info("app tx hash {}", appTxHash);
         return appTxHash;
     }
 
-    private String createAppTxData(String name) {
+    private String createAppTxData(final String name, final String checksum) {
         return AssetDataEncoder.encodeApp(
                 ownerAddress,
                 name,
                 "DOCKER",
                 ASSET_MULTI_ADDRESS,
-                ASSET_CHECKSUM,
+                checksum,
                 "{}"
         );
     }
 
-    public boolean isAppPresent(String address) throws IOException {
+    public boolean isAppPresent(final String address) throws IOException {
         log.info("isAppPresent");
         return appDeploymentService.isAssetDeployed(address);
     }
     // endregion
 
     // region createDataset
-    public String callCreateDataset(String name) throws IOException {
+    public String callCreateDataset(final String name, final String checksum) throws IOException {
         log.info("callCreateDataset");
-        final String datasetTxData = createDatasetTxData(name);
+        final String datasetTxData = createDatasetTxData(name, checksum);
         return datasetDeploymentService.callCreateAsset(datasetTxData);
     }
 
-    public String callPredictDataset(String name) throws IOException {
+    public String callPredictDataset(final String name, final String checksum) throws IOException {
         log.info("callPredictDataset");
-        final String datasetTxData = AssetDataEncoder.encodePredictDataset(ownerAddress, name, ASSET_MULTI_ADDRESS, ASSET_CHECKSUM);
+        final String datasetTxData = AssetDataEncoder.encodePredictDataset(ownerAddress, name, ASSET_MULTI_ADDRESS, checksum);
         return datasetDeploymentService.callCreateAsset(datasetTxData);
     }
 
-    public String submitCreateDatasetTx(BigInteger nonce, String name) throws IOException {
+    public String submitCreateDatasetTx(final BigInteger nonce, final String name, final String checksum) throws IOException {
         log.info("submitCreateDatasetTx");
-        final String datasetTxData = createDatasetTxData(name);
+        final String datasetTxData = createDatasetTxData(name, checksum);
         final String datasetTxHash = datasetDeploymentService.submitAssetTxData(nonce, GAS_PRICE, datasetTxData);
         log.info("dataset tx hash {}", datasetTxHash);
         return datasetTxHash;
     }
 
-    private String createDatasetTxData(String name) {
+    private String createDatasetTxData(final String name, final String checksum) {
         return AssetDataEncoder.encodeDataset(
                 ownerAddress,
                 name,
                 ASSET_MULTI_ADDRESS,
-                ASSET_CHECKSUM
+                checksum
         );
     }
 
-    public boolean isDatasetPresent(String address) throws IOException {
+    public boolean isDatasetPresent(final String address) throws IOException {
         log.info("isDatasetPresent");
         return datasetDeploymentService.isAssetDeployed(address);
     }
     // endregion
 
     // region createWorkerpool
-    public String callCreateWorkerpool(String name) throws IOException {
+    public String callCreateWorkerpool(final String name) throws IOException {
         log.info("callCreateWorkerpool");
         final String workerpoolTxData = createWorkerpoolTxData(name);
         return workerpoolDeploymentService.callCreateAsset(workerpoolTxData);
     }
 
-    public String callPredictWorkerpool(String name) throws IOException {
+    public String callPredictWorkerpool(final String name) throws IOException {
         log.info("callPredictWorkerpool");
         final String workerpoolTxData = AssetDataEncoder.encodePredictWorkerpool(ownerAddress, name);
         return workerpoolDeploymentService.callCreateAsset(workerpoolTxData);
     }
 
-    public String submitCreateWorkerpoolTx(BigInteger nonce, String name) throws IOException {
+    public String submitCreateWorkerpoolTx(final BigInteger nonce, final String name) throws IOException {
         log.info("submitCreateWorkerpoolTx");
         final String workerpoolTxData = createWorkerpoolTxData(name);
         final String workerpoolTxHash = workerpoolDeploymentService.submitAssetTxData(nonce, GAS_PRICE, workerpoolTxData);
@@ -205,20 +216,20 @@ public class IexecHubTestService extends IexecHubAbstractService {
         return workerpoolTxHash;
     }
 
-    private String createWorkerpoolTxData(String name) {
+    private String createWorkerpoolTxData(final String name) {
         return AssetDataEncoder.encodeWorkerpool(
                 ownerAddress,
                 name
         );
     }
 
-    public boolean isWorkerpoolPresent(String address) throws IOException {
+    public boolean isWorkerpoolPresent(final String address) throws IOException {
         log.info("isWorkerpoolPresent");
         return workerpoolDeploymentService.isAssetDeployed(address);
     }
     // endregion
 
-    public List<String> fetchLogTopics(String txHash) {
+    public List<String> fetchLogTopics(final String txHash) {
         return web3jTestService.getTransactionReceipt(txHash)
                 .getLogs()
                 .stream()

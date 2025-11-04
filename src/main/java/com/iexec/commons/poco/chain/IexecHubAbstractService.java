@@ -22,12 +22,9 @@ import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
-import com.iexec.commons.poco.utils.MultiAddressHelper;
 import com.iexec.commons.poco.utils.Retryer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
 import org.web3j.tuples.generated.Tuple3;
@@ -45,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.iexec.commons.poco.chain.Web3jAbstractService.toBigInt;
 import static com.iexec.commons.poco.chain.Web3jAbstractService.toEthereumAddress;
 import static com.iexec.commons.poco.encoding.AccessorsEncoder.*;
-import static com.iexec.commons.poco.tee.TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString;
 import static com.iexec.commons.poco.utils.BytesUtils.isNonZeroedBytes32;
 
 /*
@@ -363,80 +359,31 @@ public abstract class IexecHubAbstractService {
         if (appAddress == null || appAddress.equals(BytesUtils.EMPTY_ADDRESS)) {
             return Optional.empty();
         }
-        final ChainApp.ChainAppBuilder chainAppBuilder = ChainApp.builder();
         try {
-            chainAppBuilder
-                    .chainAppId(appAddress)
-                    .type(sendCallAndDecodeDynamicBytes(appAddress, M_APPTYPE_SELECTOR))
-                    .multiaddr(sendCallAndDecodeDynamicBytes(appAddress, M_APPMULTIADDR_SELECTOR))
-                    .checksum(sendCallAndGetRawResult(appAddress, M_APPCHECKSUM_SELECTOR));
+            final String txData = VIEW_APP_SELECTOR +
+                    Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(appAddress), 64);
+            final String rawData = web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData);
+            return Optional.of(ChainApp.fromRawData(appAddress, rawData));
         } catch (Exception e) {
             log.error("Failed to get chain app [chainAppId:{}]",
                     appAddress, e);
             return Optional.empty();
         }
-        String mrEnclave;
-        try {
-            mrEnclave = sendCallAndDecodeDynamicBytes(appAddress, M_APPMRENCLAVE_SELECTOR);
-        } catch (Exception e) {
-            log.error("Failed to get chain app mrenclave [chainAppId:{}]",
-                    appAddress, e);
-            return Optional.empty();
-        }
-        if (StringUtils.isEmpty(mrEnclave)) {
-            // Standard application
-            return Optional.of(chainAppBuilder.build());
-        }
-        try {
-            chainAppBuilder.enclaveConfiguration(
-                    buildEnclaveConfigurationFromJsonString(mrEnclave));
-        } catch (Exception e) {
-            log.error("Failed to get tee chain app enclave configuration [chainAppId:{}, mrEnclave:{}]",
-                    appAddress, mrEnclave, e);
-            return Optional.empty();
-        }
-        return Optional.of(chainAppBuilder.build());
     }
 
     public Optional<ChainDataset> getChainDataset(final String datasetAddress) {
         if (datasetAddress != null && !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS)) {
             try {
-                return Optional.of(ChainDataset.builder()
-                        .chainDatasetId(datasetAddress)
-                        .multiaddr(sendCallAndDecodeDynamicBytes(datasetAddress, M_DATASETMULTIADDR_SELECTOR))
-                        .checksum(sendCallAndGetRawResult(datasetAddress, M_DATASETCHECKSUM_SELECTOR))
-                        .build());
+                final String txData = VIEW_DATASET_SELECTOR +
+                        Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(datasetAddress), 64);
+                final String rawData = web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData);
+                return Optional.of(ChainDataset.fromRawData(datasetAddress, rawData));
             } catch (Exception e) {
                 log.error("Failed to get ChainDataset [chainDatasetId:{}]",
                         datasetAddress, e);
             }
         }
         return Optional.empty();
-    }
-
-    /**
-     * Send a call to a Smart contract to retrieve a single value corresponding to a dynamic type and decode it.
-     *
-     * @param address  Smart Contract address (can be an App or a Dataset in PoCo)
-     * @param selector Function selector
-     * @return The decoded String result returned by the call
-     * @throws IOException on communication error
-     */
-    private String sendCallAndDecodeDynamicBytes(final String address, final String selector) throws IOException {
-        return MultiAddressHelper.convertToURI(
-                FunctionReturnDecoder.decodeDynamicBytes(sendCallAndGetRawResult(address, selector)));
-    }
-
-    /**
-     * Send a call to a Smart contract to retrieve a single value.
-     *
-     * @param address  Smart Contract address (can be an App or a Dataset in PoCo)
-     * @param selector Function selector
-     * @return The hexadecimal representation of retrieved bytes, may need further decoding
-     * @throws IOException on communication error
-     */
-    private String sendCallAndGetRawResult(final String address, final String selector) throws IOException {
-        return web3jAbstractService.sendCall(credentials.getAddress(), address, selector);
     }
 
     public Optional<Integer> getWorkerScore(String address) {

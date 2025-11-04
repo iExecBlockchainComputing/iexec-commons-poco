@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
-import static com.iexec.commons.poco.itest.IexecHubTestService.ASSET_CHECKSUM;
 import static com.iexec.commons.poco.itest.IexecHubTestService.ASSET_MULTI_ADDRESS;
 import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,14 +73,16 @@ class AssetRegistriesTests {
     @Test
     void shouldCreateAndPredictCallsBeEqualWhenAssetNotDeployed() {
         final String appName = RandomStringUtils.randomAlphanumeric(16);
+        final String appChecksum = iexecHubService.generateChecksum();
         final String datasetName = RandomStringUtils.randomAlphanumeric(16);
+        final String datasetChecksum = iexecHubService.generateChecksum();
         final String workerpoolName = RandomStringUtils.randomAlphanumeric(16);
 
         assertAll(
-                () -> assertThat(iexecHubService.callCreateApp(appName))
-                        .isEqualTo(iexecHubService.callPredictApp(appName)),
-                () -> assertThat(iexecHubService.callCreateDataset(datasetName))
-                        .isEqualTo(iexecHubService.callPredictDataset(datasetName)),
+                () -> assertThat(iexecHubService.callCreateApp(appName, appChecksum))
+                        .isEqualTo(iexecHubService.callPredictApp(appName, appChecksum)),
+                () -> assertThat(iexecHubService.callCreateDataset(datasetName, datasetChecksum))
+                        .isEqualTo(iexecHubService.callPredictDataset(datasetName, datasetChecksum)),
                 () -> assertThat(iexecHubService.callCreateWorkerpool(workerpoolName))
                         .isEqualTo(iexecHubService.callPredictWorkerpool(workerpoolName))
         );
@@ -90,12 +91,14 @@ class AssetRegistriesTests {
     @Test
     void shouldCreateCallRevertWhenAssetDeployed() throws IOException {
         final String appName = RandomStringUtils.randomAlphanumeric(16);
+        final String appChecksum = iexecHubService.generateChecksum();
         final String datasetName = RandomStringUtils.randomAlphanumeric(16);
+        final String datasetChecksum = iexecHubService.generateChecksum();
         final String workerpoolName = RandomStringUtils.randomAlphanumeric(16);
         BigInteger nonce = signerService.getNonce();
-        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, appName);
+        final String appTxHash = iexecHubService.submitCreateAppTx(nonce, appName, appChecksum);
         nonce = nonce.add(BigInteger.ONE);
-        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, datasetName);
+        final String datasetTxHash = iexecHubService.submitCreateDatasetTx(nonce, datasetName, datasetChecksum);
         nonce = nonce.add(BigInteger.ONE);
         final String workerpoolTxHash = iexecHubService.submitCreateWorkerpoolTx(nonce, workerpoolName);
 
@@ -104,8 +107,8 @@ class AssetRegistriesTests {
         assertThat(web3jService.areTxStatusOK(appTxHash, datasetTxHash, workerpoolTxHash)).isTrue();
 
         // fetch asset addresses from call on predict assets
-        final String predictedAppAddress = iexecHubService.callPredictApp(appName);
-        final String predictedDatasetAddress = iexecHubService.callPredictDataset(datasetName);
+        final String predictedAppAddress = iexecHubService.callPredictApp(appName, appChecksum);
+        final String predictedDatasetAddress = iexecHubService.callPredictDataset(datasetName, datasetChecksum);
         final String predictedWorkerpoolAddress = iexecHubService.callPredictWorkerpool(workerpoolName);
 
         // check assets are deployed
@@ -125,10 +128,10 @@ class AssetRegistriesTests {
         final String errorMessage = "Create2: Failed on deploy";
 
         assertAll(
-                () -> assertThatThrownBy(() -> iexecHubService.callCreateApp(appName), "Should have failed to call createApp")
+                () -> assertThatThrownBy(() -> iexecHubService.callCreateApp(appName, appChecksum), "Should have failed to call createApp")
                         .isInstanceOf(JsonRpcError.class)
                         .hasMessage(errorMessage),
-                () -> assertThatThrownBy(() -> iexecHubService.callCreateDataset(datasetName), "Should have failed to call createDataset")
+                () -> assertThatThrownBy(() -> iexecHubService.callCreateDataset(datasetName, datasetChecksum), "Should have failed to call createDataset")
                         .isInstanceOf(JsonRpcError.class)
                         .hasMessage(errorMessage),
                 () -> assertThatThrownBy(() -> iexecHubService.callCreateWorkerpool(workerpoolName), "Should have failed to call createWorkerpool")
@@ -140,7 +143,7 @@ class AssetRegistriesTests {
         assertThat(chainApp).contains(
                 ChainApp.builder()
                         .chainAppId(predictedAppAddress)
-                        .checksum("0x" + ASSET_CHECKSUM)
+                        .checksum("0x" + appChecksum)
                         .multiaddr(ASSET_MULTI_ADDRESS)
                         .enclaveConfiguration(TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString("{}"))
                         .type("DOCKER")
@@ -150,7 +153,7 @@ class AssetRegistriesTests {
         assertThat(chainDataset).contains(
                 ChainDataset.builder()
                         .chainDatasetId(predictedDatasetAddress)
-                        .checksum("0x" + ASSET_CHECKSUM)
+                        .checksum("0x" + datasetChecksum)
                         .multiaddr(ASSET_MULTI_ADDRESS)
                         .build()
         );
