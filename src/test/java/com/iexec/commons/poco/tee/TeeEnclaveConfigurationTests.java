@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 package com.iexec.commons.poco.tee;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TeeEnclaveConfigurationTests {
 
@@ -55,20 +56,20 @@ class TeeEnclaveConfigurationTests {
 
     @Test
     void buildEnclaveConfigurationFromJsonString() throws JsonProcessingException {
-        Assertions.assertEquals(ENCLAVE_CONFIGURATION,
-                TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString(ENCLAVE_CONFIGURATION_JSON_STRING));
+        assertThat(TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString(ENCLAVE_CONFIGURATION_JSON_STRING))
+                .isEqualTo(ENCLAVE_CONFIGURATION);
     }
 
     @Test
     void buildEnclaveConfigurationFromOldJsonString() throws JsonProcessingException {
-        Assertions.assertEquals(ENCLAVE_CONFIGURATION,
-                TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString(OLD_JSON_FORMAT));
+        assertThat(TeeEnclaveConfiguration.buildEnclaveConfigurationFromJsonString(OLD_JSON_FORMAT))
+                .isEqualTo(ENCLAVE_CONFIGURATION);
     }
 
     @Test
     void convertEnclaveConfigurationToJsonString() throws JsonProcessingException {
-        Assertions.assertEquals(ENCLAVE_CONFIGURATION_JSON_STRING,
-                ENCLAVE_CONFIGURATION.toJsonString());
+        assertThat(ENCLAVE_CONFIGURATION.toJsonString())
+                .isEqualTo(ENCLAVE_CONFIGURATION_JSON_STRING);
     }
 
 }

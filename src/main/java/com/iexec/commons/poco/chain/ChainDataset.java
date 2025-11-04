@@ -16,13 +16,32 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.encoding.PoCoDataDecoder;
+import com.iexec.commons.poco.utils.MultiAddressHelper;
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toBigInt;
+
+@Slf4j
 @Value
 @Builder
 public class ChainDataset {
     String chainDatasetId;
     String multiaddr;
     String checksum;
+
+    public static ChainDataset fromRawData(final String address, final String rawData) {
+        log.debug("ChainDataset.fromRawData [address:{}]", address);
+        final String[] parts = PoCoDataDecoder.toParts(rawData);
+        final int offset = toBigInt(parts[0]).intValue() / 32;
+        final int multiaddrOffset = toBigInt(parts[offset + 2]).intValue() / 32;
+        final String multiaddr = PoCoDataDecoder.decodeToHexString(parts, offset + multiaddrOffset);
+        return ChainDataset.builder()
+                .chainDatasetId(address)
+                .multiaddr(MultiAddressHelper.convertToURI(multiaddr))
+                .checksum("0x" + parts[offset + 3])
+                .build();
+    }
 }

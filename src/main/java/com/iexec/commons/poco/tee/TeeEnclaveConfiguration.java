@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,14 @@ public class TeeEnclaveConfiguration {
             throws JsonProcessingException {
         return new ObjectMapper()
                 .readValue(jsonString, TeeEnclaveConfiguration.class);
+    }
+
+    public static TeeEnclaveConfiguration fromJsonString(final String jsonString) {
+        try {
+            return buildEnclaveConfigurationFromJsonString(jsonString);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public String toJsonString() throws JsonProcessingException {

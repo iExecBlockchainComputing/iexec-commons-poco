@@ -53,13 +53,41 @@ public class AccessorsEncoder {
     public static final String VIEW_CONSUMED_SELECTOR = "0x4b2bec8c";
 
     // app
+    /**
+     * @deprecated no more used, replaced with viewApp new call
+     */
+    @Deprecated(forRemoval = true)
     public static final String M_APPCHECKSUM_SELECTOR = "0x84aaf12e";
+    /**
+     * @deprecated no more used, replaced with viewApp new call
+     */
+    @Deprecated(forRemoval = true)
     public static final String M_APPMRENCLAVE_SELECTOR = "0xe30d26a8";
+    /**
+     * @deprecated no more used, replaced with viewApp new call
+     */
+    @Deprecated(forRemoval = true)
     public static final String M_APPMULTIADDR_SELECTOR = "0x39e75d45";
+    /**
+     * @deprecated no more used, replaced with viewApp new call
+     */
+    @Deprecated(forRemoval = true)
     public static final String M_APPTYPE_SELECTOR = "0xf8c2ceb3";
 
     // dataset
+    /**
+     * @deprecated no more used, replaced with viewDataset new call
+     */
+    @Deprecated(forRemoval = true)
     public static final String M_DATASETCHECKSUM_SELECTOR = "0x1ba99d7e";
+    /**
+     * @deprecated no more used, replaced with viewDataset new call
+     */
+    @Deprecated(forRemoval = true)
     public static final String M_DATASETMULTIADDR_SELECTOR = "0xa61ca6c5";
+
+    // assets
+    public static final String VIEW_APP_SELECTOR = "0xe1523fb4";
+    public static final String VIEW_DATASET_SELECTOR = "0x1e143ef7";
 
 }
