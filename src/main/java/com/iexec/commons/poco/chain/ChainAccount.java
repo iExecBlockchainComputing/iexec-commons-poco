@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,29 @@
 
 package com.iexec.commons.poco.chain;
 
+import com.iexec.commons.poco.encoding.PoCoDataDecoder;
 import lombok.Builder;
 import lombok.Value;
-import org.web3j.tuples.generated.Tuple2;
+import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigInteger;
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toBigInt;
 
+@Slf4j
 @Value
 @Builder
 public class ChainAccount {
-
     long deposit;
     long locked;
 
-    public static ChainAccount tuple2Account(Tuple2<BigInteger, BigInteger> account) {
-        if (account != null) {
+    public static ChainAccount fromRawData(final String rawData) {
+        log.debug("ChainAccount.fromRawData");
+        final String[] parts = PoCoDataDecoder.toParts(rawData);
+        if (parts.length == 2) {
             return ChainAccount.builder()
-                    .deposit(account.component1().longValue())
-                    .locked(account.component2().longValue())
+                    .deposit(toBigInt(parts[0]).longValue())
+                    .locked(toBigInt(parts[1]).longValue())
                     .build();
         }
         return null;
     }
-
 }

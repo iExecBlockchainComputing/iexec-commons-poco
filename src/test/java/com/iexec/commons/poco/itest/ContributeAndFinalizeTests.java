@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
@@ -140,6 +141,8 @@ class ContributeAndFinalizeTests {
         web3jService.showReceipt(matchOrdersTxHash, "matchOrders");
         web3jService.showReceipt(initializeTxHash, "initialize");
         web3jService.showReceipt(contributeAndFinalizeTxHash, "contributeAndFinalize");
+
+        assertThat(iexecHubService.getWorkerScore(workerSigner.getAddress())).isEqualTo(Optional.of(0));
     }
 
 }

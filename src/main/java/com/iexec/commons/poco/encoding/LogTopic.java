@@ -39,34 +39,21 @@ public class LogTopic {
 
 
     public static String decode(String topic) {
-        switch (topic) {
-            case TRANSFER_EVENT:
-                return "Transfer";
-            case REWARD_EVENT:
-                return "Reward";
-            case SEIZE_EVENT:
-                return "Seize";
-            case LOCK_EVENT:
-                return "Lock";
-            case UNLOCK_EVENT:
-                return "Unlock";
-            case ORDERS_MATCHED_EVENT:
-                return "OrdersMatched";
-            case SCHEDULER_NOTICE_EVENT:
-                return "SchedulerNotice";
-            case TASK_INITIALIZE_EVENT:
-                return "TaskInitialize";
-            case TASK_CONTRIBUTE_EVENT:
-                return "TaskContribute";
-            case TASK_CONSENSUS_EVENT:
-                return "TaskConsensus";
-            case TASK_REVEAL_EVENT:
-                return "TaskReveal";
-            case TASK_FINALIZE_EVENT:
-                return "TaskFinalize";
-            default:
-                return topic;
-        }
+        return switch (topic) {
+            case TRANSFER_EVENT -> "Transfer";
+            case REWARD_EVENT -> "Reward";
+            case SEIZE_EVENT -> "Seize";
+            case LOCK_EVENT -> "Lock";
+            case UNLOCK_EVENT -> "Unlock";
+            case ORDERS_MATCHED_EVENT -> "OrdersMatched";
+            case SCHEDULER_NOTICE_EVENT -> "SchedulerNotice";
+            case TASK_INITIALIZE_EVENT -> "TaskInitialize";
+            case TASK_CONTRIBUTE_EVENT -> "TaskContribute";
+            case TASK_CONSENSUS_EVENT -> "TaskConsensus";
+            case TASK_REVEAL_EVENT -> "TaskReveal";
+            case TASK_FINALIZE_EVENT -> "TaskFinalize";
+            default -> topic;
+        };
     }
 
 }

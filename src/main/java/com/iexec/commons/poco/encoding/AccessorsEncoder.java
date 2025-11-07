@@ -50,7 +50,11 @@ public class AccessorsEncoder {
      */
     public static final String OWNER_SELECTOR = "0x8da5cb5b";
 
+    public static final String VIEW_ACCOUNT_SELECTOR = "0x6b55f4a5";
+    public static final String VIEW_CATEGORY_SELECTOR = "0x4f5f44ec";
     public static final String VIEW_CONSUMED_SELECTOR = "0x4b2bec8c";
+    public static final String VIEW_CONTRIBUTION_SELECTOR = "0xe741363b";
+    public static final String VIEW_SCORE_SELECTOR = "0xdb230b52";
 
     // app
     /**

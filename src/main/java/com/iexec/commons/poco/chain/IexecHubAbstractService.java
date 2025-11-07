@@ -27,7 +27,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.crypto.Credentials;
 import org.web3j.ens.EnsResolutionException;
-import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
@@ -286,25 +285,29 @@ public abstract class IexecHubAbstractService {
         return Optional.empty();
     }
 
-    public Optional<ChainAccount> getChainAccount(String walletAddress) {
+    public Optional<ChainAccount> getChainAccount(final String walletAddress) {
         try {
-            return Optional.of(ChainAccount.tuple2Account(
-                    iexecHubContract.viewAccountABILegacy(walletAddress).send()));
+            final String txData = VIEW_ACCOUNT_SELECTOR +
+                    Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(walletAddress), 64);
+            return Optional.ofNullable(ChainAccount.fromRawData(
+                    web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData)));
         } catch (Exception e) {
             log.error("Failed to get ChainAccount [walletAddress:{}]", walletAddress, e);
         }
         return Optional.empty();
     }
 
-    public Optional<ChainContribution> getChainContribution(String chainTaskId,
-                                                            String workerAddress) {
+    public Optional<ChainContribution> getChainContribution(final String chainTaskId,
+                                                            final String workerAddress) {
         try {
-            return Optional.of(ChainContribution.tuple2Contribution(
-                    iexecHubContract.viewContributionABILegacy(
-                            BytesUtils.stringToBytes(chainTaskId), workerAddress).send()));
+            final String txData = VIEW_CONTRIBUTION_SELECTOR +
+                    Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(chainTaskId), 64) +
+                    Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(workerAddress), 64);
+            final String rawData = web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData);
+            return Optional.ofNullable(ChainContribution.fromRawData(rawData));
         } catch (Exception e) {
-            log.error("Failed to get ChainContribution [chainTaskId:{}" +
-                    ", workerAddress:{}]", chainTaskId, workerAddress, e);
+            log.error("Failed to get ChainContribution [chainTaskId:{}, workerAddress:{}]",
+                    chainTaskId, workerAddress, e);
         }
         return Optional.empty();
     }
@@ -337,13 +340,9 @@ public abstract class IexecHubAbstractService {
      */
     private void retrieveCategory(final long id) {
         try {
-            Tuple3<String, String, BigInteger> category = iexecHubContract
-                    .viewCategoryABILegacy(BigInteger.valueOf(id)).send();
-            ChainCategory chainCategory = ChainCategory.tuple2ChainCategory(id,
-                    category.component1(),
-                    category.component2(),
-                    category.component3()
-            );
+            final String txData = VIEW_CATEGORY_SELECTOR + Numeric.toHexStringNoPrefixZeroPadded(BigInteger.valueOf(id), 64);
+            final ChainCategory chainCategory = ChainCategory.fromRawData(
+                    id, web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData));
             if (chainCategory.getMaxExecutionTime() <= 0) {
                 log.error("Category max execution time should be greater than zero " +
                                 "(likely a blockchain issue) [categoryId:{}, maxExecutionTime:{}]",
@@ -386,10 +385,21 @@ public abstract class IexecHubAbstractService {
         return Optional.empty();
     }
 
-    public Optional<Integer> getWorkerScore(String address) {
+    /**
+     * Read worker score.
+     * <p>
+     * The score only changes in replicated deals when an actual replication occurs.
+     *
+     * @param address Worker address
+     * @return The worker score
+     * @see <a href="https://github.com/iExecBlockchainComputing/PoCo/blob/v6.1.0-contracts/contracts/facets/IexecPoco2Facet.sol#L462">distributeRewards</a>
+     */
+    public Optional<Integer> getWorkerScore(final String address) {
         if (address != null && !address.isEmpty()) {
             try {
-                BigInteger workerScore = iexecHubContract.viewScore(address).send();
+                final String txData = VIEW_SCORE_SELECTOR +
+                        Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(address), 64);
+                final BigInteger workerScore = toBigInt(web3jAbstractService.sendCall(credentials.getAddress(), iexecHubAddress, txData));
                 return Optional.of(workerScore.intValue());
             } catch (Exception e) {
                 log.error("Failed to getWorkerScore [address:{}]", address, e);

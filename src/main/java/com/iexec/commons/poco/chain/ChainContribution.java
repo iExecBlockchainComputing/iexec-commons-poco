@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,37 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.utils.BytesUtils;
+import com.iexec.commons.poco.encoding.PoCoDataDecoder;
 import lombok.Builder;
 import lombok.Value;
-import org.web3j.tuples.generated.Tuple4;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
 
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toBigInt;
+
+@Slf4j
 @Value
 @Builder
 public class ChainContribution {
-
     ChainContributionStatus status;
     String resultHash;
     String resultSeal;
     String enclaveChallenge;
+    BigInteger weight;
 
-    public static ChainContribution tuple2Contribution(Tuple4<BigInteger, byte[], byte[], String> contribution) {
-        if (contribution != null) {
+    public static ChainContribution fromRawData(final String rawData) {
+        log.debug("ChainContribution.fromRAwData");
+        final String[] parts = PoCoDataDecoder.toParts(rawData);
+        if (parts.length == 5) {
             return ChainContribution.builder()
-                    .status(ChainContributionStatus.getValue(contribution.component1()))
-                    .resultHash(BytesUtils.bytesToString(contribution.component2()))
-                    .resultSeal(BytesUtils.bytesToString(contribution.component3()))
-                    .enclaveChallenge(contribution.component4())
+                    .status(ChainContributionStatus.values()[toBigInt(parts[0]).intValue()])
+                    .resultHash("0x" + parts[1])
+                    .resultSeal("0x" + parts[2])
+                    .enclaveChallenge("0x" + parts[3])
+                    .weight(toBigInt(parts[4]))
                     .build();
         }
         return null;
     }
-
 }
