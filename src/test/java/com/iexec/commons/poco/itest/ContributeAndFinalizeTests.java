@@ -44,7 +44,7 @@ import static com.iexec.commons.poco.itest.ChainTests.SERVICE_NAME;
 import static com.iexec.commons.poco.itest.ChainTests.SERVICE_PORT;
 import static com.iexec.commons.poco.itest.IexecHubTestService.*;
 import static com.iexec.commons.poco.itest.Web3jTestService.MINING_TIMEOUT;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
@@ -142,6 +142,7 @@ class ContributeAndFinalizeTests {
         web3jService.showReceipt(initializeTxHash, "initialize");
         web3jService.showReceipt(contributeAndFinalizeTxHash, "contributeAndFinalize");
 
+        assertThat(iexecHubService.getChainContribution(predictedChainTaskId, workerSigner.getAddress())).isNotEmpty();
         assertThat(iexecHubService.getWorkerScore(workerSigner.getAddress())).isEqualTo(Optional.of(0));
     }
 
