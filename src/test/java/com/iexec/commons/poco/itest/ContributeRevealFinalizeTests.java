@@ -39,6 +39,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -170,6 +171,9 @@ class ContributeRevealFinalizeTests {
         web3jService.showReceipt(contributeTxHash, "contribute");
         web3jService.showReceipt(revealTxHash, "reveal");
         web3jService.showReceipt(finalizeTxHash, "finalize");
+
+        assertThat(iexecHubService.getChainContribution(predictedChainTaskId, workerSigner.getAddress())).isNotEmpty();
+        assertThat(iexecHubService.getWorkerScore(workerSigner.getAddress())).isEqualTo(Optional.of(0));
     }
 
     @Test
@@ -231,6 +235,11 @@ class ContributeRevealFinalizeTests {
         for (final String txHash : txHashes) {
             web3jService.showReceipt(txHash, "");
         }
+
+        assertThat(iexecHubService.getChainContribution(predictedChainTaskId, worker1.getAddress())).isNotEmpty();
+        assertThat(iexecHubService.getWorkerScore(worker1.getAddress())).isEqualTo(Optional.of(1));
+        assertThat(iexecHubService.getChainContribution(predictedChainTaskId, worker2.getAddress())).isNotEmpty();
+        assertThat(iexecHubService.getWorkerScore(worker2.getAddress())).isEqualTo(Optional.of(1));
     }
 
 }

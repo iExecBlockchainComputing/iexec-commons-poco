@@ -59,8 +59,6 @@ public class IexecHubTestService extends IexecHubAbstractService {
     private final AssetDeploymentService workerpoolDeploymentService;
 
     private final SecureRandom random = new SecureRandom();
-    private final String appChecksum = generateChecksum();
-    private final String datasetChecksum = generateChecksum();
 
     public IexecHubTestService(Credentials credentials, Web3jTestService web3jTestService) throws IOException {
         super(credentials, web3jTestService, IEXEC_HUB_ADDRESS);

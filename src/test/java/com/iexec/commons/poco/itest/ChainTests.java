@@ -135,13 +135,7 @@ class ChainTests {
         assertThat(iexecHubService.getOwner(credentials.getAddress())).isEmpty();
     }
 
-    @ParameterizedTest
-    @MethodSource("categoryProvider")
-    void shouldGetCategory(long id, ChainCategory expectedCategory) {
-        final ChainCategory chainCategory = iexecHubService.getChainCategory(id).orElse(null);
-        assertThat(chainCategory).isEqualTo(expectedCategory);
-    }
-
+    // region category
     private static Stream<Arguments> categoryProvider() {
         return Stream.of(
                 Arguments.of(0, ChainCategory.builder().id(0).name("XS").description("\"\"").maxExecutionTime(300_000L).build()),
@@ -151,6 +145,19 @@ class ChainTests {
                 Arguments.of(4, ChainCategory.builder().id(4).name("XL").description("\"\"").maxExecutionTime(36_000_000L).build())
         );
     }
+
+    @ParameterizedTest
+    @MethodSource("categoryProvider")
+    void shouldGetCategory(long id, ChainCategory expectedCategory) {
+        final ChainCategory chainCategory = iexecHubService.getChainCategory(id).orElse(null);
+        assertThat(chainCategory).isEqualTo(expectedCategory);
+    }
+
+    @Test
+    void shouldNotGetCategory() {
+        assertThat(iexecHubService.getChainCategory(6)).isEmpty();
+    }
+    // endregion
 
     @Test
     void shouldGetMaxNbOfPeriodsForConsensus() {
