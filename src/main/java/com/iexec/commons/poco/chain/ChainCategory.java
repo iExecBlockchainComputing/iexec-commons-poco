@@ -35,7 +35,7 @@ public class ChainCategory {
     public static ChainCategory fromRawData(final long id, final String rawData) {
         log.debug("ChainCategory.fromRawData");
         final String[] parts = PoCoDataDecoder.toParts(rawData);
-        int offset = toBigInt(parts[0]).intValue() / 32;
+        final int offset = toBigInt(parts[0]).intValue() / 32;
         final int nameContribOffset = toBigInt(parts[offset]).intValue() / 32;
         final int descriptionContribOffset = toBigInt(parts[offset + 1]).intValue() / 32;
         return ChainCategory.builder()

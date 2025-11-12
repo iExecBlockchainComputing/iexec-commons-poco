@@ -36,7 +36,7 @@ public class ChainContribution {
     BigInteger weight;
 
     public static ChainContribution fromRawData(final String rawData) {
-        log.debug("ChainContribution.fromRAwData");
+        log.debug("ChainContribution.fromRawData");
         final String[] parts = PoCoDataDecoder.toParts(rawData);
         if (parts.length == 5) {
             return ChainContribution.builder()
