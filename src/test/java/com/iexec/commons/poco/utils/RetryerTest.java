@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package com.iexec.commons.poco.utils;
 import com.iexec.commons.poco.chain.IexecHubAbstractService;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class RetryerTest {
 
     public static final String CONTRACT_ADDRESS = "0xcontract";
@@ -35,11 +36,6 @@ class RetryerTest {
 
     @Mock
     private IexecHubAbstractService iexecHubAbstractService;
-
-    @BeforeEach
-    void beforeEach() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void repeatCallWithSuccess() {

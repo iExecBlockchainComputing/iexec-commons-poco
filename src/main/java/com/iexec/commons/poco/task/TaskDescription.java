@@ -17,9 +17,7 @@
 package com.iexec.commons.poco.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.iexec.commons.poco.chain.ChainDeal;
-import com.iexec.commons.poco.chain.ChainTask;
-import com.iexec.commons.poco.chain.DealParams;
+import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.tee.TeeEnclaveConfiguration;
 import com.iexec.commons.poco.tee.TeeFramework;
@@ -42,6 +40,7 @@ public class TaskDescription {
     // assets
     DappType appType;
     String appUri;
+    String appChecksum;
     TeeEnclaveConfiguration appEnclaveConfiguration;
     String datasetUri;
     String datasetChecksum;
@@ -181,24 +180,50 @@ public class TaskDescription {
      * @param chainDeal On-chain deal from PoCo smart contracts
      * @param chainTask On-chain task from PoCo smart contracts
      * @return the created taskDescription
+     * @deprecated app, category and dataset models will be removed from deal model
      */
+    @Deprecated(forRemoval = true)
     public static TaskDescription toTaskDescription(final ChainDeal chainDeal, final ChainTask chainTask) {
         if (chainDeal == null || chainTask == null) {
             return null;
         }
-        String datasetUri = "";
-        String datasetChecksum = "";
+        return toTaskDescription(
+                chainDeal, chainTask, chainDeal.getChainCategory(), chainDeal.getChainApp(), chainDeal.getChainDataset());
+    }
+
+    /**
+     * Create a {@link TaskDescription} from the provided chain deal. This method
+     * if preferred to constructors or the builder method.
+     *
+     * @param chainDeal     On-chain deal from PoCo smart contracts
+     * @param chainTask     On-chain task from PoCo smart contracts
+     * @param chainCategory On-chain category from PoCo smart contracts
+     * @param chainApp      On-chain application from PoCo smart contracts
+     * @param chainDataset  On-chain dataset from PoCo smart contracts
+     * @return the created taskDescription
+     */
+    public static TaskDescription toTaskDescription(final ChainDeal chainDeal,
+                                                    final ChainTask chainTask,
+                                                    final ChainCategory chainCategory,
+                                                    final ChainApp chainApp,
+                                                    final ChainDataset chainDataset) {
+        if (chainDeal == null || chainTask == null || chainCategory == null || chainApp == null || (chainDeal.containsDataset() && chainDataset == null)) {
+            return null;
+        }
+        String datasetUri = null;
+        String datasetChecksum = null;
         if (chainDeal.containsDataset()) {
-            datasetUri = chainDeal.getChainDataset().getMultiaddr();
-            datasetChecksum = chainDeal.getChainDataset().getChecksum();
+            datasetUri = chainDataset.getMultiaddr();
+            datasetChecksum = chainDataset.getChecksum();
         }
         final String tag = chainDeal.getTag();
         return TaskDescription.builder()
                 .chainTaskId(chainTask.getChainTaskId())
                 // assets
                 .appType(DappType.DOCKER)
-                .appUri(chainDeal.getChainApp().getMultiaddr())
-                .appEnclaveConfiguration(chainDeal.getChainApp().getEnclaveConfiguration())
+                .appUri(chainApp.getMultiaddr())
+                .appChecksum(chainApp.getChecksum())
+                .appEnclaveConfiguration(chainApp.getEnclaveConfiguration())
                 .datasetUri(datasetUri)
                 .datasetChecksum(datasetChecksum)
                 // deal
@@ -227,7 +252,7 @@ public class TaskDescription {
                 // task
                 .chainDealId(chainDeal.getChainDealId())
                 .botIndex(chainTask.getIdx())
-                .maxExecutionTime(chainDeal.getChainCategory().getMaxExecutionTime()) // https://github.com/iExecBlockchainComputing/PoCo/blob/v5/contracts/modules/delegates/IexecPoco2Delegate.sol#L111
+                .maxExecutionTime(chainCategory.getMaxExecutionTime())
                 .contributionDeadline(chainTask.getContributionDeadline())
                 .finalDeadline(chainTask.getFinalDeadline())
                 .build();

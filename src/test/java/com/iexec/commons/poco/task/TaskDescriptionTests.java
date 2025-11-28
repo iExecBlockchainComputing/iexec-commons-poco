@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.utils.BytesUtils.EMPTY_ADDRESS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskDescriptionTests {
@@ -107,9 +108,6 @@ class TaskDescriptionTests {
                 .iexecResultEncryption(IS_RESULT_ENCRYPTION)
                 .build();
         final ChainDeal chainDeal = ChainDeal.builder()
-                .chainApp(chainApp)
-                .chainDataset(chainDataset)
-                .chainCategory(chainCategory)
                 .dappPointer(APP_ADDRESS)
                 .dappOwner(APP_OWNER)
                 .dappPrice(APP_PRICE)
@@ -136,7 +134,8 @@ class TaskDescriptionTests {
                 .idx(TASK_IDX)
                 .build();
 
-        final TaskDescription task = TaskDescription.toTaskDescription(chainDeal, chainTask);
+        final TaskDescription task = TaskDescription.toTaskDescription(
+                chainDeal, chainTask, chainCategory, chainApp, chainDataset);
 
         final TaskDescription expectedTaskDescription = TaskDescription.builder()
                 .chainTaskId(CHAIN_TASK_ID)
@@ -144,6 +143,8 @@ class TaskDescriptionTests {
                 .appType(APP_TYPE)
                 .appUri(APP_URI)
                 .appEnclaveConfiguration(enclaveConfiguration)
+                .datasetUri(DATASET_URI)
+                .datasetChecksum(DATASET_CHECKSUM)
                 // deals
                 .appAddress(APP_ADDRESS)
                 .appOwner(APP_OWNER)
@@ -173,7 +174,7 @@ class TaskDescriptionTests {
                 .datasetChecksum(DATASET_CHECKSUM)
                 .build();
 
-        assertEquals(expectedTaskDescription, task);
+        assertThat(task).isEqualTo(expectedTaskDescription);
         assertTrue(task.containsCallback());
     }
 
@@ -306,7 +307,7 @@ class TaskDescriptionTests {
                 .appEnclaveConfiguration(TeeEnclaveConfiguration.builder().entrypoint(ENTRYPOINT).build())
                 .dealParams(DealParams.builder().iexecArgs(CMD).build())
                 .build();
-        assertEquals(ENTRYPOINT + " " + CMD, taskDescription.getAppCommand());
+        assertThat(taskDescription.getAppCommand()).isEqualTo(ENTRYPOINT + " " + CMD);
     }
     // endregion
 

@@ -28,8 +28,20 @@ import java.math.BigInteger;
 public class ChainDeal {
 
     String chainDealId;
+    /**
+     * @deprecated not consistent with Smart Contracts
+     */
+    @Deprecated(forRemoval = true)
     ChainApp chainApp;
+    /**
+     * @deprecated not consistent with Smart Contracts
+     */
+    @Deprecated(forRemoval = true)
     ChainDataset chainDataset;
+    /**
+     * @deprecated not consistent with Smart Contracts
+     */
+    @Deprecated(forRemoval = true)
     ChainCategory chainCategory;
     // deal_pt1
     String dappPointer;
@@ -59,9 +71,7 @@ public class ChainDeal {
     BigInteger schedulerRewardRatio;
 
     public boolean containsDataset() {
-        return getChainDataset() != null &&
-                getChainDataset().getChainDatasetId() != null &&
-                !getChainDataset().getChainDatasetId().equals(BytesUtils.EMPTY_ADDRESS);
+        return dataPointer != null && !BytesUtils.EMPTY_ADDRESS.equals(dataPointer);
     }
 
     public static ChainDeal parts2ChainDeal(String chainDealId, IexecHubContract.Deal deal, ChainCategory category) {
@@ -71,6 +81,10 @@ public class ChainDeal {
         return create(chainDealId, deal, category, null, null);
     }
 
+    /**
+     * @deprecated app, category and dataset will no more be embedded in deal to stick to on-chain models
+     */
+    @Deprecated(forRemoval = true)
     public static ChainDeal parts2ChainDeal(String chainDealId, IexecHubContract.Deal deal, ChainApp app, ChainCategory category, ChainDataset dataset) {
         if (deal == null || app == null || category == null) {
             return ChainDeal.builder().build();

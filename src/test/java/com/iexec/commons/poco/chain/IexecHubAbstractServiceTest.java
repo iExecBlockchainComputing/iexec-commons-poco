@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.dapp.DappType;
 import com.iexec.commons.poco.task.TaskDescription;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.Test;
@@ -133,7 +134,7 @@ class IexecHubAbstractServiceTest {
     void repeatGetChainDealWithSuccess() {
         ChainDeal chainDeal = getMockDeal();
 
-        when(iexecHubAbstractService.getChainDealWithDetails(CHAIN_DEAL_ID))
+        when(iexecHubAbstractService.getChainDeal(CHAIN_DEAL_ID))
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(chainDeal));
@@ -145,12 +146,12 @@ class IexecHubAbstractServiceTest {
 
         assertThat(foundDeal).isEqualTo(Optional.of(chainDeal));
         verify(iexecHubAbstractService, times(3))
-                .getChainDealWithDetails(CHAIN_DEAL_ID);
+                .getChainDeal(CHAIN_DEAL_ID);
     }
 
     @Test
     void repeatGetChainDealWithFailure() {
-        when(iexecHubAbstractService.getChainDealWithDetails(CHAIN_DEAL_ID))
+        when(iexecHubAbstractService.getChainDeal(CHAIN_DEAL_ID))
                 .thenReturn(Optional.empty());
         when(iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY))
                 .thenCallRealMethod();
@@ -160,26 +161,44 @@ class IexecHubAbstractServiceTest {
 
         assertThat(foundDeal).isEmpty();
         verify(iexecHubAbstractService, times(1 + MAX_RETRY))
-                .getChainDealWithDetails(CHAIN_DEAL_ID);
+                .getChainDeal(CHAIN_DEAL_ID);
     }
 
     @Test
     void repeatGetTaskDescriptionFromChainWithSuccess() {
-        ChainTask task = getMockTask();
-        ChainDeal deal = getMockDeal();
+        final ChainTask task = getMockTask();
+        final ChainDeal deal = getMockDeal();
 
         when(iexecHubAbstractService.repeatGetChainTask(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY))
                 .thenReturn(Optional.of(task));
         when(iexecHubAbstractService.repeatGetChainDeal(CHAIN_DEAL_ID, RETRY_DELAY, MAX_RETRY))
                 .thenReturn(Optional.of(deal));
+        when(iexecHubAbstractService.getChainCategory(anyLong()))
+                .thenReturn(Optional.of(ChainCategory.builder().build()));
+        when(iexecHubAbstractService.getChainApp(anyString()))
+                .thenReturn(Optional.of(ChainApp.builder().build()));
+        when(iexecHubAbstractService.getChainDataset(anyString()))
+                .thenReturn(Optional.of(ChainDataset.builder().build()));
 
         when(iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY))
                 .thenCallRealMethod();
-        Optional<TaskDescription> taskDescription =
-                iexecHubAbstractService.repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY);
+        final TaskDescription taskDescription = iexecHubAbstractService
+                .repeatGetTaskDescriptionFromChain(CHAIN_TASK_ID, RETRY_DELAY, MAX_RETRY)
+                .orElse(null);
 
-        assertThat(taskDescription.map(TaskDescription::getChainTaskId)).hasValue(task.getChainTaskId());
-        assertThat(taskDescription.map(TaskDescription::getBotSize)).hasValue(deal.getBotSize().intValue());
+        final TaskDescription expectedTaskDescription = TaskDescription.builder()
+                .chainTaskId(CHAIN_TASK_ID)
+                .appType(DappType.DOCKER)
+                .appAddress(deal.getDappPointer())
+                .datasetAddress(deal.getDataPointer())
+                .category(deal.getCategory())
+                .dealParams(DealParams.builder().build())
+                .startTime(deal.getStartTime().intValue())
+                .botFirstIndex(deal.getBotFirst().intValue())
+                .botSize(deal.getBotSize().intValue())
+                .build();
+
+        assertThat(taskDescription).isEqualTo(expectedTaskDescription);
     }
 
     @Test
@@ -276,11 +295,14 @@ class IexecHubAbstractServiceTest {
     private ChainDeal getMockDeal() {
         return ChainDeal.builder()
                 .chainApp(ChainApp.builder().multiaddr("").build())
-                .params(DealParams.builder().build())
                 .chainCategory(ChainCategory.builder().build())
+                .dappPointer("0x1")
+                .dataPointer(BytesUtils.EMPTY_ADDRESS)
+                .category(BigInteger.ZERO)
+                .params(DealParams.builder().build())
                 .startTime(BigInteger.TEN)
-                .botSize(BigInteger.ONE)
                 .botFirst(BigInteger.ONE)
+                .botSize(BigInteger.ONE)
                 .build();
     }
 }
