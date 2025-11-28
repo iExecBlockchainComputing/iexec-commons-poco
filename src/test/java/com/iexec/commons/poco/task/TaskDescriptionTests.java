@@ -75,10 +75,21 @@ class TaskDescriptionTests {
     private static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
 
     @Test
-    void toTaskDescriptionWithNullDeal() {
+    void emptyTaskDescriptionWithNullDealAndTask() {
         assertNull(TaskDescription.toTaskDescription(null, null));
         assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().build(), null));
         assertNull(TaskDescription.toTaskDescription(null, ChainTask.builder().build()));
+        assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().build(), ChainTask.builder().build()));
+    }
+
+    @Test
+    void emptyTaskDescriptionWithNullAssets() {
+        assertNull(TaskDescription.toTaskDescription(null, null, null, null, null));
+        assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().build(), null, null, null, null));
+        assertNull(TaskDescription.toTaskDescription(null, ChainTask.builder().build(), null, null, null));
+        assertNull(TaskDescription.toTaskDescription(null, null, ChainCategory.builder().build(), null, null));
+        assertNull(TaskDescription.toTaskDescription(null, null, null, ChainApp.builder().build(), null));
+        assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().dataPointer("0x1").build(), null, null, ChainApp.builder().build(), null));
     }
 
     @Test
