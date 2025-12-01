@@ -162,11 +162,11 @@ public abstract class IexecHubAbstractService {
      * @param maxRetry    number of maximum retry
      * @return optional ChainDeal
      */
-    Optional<ChainDeal> repeatGetChainDeal(String chainDealId,
-                                           long retryDelay,
-                                           int maxRetry) {
+    Optional<ChainDeal> repeatGetChainDeal(final String chainDealId,
+                                           final long retryDelay,
+                                           final int maxRetry) {
         return new Retryer<Optional<ChainDeal>>()
-                .repeatCall(() -> getChainDealWithDetails(chainDealId),
+                .repeatCall(() -> getChainDeal(chainDealId),
                         Optional::isEmpty,
                         retryDelay, maxRetry,
                         String.format("getChainDeal(chainDealId) [chainDealId:%s]", chainDealId));
@@ -210,7 +210,9 @@ public abstract class IexecHubAbstractService {
      *
      * @param chainDealId blockchain ID of the deal (e.g: 0x123..abc)
      * @return deal object
+     * @deprecated on-chain app, category, dataset and deal are fetched separately (see repeatGetTaskDescriptionFromChain)
      */
+    @Deprecated(forRemoval = true)
     public Optional<ChainDeal> getChainDealWithDetails(String chainDealId) {
         final byte[] chainDealIdBytes = BytesUtils.stringToBytes(chainDealId);
         try {
@@ -258,9 +260,9 @@ public abstract class IexecHubAbstractService {
      * @param maxRetry    number of maximum retry
      * @return optional ChainTask
      */
-    Optional<ChainTask> repeatGetChainTask(String chainTaskId,
-                                           long retryDelay,
-                                           int maxRetry) {
+    Optional<ChainTask> repeatGetChainTask(final String chainTaskId,
+                                           final long retryDelay,
+                                           final int maxRetry) {
         return new Retryer<Optional<ChainTask>>()
                 .repeatCall(() -> getChainTask(chainTaskId),
                         Optional::isEmpty,
@@ -458,9 +460,18 @@ public abstract class IexecHubAbstractService {
         return taskDescriptions.get(chainTaskId);
     }
 
-    Optional<TaskDescription> repeatGetTaskDescriptionFromChain(String chainTaskId,
-                                                                long retryDelay,
-                                                                int maxRetry) {
+    /**
+     * Retrieves task, deal, category, app and dataset models on PoCo Smart Contracts to build a task description.
+     *
+     * @param chainTaskId ID of the task
+     * @param retryDelay  Interval between consecutive attempts while reading on the blockchain network
+     * @param maxRetry    Maximum number of attempts
+     * @return The aggregate {@code TaskDescription}.
+     * If the maximum number of attempts is reached without retrieving data, an empty result will be returned.
+     */
+    Optional<TaskDescription> repeatGetTaskDescriptionFromChain(final String chainTaskId,
+                                                                final long retryDelay,
+                                                                final int maxRetry) {
         // If retryDelay is 0, a runtime exception will be thrown from failsafe library
         if (retryDelay == 0) {
             log.warn("retry delay cannot be 0 [chainTaskId:{}]", chainTaskId);
@@ -478,9 +489,31 @@ public abstract class IexecHubAbstractService {
             return Optional.empty();
         }
 
-        final TaskDescription taskDescription = TaskDescription.toTaskDescription(chainDeal, chainTask);
+        final ChainCategory chainCategory = new Retryer<Optional<ChainCategory>>()
+                .repeatCall(() -> getChainCategory(chainDeal.getCategory().longValue()),
+                        Optional::isEmpty,
+                        retryDelay, maxRetry,
+                        String.format("getChainCategory() [category:%s]", chainDeal.getCategory().longValue()))
+                .orElse(null);
+
+        final ChainApp chainApp = new Retryer<Optional<ChainApp>>()
+                .repeatCall(() -> getChainApp(chainDeal.getDappPointer()),
+                        Optional::isEmpty,
+                        retryDelay, maxRetry,
+                        String.format("getChainApp() [address:%s]", chainDeal.getDappPointer()))
+                .orElse(null);
+
+        final ChainDataset chainDataset = new Retryer<Optional<ChainDataset>>()
+                .repeatCall(() -> getChainDataset(chainDeal.getDataPointer()),
+                        Optional::isEmpty,
+                        retryDelay, maxRetry,
+                        String.format("getChainDataset() [address:%s]", chainDeal.getDataPointer()))
+                .orElse(null);
+
+        final TaskDescription taskDescription = TaskDescription.toTaskDescription(
+                chainDeal, chainTask, chainCategory, chainApp, chainDataset);
         // taskDescription cannot be null here as chainTask and ChainDeal are not
-        return taskDescription != null ? Optional.of(taskDescription) : Optional.empty();
+        return Optional.ofNullable(taskDescription);
     }
 
     /**
