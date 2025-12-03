@@ -204,7 +204,7 @@ public class SignerService {
         if (ethCall.hasError()) {
             decodeAndThrowEvmRpcError(ethCall.getError(), "ethCall");
         }
-        log.debug("ethCall [value:{}]", ethCall.getValue());
+        log.trace("ethCall [value:{}]", ethCall.getValue());
         return ethCall.getValue();
     }
 
