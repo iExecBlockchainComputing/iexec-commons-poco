@@ -503,7 +503,7 @@ public abstract class IexecHubAbstractService {
                         String.format("getChainApp() [address:%s]", chainDeal.getDappPointer()))
                 .orElse(null);
 
-        final ChainDataset chainDataset = new Retryer<Optional<ChainDataset>>()
+        final ChainDataset chainDataset = !chainDeal.containsDataset() ? null : new Retryer<Optional<ChainDataset>>()
                 .repeatCall(() -> getChainDataset(chainDeal.getDataPointer()),
                         Optional::isEmpty,
                         retryDelay, maxRetry,

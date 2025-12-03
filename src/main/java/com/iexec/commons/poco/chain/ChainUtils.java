@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.iexec.commons.poco.chain;
 
-import com.iexec.commons.poco.utils.BytesUtils;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.Arrays;
 import org.web3j.crypto.Hash;
@@ -28,14 +29,11 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChainUtils {
 
-    private ChainUtils() {
-        throw new UnsupportedOperationException();
-    }
-
     public static String generateChainTaskId(String dealId, int taskIndex) {
-        byte[] dealIdBytes32 = BytesUtils.stringToBytes(dealId);
+        byte[] dealIdBytes32 = Numeric.hexStringToByteArray(dealId);
         if (dealIdBytes32.length != 32) {
             return null;
         }
@@ -46,7 +44,7 @@ public class ChainUtils {
         }
         //concatenate bytes with same size only
         byte[] concatenate = Arrays.concatenate(dealIdBytes32, taskIndexBytes32);
-        return Hash.sha3(BytesUtils.bytesToString(concatenate));
+        return Numeric.toHexString(Hash.sha3(concatenate));
     }
 
 

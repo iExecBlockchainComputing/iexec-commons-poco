@@ -226,7 +226,7 @@ public abstract class Web3jAbstractService {
         if (ethCall.hasError()) {
             decodeAndThrowEvmRpcError(ethCall.getError());
         }
-        log.debug("ethCall [value:{}]", ethCall.getValue());
+        log.trace("ethCall [value:{}]", ethCall.getValue());
         return ethCall.getValue();
     }
 

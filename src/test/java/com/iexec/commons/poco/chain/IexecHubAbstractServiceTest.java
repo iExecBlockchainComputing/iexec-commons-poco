@@ -297,7 +297,7 @@ class IexecHubAbstractServiceTest {
                 .chainApp(ChainApp.builder().multiaddr("").build())
                 .chainCategory(ChainCategory.builder().build())
                 .dappPointer("0x1")
-                .dataPointer(BytesUtils.EMPTY_ADDRESS)
+                .dataPointer("0x2")
                 .category(BigInteger.ZERO)
                 .params(DealParams.builder().build())
                 .startTime(BigInteger.TEN)
