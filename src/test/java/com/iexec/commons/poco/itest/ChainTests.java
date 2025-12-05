@@ -29,6 +29,7 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.crypto.exception.CipherException;
 
@@ -91,6 +92,14 @@ class ChainTests {
         final Web3jTestService arbitrumWeb3j = new Web3jTestService(chainNodeAddress, 1.0f, 22_000_000_000L, false);
         final IexecHubTestService arbitrumHub = new IexecHubTestService(credentials, arbitrumWeb3j);
         assertThat(arbitrumHub.hasEnoughGas()).isTrue();
+    }
+
+    @Test
+    void shouldNotHaveEnoughGasOnArbitrum() throws Exception {
+        final Credentials newCredentials = Credentials.create(Keys.createEcKeyPair());
+        final Web3jTestService arbitrumWeb3j = new Web3jTestService(chainNodeAddress, 1.0f, 22_000_000_000L, false);
+        final IexecHubTestService arbitrumHub = new IexecHubTestService(newCredentials, arbitrumWeb3j);
+        assertThat(arbitrumHub.hasEnoughGas()).isFalse();
     }
 
     @Test
