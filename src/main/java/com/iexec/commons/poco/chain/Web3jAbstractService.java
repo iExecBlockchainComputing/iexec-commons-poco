@@ -62,11 +62,14 @@ public abstract class Web3jAbstractService {
     private final Duration blockTime;
     private final float gasPriceMultiplier;
     private final long gasPriceCap;
+    @Getter
     private final boolean isSidechain;
     @Getter
     private final Web3j web3j;
     @Getter
     private final ContractGasProvider contractGasProvider;
+
+    private BigInteger lastKnownBalance = BigInteger.ZERO;
 
     /**
      * Apart from initializing usual business entities, it initializes a single
@@ -121,6 +124,10 @@ public abstract class Web3jAbstractService {
         return false;
     }
 
+    /**
+     * @deprecated only used from deprecated method
+     */
+    @Deprecated(forRemoval = true)
     public static BigInteger getMaxTxCost(long gasPriceCap) {
         return BigInteger.valueOf(GAS_LIMIT_CAP * gasPriceCap);
     }
@@ -240,6 +247,10 @@ public abstract class Web3jAbstractService {
         throw new JsonRpcError(error.getCode(), message, null);
     }
 
+    /**
+     * @deprecated Use IexecHubAbstractService#hasEnoughGas() instead
+     */
+    @Deprecated(forRemoval = true)
     public boolean hasEnoughGas(String address) {
         // if a sidechain is used, there is no need to check if the wallet has enough gas.
         // if mainnet is used, the check should be done.
@@ -268,15 +279,19 @@ public abstract class Web3jAbstractService {
         return true;
     }
 
-    public Optional<BigInteger> getBalance(String address) {
+    public Optional<BigInteger> getBalance(final String address) {
         try {
-            BigInteger balance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+            final BigInteger balance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
             log.debug("{} current balance is {}", address, balance);
             return Optional.of(balance);
         } catch (IOException e) {
             log.error("ethGetBalance call failed", e);
             return Optional.empty();
         }
+    }
+
+    public BigInteger getMaxTxCost() {
+        return BigInteger.valueOf(GAS_LIMIT_CAP * gasPriceCap);
     }
 
     /**

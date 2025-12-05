@@ -82,6 +82,18 @@ class ChainTests {
     }
 
     @Test
+    void shouldHaveEnoughGasOnBellecour() {
+        assertThat(iexecHubService.hasEnoughGas()).isTrue();
+    }
+
+    @Test
+    void shouldHaveEnoughGasOnArbitrum() throws IOException {
+        final Web3jTestService arbitrumWeb3j = new Web3jTestService(chainNodeAddress, 1.0f, 22_000_000_000L, false);
+        final IexecHubTestService arbitrumHub = new IexecHubTestService(credentials, arbitrumWeb3j);
+        assertThat(arbitrumHub.hasEnoughGas()).isTrue();
+    }
+
+    @Test
     void shouldGetBalance() {
         final BigInteger balance = web3jService.getBalance(credentials.getAddress()).orElse(null);
         assertThat(balance).isEqualTo(new BigInteger("1000000000000000000000"));
