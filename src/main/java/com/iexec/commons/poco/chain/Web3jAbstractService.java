@@ -69,8 +69,6 @@ public abstract class Web3jAbstractService {
     @Getter
     private final ContractGasProvider contractGasProvider;
 
-    private BigInteger lastKnownBalance = BigInteger.ZERO;
-
     /**
      * Apart from initializing usual business entities, it initializes a single
      * and shared web3j instance. This inner web3j instance allows to connect to
