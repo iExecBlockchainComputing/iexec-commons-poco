@@ -33,6 +33,7 @@ import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
@@ -68,6 +69,7 @@ public abstract class IexecHubAbstractService {
     private final int maxRetries;
     private final Map<Long, ChainCategory> categories = new ConcurrentHashMap<>();
     private final Map<String, TaskDescription> taskDescriptions = new ConcurrentHashMap<>();
+    private BigInteger lastKnownBalance = BigInteger.ZERO;
 
     protected IexecHubAbstractService(
             Credentials credentials,
@@ -444,6 +446,40 @@ public abstract class IexecHubAbstractService {
         }
     }
 
+    public boolean hasEnoughGas() {
+        // if a sidechain is used, there is no need to check if the wallet has enough gas.
+        // if mainnet is used, the check should be done.
+        if (web3jAbstractService.isSidechain()) {
+            return true;
+        }
+
+        final Optional<BigInteger> oWeiBalance = web3jAbstractService.getBalance(credentials.getAddress());
+        if (oWeiBalance.isEmpty()) {
+            log.warn("ETH balance not retrieved on chain, falling back on last known balance");
+        }
+
+        final BigInteger weiBalance = oWeiBalance.orElse(lastKnownBalance);
+        // preserve last known balance for future checks
+        lastKnownBalance = weiBalance;
+        final BigInteger estimateTxNb = weiBalance.divide(web3jAbstractService.getMaxTxCost());
+        final BigDecimal balanceToShow = ChainUtils.weiToEth(weiBalance);
+
+        if (estimateTxNb.compareTo(BigInteger.ONE) < 0) {
+            log.error("ETH balance is empty, please refill gas now [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
+            return false;
+        } else if (estimateTxNb.compareTo(BigInteger.TEN) < 0) {
+            log.warn("ETH balance very low, should refill gas now [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
+        } else {
+            log.debug("ETH balance is fine [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
+        }
+
+        return true;
+    }
+
+    /**
+     * @deprecated Use hasEnoughGas() instead
+     */
+    @Deprecated(forRemoval = true)
     public boolean hasEnoughGas(String address) {
         return web3jAbstractService.hasEnoughGas(address);
     }
