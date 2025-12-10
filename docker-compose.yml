@@ -1,5 +1,5 @@
 services:
   poco-chain:
-    image: docker-regis.iex.ec/poco-chain:1.1.0-poco-v6.1.0-contracts-voucher-v1.0.0-nethermind
+    image: docker-regis.iex.ec/poco-chain:1.2.1-poco-v6.2.0-contracts-hardhat
     expose:
       - "8545"

@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Credentials;
@@ -60,7 +61,8 @@ class ContributeAndFinalizeTests {
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
             .withPull(true)
-            .withExposedService(SERVICE_NAME, SERVICE_PORT);
+            .withExposedService(SERVICE_NAME, SERVICE_PORT)
+            .waitingFor(SERVICE_NAME, Wait.forLogMessage("==> Deployment finished <==\n", 1));
 
     @BeforeEach
     void init() throws CipherException, IOException {
