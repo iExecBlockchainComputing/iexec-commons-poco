@@ -42,7 +42,7 @@ public class Web3jTestService extends Web3jAbstractService {
     }
 
     public Web3jTestService(String chainNodeAddress, float gasPriceMultiplier, long gasPriceCap) {
-        this(chainNodeAddress, gasPriceMultiplier, gasPriceCap, true);
+        this(chainNodeAddress, gasPriceMultiplier, gasPriceCap, false);
     }
 
     public Web3jTestService(String chainNodeAddress, float gasPriceMultiplier, long gasPriceCap, boolean isSidechain) {
