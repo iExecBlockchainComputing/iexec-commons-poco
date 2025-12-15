@@ -40,7 +40,6 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.crypto.exception.CipherException;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.JsonRpcError;
-import org.web3j.utils.Numeric;
 
 import java.io.File;
 import java.io.IOException;
@@ -245,11 +244,11 @@ class MatchOrdersTests {
     @MethodSource("provideValidTags")
     void shouldMatchOrdersWithValidTags(final String appTag, final String datasetTag, final String requestTag, final String workerpoolTag) throws IOException {
         final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
-        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(deployedAddresses.get("app"), formatTag(appTag));
-        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"), formatTag(datasetTag));
-        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(deployedAddresses.get("workerpool"), BigInteger.ONE, formatTag(workerpoolTag));
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(deployedAddresses.get("app"), appTag);
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"), datasetTag);
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(deployedAddresses.get("workerpool"), BigInteger.ONE, workerpoolTag);
         final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
-                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, BigInteger.ONE, formatTag(requestTag));
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, BigInteger.ONE, requestTag);
 
         final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
         assertThatNoException().isThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData));
@@ -268,20 +267,16 @@ class MatchOrdersTests {
     @MethodSource("provideInvalidTags")
     void shouldNotMatchOrdersWithInvalidTags(final String appTag, final String datasetTag, final String requestTag, final String workerpoolTag) throws IOException {
         final Map<String, String> deployedAddresses = iexecHubService.deployAssets();
-        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(deployedAddresses.get("app"), formatTag(appTag));
-        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"), formatTag(datasetTag));
-        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(deployedAddresses.get("workerpool"), BigInteger.ONE, formatTag(workerpoolTag));
+        final AppOrder signedAppOrder = ordersService.buildSignedAppOrder(deployedAddresses.get("app"), appTag);
+        final DatasetOrder signedDatasetOrder = ordersService.buildSignedDatasetOrder(deployedAddresses.get("dataset"), datasetTag);
+        final WorkerpoolOrder signedWorkerpoolOrder = ordersService.buildSignedWorkerpoolOrder(deployedAddresses.get("workerpool"), BigInteger.ONE, workerpoolTag);
         final RequestOrder signedRequestOrder = ordersService.buildSignedRequestOrder(
-                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, BigInteger.ONE, formatTag(requestTag));
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, BigInteger.ONE, requestTag);
 
         final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
         assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
                 .isInstanceOf(JsonRpcError.class)
                 .hasMessage("iExecV5-matchOrders-0x07");
-    }
-
-    private String formatTag(final String hexTag) {
-        return Numeric.toHexStringWithPrefixZeroPadded(Numeric.toBigInt(hexTag), 64);
     }
 
     static Stream<Arguments> provideInvalidTags() {
