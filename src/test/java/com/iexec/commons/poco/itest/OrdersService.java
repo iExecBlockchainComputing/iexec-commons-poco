@@ -47,12 +47,16 @@ public class OrdersService {
         this.signerService = signerService;
     }
 
-    public AppOrder buildSignedAppOrder(String appAddress) {
+    public AppOrder buildSignedAppOrder(final String appAddress) {
+        return buildSignedAppOrder(appAddress, OrderTag.TEE_SCONE.getValue());
+    }
+
+    public AppOrder buildSignedAppOrder(final String appAddress, final String tag) {
         final AppOrder appOrder = AppOrder.builder()
                 .app(appAddress)
                 .appprice(BigInteger.ZERO)
                 .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
+                .tag(tag)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -61,12 +65,16 @@ public class OrdersService {
         return (AppOrder) signerService.signOrderForDomain(appOrder, domain);
     }
 
-    public DatasetOrder buildSignedDatasetOrder(String datasetAddress) {
+    public DatasetOrder buildSignedDatasetOrder(final String datasetAddress) {
+        return buildSignedDatasetOrder(datasetAddress, OrderTag.TEE_SCONE.getValue());
+    }
+
+    public DatasetOrder buildSignedDatasetOrder(final String datasetAddress, final String tag) {
         final DatasetOrder datasetOrder = DatasetOrder.builder()
                 .dataset(datasetAddress)
                 .datasetprice(BigInteger.ZERO)
                 .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
+                .tag(tag)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -75,12 +83,16 @@ public class OrdersService {
         return (DatasetOrder) signerService.signOrderForDomain(datasetOrder, domain);
     }
 
-    public WorkerpoolOrder buildSignedWorkerpoolOrder(String workerpoolAddress, BigInteger trust) {
+    public WorkerpoolOrder buildSignedWorkerpoolOrder(final String workerpoolAddress, final BigInteger trust) {
+        return buildSignedWorkerpoolOrder(workerpoolAddress, trust, OrderTag.TEE_SCONE.getValue());
+    }
+
+    public WorkerpoolOrder buildSignedWorkerpoolOrder(final String workerpoolAddress, final BigInteger trust, final String tag) {
         final WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
                 .workerpoolprice(BigInteger.ZERO)
                 .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
+                .tag(tag)
                 .category(BigInteger.ZERO)
                 .trust(trust)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
@@ -91,7 +103,13 @@ public class OrdersService {
         return (WorkerpoolOrder) signerService.signOrderForDomain(workerpoolOrder, domain);
     }
 
-    public RequestOrder buildSignedRequestOrder(AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder, BigInteger trust) {
+    public RequestOrder buildSignedRequestOrder(
+            final AppOrder appOrder, final DatasetOrder datasetOrder, final WorkerpoolOrder workerpoolOrder, final BigInteger trust) {
+        return buildSignedRequestOrder(appOrder, datasetOrder, workerpoolOrder, trust, OrderTag.TEE_SCONE.getValue());
+    }
+
+    public RequestOrder buildSignedRequestOrder(
+            final AppOrder appOrder, final DatasetOrder datasetOrder, final WorkerpoolOrder workerpoolOrder, final BigInteger trust, final String tag) {
         final TreeMap<String, String> iexecSecrets = new TreeMap<>(Map.of(
                 "1", "first-secret",
                 "2", "second-secret",
@@ -111,7 +129,7 @@ public class OrdersService {
                 .workerpoolmaxprice(workerpoolOrder.getWorkerpoolprice())
                 .requester(signerService.getAddress())
                 .volume(BigInteger.ONE)
-                .tag(OrderTag.TEE_SCONE.getValue())
+                .tag(tag)
                 .category(BigInteger.ZERO)
                 .trust(trust)
                 .beneficiary(signerService.getAddress())
