@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.4.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.3.1...v5.4.0) (2025-12-16)
+
+
+### Features
+
+* create ChainAccount, ChainCategory and ChainContribution from raw data ([#162](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/162)) ([82293b5](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/82293b5c183b1cddc2b733d042e7458a1bad01e3))
+* refactor method to check if wallet has enough gas ([#165](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/165)) ([3208ec2](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/3208ec2b37e98a054302cf926ae44df06c220ea2))
+* run tests against PoCo v6.2.0 ([#166](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/166)) ([8113f9d](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/8113f9da56836301392c8078c9bdab0b75858b2c))
+* stop embedding category, app and dataset models in deal model ([#163](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/163)) ([c9e4a07](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/c9e4a079f93cb5d696ba50575af47424f20659c2))
+* use new viewApp and viewDataset PoCo methods ([#160](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/160)) ([8d0de6f](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/8d0de6fc6a540fdc8704d8d8e329b202591bc1cc))
+
+
+### Bug Fixes
+
+* minor fixes and improvements across several classes ([#164](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/164)) ([b48c4ae](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/b48c4ae79b20e5bcc9ae05e78d20cd5ac4e4ea75))
+
 ## [5.3.1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.3.0...v5.3.1) (2025-10-30)
 
 
