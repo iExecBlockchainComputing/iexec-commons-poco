@@ -168,7 +168,7 @@ public class SignerService {
      *
      * @param eip712Entity Entity to sign a token for.
      * @return The authorization token.
-     * @deprecated Use signTypedDataForDomain instead
+     * @deprecated Use signTypedDataForDomainAndBuildToken instead
      */
     @Deprecated(forRemoval = true)
     public String signEIP712EntityAndBuildToken(EIP712Entity<?> eip712Entity) {
