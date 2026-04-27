@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,52 @@
 
 package com.iexec.commons.poco.eip712.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iexec.commons.poco.eip712.EIP712Domain;
-import com.iexec.commons.poco.eip712.EIP712Entity;
 import com.iexec.commons.poco.eip712.TypeParam;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * @deprecated replaced with {@link Challenge#computeHash(EIP712Domain)} )
- */
-@Deprecated(forRemoval = true)
+@Getter
 @NoArgsConstructor
-public class EIP712Challenge extends EIP712Entity<Challenge> {
+public class EIP712Challenge {
 
-    public EIP712Challenge(EIP712Domain domain, Challenge message) {
-        super(domain, message);
+    private Map<String, List<TypeParam>> types;
+    private String primaryType;
+    private EIP712Domain domain;
+    private Challenge message;
+
+    public EIP712Challenge(final EIP712Domain domain, final Challenge message) {
+        this.types = new LinkedHashMap<>();
+        this.types.put(EIP712Domain.primaryType, domain.getTypes());
+        this.types.put("Challenge", getMessageTypeParams());
+        this.primaryType = "Challenge";
+        this.domain = domain;
+        this.message = message;
     }
 
-    public String getPrimaryType() {
-        return "Challenge";
-    }
-
-    @Override
+    @JsonIgnore
     public List<TypeParam> getMessageTypeParams() {
-        return Collections.singletonList(
-                new TypeParam("challenge", "string")
-        );
+        return List.of(new TypeParam("challenge", "string"));
     }
 
-    @Override
+    @JsonIgnore
     public String getMessageHash() {
-        return hashMessageValues(
-                getMessage().getChallenge()
-        );
+        return message.computeMessageHash();
+    }
+
+    @JsonIgnore
+    public List<TypeParam> getDomainTypeParams() {
+        return types.get(EIP712Domain.primaryType);
+    }
+
+    @JsonIgnore
+    public String getHash() {
+        return message.computeHash(domain);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,6 +145,12 @@ public class SignerService {
         return typedData.sign(credentials.getEcKeyPair(), domain);
     }
 
+    public String signTypedDataForDomainAndBuildToken(final EIP712TypedData typedData, final EIP712Domain domain) {
+        final String hash = typedData.computeHash(domain);
+        final String signedMessage = signTypedDataForDomain(typedData, domain);
+        return signedMessage == null ? null : String.join("_", hash, signedMessage, credentials.getAddress());
+    }
+
     public Order signOrderForDomain(final Order order, final EIP712Domain domain) {
         final String sig = signTypedDataForDomain(order, domain);
         return order.withSignature(sig);
@@ -162,7 +168,9 @@ public class SignerService {
      *
      * @param eip712Entity Entity to sign a token for.
      * @return The authorization token.
+     * @deprecated Use signTypedDataForDomainAndBuildToken instead
      */
+    @Deprecated(forRemoval = true)
     public String signEIP712EntityAndBuildToken(EIP712Entity<?> eip712Entity) {
         final String hash = eip712Entity.getHash();
         final String signedMessage = signEIP712Entity(eip712Entity);
@@ -171,7 +179,7 @@ public class SignerService {
 
     // TODO keep single instance with the one in Web3jAbstractService
     private void decodeAndThrowEvmRpcError(final Response.Error error, final String label) {
-        log.error("{}} failed [message:{}, code:{}, data:{}]",
+        log.error("{} failed [message:{}, code:{}, data:{}]",
                 label, error.getMessage(), error.getCode(), error.getData());
         final String revertMessage = GENERIC_EVM_ERROR_MESSAGE.equals(error.getMessage()) ? error.getData() : error.getMessage();
         final Pattern p = Pattern.compile("^\"?Reverted (0x[0-9A-Fa-f]+)\"?$");
