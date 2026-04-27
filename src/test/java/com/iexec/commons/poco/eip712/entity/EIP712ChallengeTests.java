@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,9 @@ class EIP712ChallengeTests {
                         "{\"name\":\"chainId\",\"type\":\"uint256\"}" +
                         "]," +
                         "\"Challenge\":[{\"name\":\"challenge\",\"type\":\"string\"}]}," +
+                        "\"primaryType\":\"Challenge\"," +
                         "\"domain\":{\"name\":\"COMMON\",\"version\":\"1\",\"chainId\":15}," +
-                        "\"message\":{\"challenge\":\"challenge\"}," +
-                        "\"primaryType\":\"Challenge\"}");
+                        "\"message\":{\"challenge\":\"challenge\"}}");
         String domainType = "EIP712Domain(string name,string version,uint256 chainId)";
         String domainSeparator = HashUtils.concatenateAndHash(
                 Numeric.toHexString(Hash.sha3(domainType.getBytes())),

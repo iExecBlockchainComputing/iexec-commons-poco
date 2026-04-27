@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.iexec.commons.poco.chain;
 
 import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.eip712.entity.Challenge;
-import com.iexec.commons.poco.eip712.entity.EIP712Challenge;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.HashUtils;
 import org.junit.jupiter.api.Test;
@@ -112,16 +111,15 @@ class SignerServiceTests {
         final long chainId = 13L;
         final Challenge challenge = Challenge.builder().challenge("abcd").build();
         final EIP712Domain domain = new EIP712Domain("OTHER DOMAIN", "2", chainId, null);
-        final EIP712Challenge eip712Challenge = new EIP712Challenge(domain, challenge);
         final Credentials credentials = Credentials.create("0x2a46e8c1535792f6689b10d5c882c9363910c30751ec193ae71ec71630077909");
 
         final String expectedToken = "0xe001855eda78679dfa4972de06d1cf28c630561e17fc6b075130ce688f448bfe" +
                 "_0xc0b3f255c47783e482e1932923dc388cfb5a737ebebdcec04b8ad7ac427c8c9d5155c3211a375704416b639ff8aa7571ef999122a0259bfaf1bbf822345505b11c" +
                 "_0x2d29bfbec903479fe4ba991918bab99b494f2bef";
 
-        SignerService signer = new SignerService(WEB3J_CLIENT, chainId, credentials);
+        final SignerService signer = new SignerService(WEB3J_CLIENT, chainId, credentials);
 
-        final String token = signer.signEIP712EntityAndBuildToken(eip712Challenge);
+        final String token = signer.signTypedDataForDomainAndBuildToken(challenge, domain);
         assertThat(token)
                 .isNotEmpty()
                 .isEqualTo(expectedToken);
