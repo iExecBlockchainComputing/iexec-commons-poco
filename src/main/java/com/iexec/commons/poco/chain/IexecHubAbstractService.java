@@ -33,7 +33,6 @@ import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
@@ -461,19 +460,7 @@ public abstract class IexecHubAbstractService {
         final BigInteger weiBalance = oWeiBalance.orElse(lastKnownBalance);
         // preserve last known balance for future checks
         lastKnownBalance = weiBalance;
-        final BigInteger estimateTxNb = weiBalance.divide(web3jAbstractService.getMaxTxCost());
-        final BigDecimal balanceToShow = ChainUtils.weiToEth(weiBalance);
-
-        if (estimateTxNb.compareTo(BigInteger.ONE) < 0) {
-            log.error("ETH balance is empty, please refill gas now [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
-            return false;
-        } else if (estimateTxNb.compareTo(BigInteger.TEN) < 0) {
-            log.warn("ETH balance very low, should refill gas now [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
-        } else {
-            log.debug("ETH balance is fine [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
-        }
-
-        return true;
+        return web3jAbstractService.checkBalance(weiBalance);
     }
 
     /**
