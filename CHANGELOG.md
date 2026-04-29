@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.4.1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.4.0...v5.4.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* preserve EIP712Challenge required to fetch compute logs ([#167](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/167)) ([050770f](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/050770f66e904fada246e5814614b28d70a76dc2))
+* web3j service hasEnoughGas method is required for scheduler replicate supply ([#169](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/169)) ([596b8b2](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/596b8b29372593082aa8e9f08f48879078f26266))
+
 ## [5.4.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.3.1...v5.4.0) (2025-12-16)
 
 
