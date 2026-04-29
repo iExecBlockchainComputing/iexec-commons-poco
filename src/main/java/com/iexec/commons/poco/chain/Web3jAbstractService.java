@@ -245,10 +245,6 @@ public abstract class Web3jAbstractService {
         throw new JsonRpcError(error.getCode(), message, null);
     }
 
-    /**
-     * @deprecated Use IexecHubAbstractService#hasEnoughGas() instead
-     */
-    @Deprecated(forRemoval = true)
     public boolean hasEnoughGas(String address) {
         // if a sidechain is used, there is no need to check if the wallet has enough gas.
         // if mainnet is used, the check should be done.
@@ -256,14 +252,12 @@ public abstract class Web3jAbstractService {
             return true;
         }
 
-        Optional<BigInteger> optionalBalance = getBalance(address);
-        if (optionalBalance.isEmpty()) {
-            return false;
-        }
+        return getBalance(address).filter(this::checkBalance).isPresent();
+    }
 
-        BigInteger weiBalance = optionalBalance.get();
-        BigInteger estimateTxNb = weiBalance.divide(getMaxTxCost(gasPriceCap));
-        BigDecimal balanceToShow = weiToEth(weiBalance);
+    public boolean checkBalance(final BigInteger weiBalance) {
+        final BigInteger estimateTxNb = weiBalance.divide(getMaxTxCost());
+        final BigDecimal balanceToShow = weiToEth(weiBalance);
 
         if (estimateTxNb.compareTo(BigInteger.ONE) < 0) {
             log.error("ETH balance is empty, please refill gas now [balance:{}, estimateTxNb:{}]", balanceToShow, estimateTxNb);
