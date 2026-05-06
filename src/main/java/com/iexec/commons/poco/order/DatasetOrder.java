@@ -18,14 +18,12 @@ package com.iexec.commons.poco.order;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.EIP712Utils;
 import com.iexec.commons.poco.utils.HashUtils;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -90,24 +88,6 @@ public class DatasetOrder extends Order {
         return HashUtils.concatenateAndHash(encodedValues);
     }
     // endregion
-
-    /**
-     * @deprecated no more used
-     */
-    @Deprecated(forRemoval = true)
-    public IexecHubContract.DatasetOrder toHubContract() {
-        return new IexecHubContract.DatasetOrder(
-                this.dataset,
-                this.datasetprice,
-                this.volume,
-                Numeric.hexStringToByteArray(this.tag),
-                this.apprestrict,
-                this.workerpoolrestrict,
-                this.requesterrestrict,
-                Numeric.hexStringToByteArray(this.salt),
-                Numeric.hexStringToByteArray(this.sign)
-        );
-    }
 
     public String toString() {
         return "DatasetOrder{dataset=" + dataset + ", datasetprice=" + datasetprice

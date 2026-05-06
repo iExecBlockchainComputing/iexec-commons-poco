@@ -19,14 +19,10 @@ package com.iexec.commons.poco.order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.commons.poco.chain.SignerService;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
-import org.web3j.crypto.Hash;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 
@@ -48,38 +44,6 @@ class AppOrderTests {
         assertThat(appOrder).hasToString(
                 "AppOrder{app=null, appprice=null, volume=null, tag=null"
                         + ", datasetrestrict=, workerpoolrestrict=, requesterrestrict=, salt=null, sign=null}"
-        );
-    }
-
-    @Test
-    void shouldCastToHubContract() {
-        AppOrder appOrder = AppOrder.builder()
-                .app("0x1")
-                .appprice(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.STANDARD.getValue())
-                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
-                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
-                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
-                .sign("0x0")
-                .build();
-        IexecHubContract.AppOrder web3jAppOrder = appOrder.toHubContract();
-        assertThat(web3jAppOrder.app).isEqualTo(appOrder.getApp());
-        assertThat(web3jAppOrder.appprice).isEqualTo(appOrder.getAppprice());
-        assertThat(web3jAppOrder.volume).isEqualTo(appOrder.getVolume());
-        assertThat(web3jAppOrder.tag).isEqualTo(Numeric.hexStringToByteArray(appOrder.getTag()));
-        assertThat(web3jAppOrder.datasetrestrict).isEqualTo(appOrder.getDatasetrestrict());
-        assertThat(web3jAppOrder.workerpoolrestrict).isEqualTo(appOrder.getWorkerpoolrestrict());
-        assertThat(web3jAppOrder.requesterrestrict).isEqualTo(appOrder.getRequesterrestrict());
-        assertThat(web3jAppOrder.salt).isEqualTo(Numeric.hexStringToByteArray(appOrder.getSalt()));
-        assertThat(appOrder).hasToString(
-                "AppOrder{app=0x1, appprice=0"
-                        + ", volume=1, tag=0x0000000000000000000000000000000000000000000000000000000000000000"
-                        + ", datasetrestrict=0x0000000000000000000000000000000000000000"
-                        + ", workerpoolrestrict=0x0000000000000000000000000000000000000000"
-                        + ", requesterrestrict=0x0000000000000000000000000000000000000000"
-                        + ", salt=" + appOrder.getSalt() + ", sign=0x0}"
         );
     }
 

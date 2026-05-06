@@ -19,13 +19,9 @@ package com.iexec.commons.poco.order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.commons.poco.chain.SignerService;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.EIP712Domain;
 import com.iexec.commons.poco.utils.BytesUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
-import org.web3j.crypto.Hash;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 
@@ -51,52 +47,6 @@ class RequestOrderTests {
                         + ", requester=, volume=null, tag=null, category=null, trust=null"
                         + ", beneficiary=, callback=, params=null"
                         + ", salt=null, sign=null}"
-        );
-    }
-
-    @Test
-    void shouldCastToHubContract() {
-        RequestOrder requestOrder = RequestOrder.builder()
-                .app("0x1")
-                .appmaxprice(BigInteger.TEN)
-                .dataset("0x2")
-                .datasetmaxprice(BigInteger.TEN)
-                .workerpool("0x3")
-                .workerpoolmaxprice(BigInteger.TEN)
-                .requester("0x4")
-                .volume(BigInteger.ONE)
-                .tag(OrderTag.STANDARD.getValue())
-                .category(BigInteger.ZERO)
-                .trust(BigInteger.ONE)
-                .beneficiary("0x5")
-                .callback(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
-                .sign("0x0")
-                .build();
-        IexecHubContract.RequestOrder web3jRequestOrder = requestOrder.toHubContract();
-        assertThat(web3jRequestOrder.app).isEqualTo(requestOrder.getApp());
-        assertThat(web3jRequestOrder.appmaxprice).isEqualTo(requestOrder.getAppmaxprice());
-        assertThat(web3jRequestOrder.dataset).isEqualTo(requestOrder.getDataset());
-        assertThat(web3jRequestOrder.datasetmaxprice).isEqualTo(requestOrder.getDatasetmaxprice());
-        assertThat(web3jRequestOrder.workerpool).isEqualTo(requestOrder.getWorkerpool());
-        assertThat(web3jRequestOrder.workerpoolmaxprice).isEqualTo(requestOrder.getWorkerpoolmaxprice());
-        assertThat(web3jRequestOrder.requester).isEqualTo(requestOrder.getRequester());
-        assertThat(web3jRequestOrder.volume).isEqualTo(requestOrder.getVolume());
-        assertThat(web3jRequestOrder.tag).isEqualTo(Numeric.hexStringToByteArray(requestOrder.getTag()));
-        assertThat(web3jRequestOrder.category).isEqualTo(requestOrder.getCategory());
-        assertThat(web3jRequestOrder.trust).isEqualTo(requestOrder.getTrust());
-        assertThat(web3jRequestOrder.beneficiary).isEqualTo(requestOrder.getBeneficiary());
-        assertThat(web3jRequestOrder.callback).isEqualTo(requestOrder.getCallback());
-        assertThat(web3jRequestOrder.params).isEqualTo(requestOrder.getParams());
-        assertThat(web3jRequestOrder.salt).isEqualTo(Numeric.hexStringToByteArray(requestOrder.getSalt()));
-        assertThat(requestOrder).hasToString(
-                "RequestOrder{app=0x1, appmaxprice=10"
-                        + ", dataset=0x2, datasetmaxprice=10"
-                        + ", workerpool=0x3, workerpoolmaxprice=10"
-                        + ", requester=0x4, volume=1, tag=0x0000000000000000000000000000000000000000000000000000000000000000"
-                        + ", category=0, trust=1, beneficiary=0x5"
-                        + ", callback=0x0000000000000000000000000000000000000000, params=null"
-                        + ", salt=" + requestOrder.getSalt() + ", sign=0x0}"
         );
     }
 

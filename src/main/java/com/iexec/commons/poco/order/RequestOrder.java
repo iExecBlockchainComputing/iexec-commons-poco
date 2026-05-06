@@ -18,14 +18,12 @@ package com.iexec.commons.poco.order;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.eip712.EIP712Utils;
 import com.iexec.commons.poco.utils.HashUtils;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -113,31 +111,6 @@ public class RequestOrder extends Order {
         return HashUtils.concatenateAndHash(encodedValues);
     }
     // endregion
-
-    /**
-     * @deprecated no more used
-     */
-    @Deprecated(forRemoval = true)
-    public IexecHubContract.RequestOrder toHubContract() {
-        return new IexecHubContract.RequestOrder(
-                this.app,
-                this.appmaxprice,
-                this.dataset,
-                this.datasetmaxprice,
-                this.workerpool,
-                this.workerpoolmaxprice,
-                this.requester,
-                this.volume,
-                Numeric.hexStringToByteArray(this.tag),
-                this.category,
-                this.trust,
-                this.beneficiary,
-                this.callback,
-                this.params,
-                Numeric.hexStringToByteArray(this.salt),
-                Numeric.hexStringToByteArray(this.sign)
-        );
-    }
 
     public String toString() {
         return "RequestOrder{"
