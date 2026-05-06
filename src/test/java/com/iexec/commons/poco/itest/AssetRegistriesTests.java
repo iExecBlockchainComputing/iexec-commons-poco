@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,11 +72,11 @@ class AssetRegistriesTests {
 
     @Test
     void shouldCreateAndPredictCallsBeEqualWhenAssetNotDeployed() {
-        final String appName = RandomStringUtils.randomAlphanumeric(16);
+        final String appName = RandomStringUtils.secure().nextAlphanumeric(16);
         final String appChecksum = iexecHubService.generateChecksum();
-        final String datasetName = RandomStringUtils.randomAlphanumeric(16);
+        final String datasetName = RandomStringUtils.secure().nextAlphanumeric(16);
         final String datasetChecksum = iexecHubService.generateChecksum();
-        final String workerpoolName = RandomStringUtils.randomAlphanumeric(16);
+        final String workerpoolName = RandomStringUtils.secure().nextAlphanumeric(16);
 
         assertAll(
                 () -> assertThat(iexecHubService.callCreateApp(appName, appChecksum))
@@ -90,11 +90,11 @@ class AssetRegistriesTests {
 
     @Test
     void shouldCreateCallRevertWhenAssetDeployed() throws IOException {
-        final String appName = RandomStringUtils.randomAlphanumeric(16);
+        final String appName = RandomStringUtils.secure().nextAlphanumeric(16);
         final String appChecksum = iexecHubService.generateChecksum();
-        final String datasetName = RandomStringUtils.randomAlphanumeric(16);
+        final String datasetName = RandomStringUtils.secure().nextAlphanumeric(16);
         final String datasetChecksum = iexecHubService.generateChecksum();
-        final String workerpoolName = RandomStringUtils.randomAlphanumeric(16);
+        final String workerpoolName = RandomStringUtils.secure().nextAlphanumeric(16);
         BigInteger nonce = signerService.getNonce();
         final String appTxHash = iexecHubService.submitCreateAppTx(nonce, appName, appChecksum);
         nonce = nonce.add(BigInteger.ONE);
