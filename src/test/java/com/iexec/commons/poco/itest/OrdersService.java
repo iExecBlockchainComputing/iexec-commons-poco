@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class OrdersService {
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (AppOrder) signerService.signOrderForDomain(appOrder, domain);
     }
@@ -78,7 +78,7 @@ public class OrdersService {
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (DatasetOrder) signerService.signOrderForDomain(datasetOrder, domain);
     }
@@ -98,7 +98,7 @@ public class OrdersService {
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (WorkerpoolOrder) signerService.signOrderForDomain(workerpoolOrder, domain);
     }
@@ -135,7 +135,7 @@ public class OrdersService {
                 .beneficiary(signerService.getAddress())
                 .callback(BytesUtils.EMPTY_ADDRESS)
                 .params(dealParams.toJsonString())
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (RequestOrder) signerService.signOrderForDomain(requestOrder, domain);
     }

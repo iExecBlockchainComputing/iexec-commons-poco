@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ class RequestOrderTests {
                 .trust(BigInteger.ONE)
                 .beneficiary("0x5")
                 .callback(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .sign("0x0")
                 .build();
         IexecHubContract.RequestOrder web3jRequestOrder = requestOrder.toHubContract();
