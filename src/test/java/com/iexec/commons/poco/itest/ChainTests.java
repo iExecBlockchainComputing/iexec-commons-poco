@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,12 +83,12 @@ class ChainTests {
     }
 
     @Test
-    void shouldHaveEnoughGasOnBellecour() {
+    void shouldHaveEnoughGasOnNativeChain() {
         assertThat(iexecHubService.hasEnoughGas()).isTrue();
     }
 
     @Test
-    void shouldHaveEnoughGasOnArbitrum() throws IOException {
+    void shouldHaveEnoughGasOnTokenChain() throws IOException {
         final Web3jTestService arbitrumWeb3j = new Web3jTestService(chainNodeAddress, 1.0f, 22_000_000_000L, false);
         final IexecHubTestService arbitrumHub = new IexecHubTestService(credentials, arbitrumWeb3j);
         assertThat(arbitrumHub.hasEnoughGas()).isTrue();
