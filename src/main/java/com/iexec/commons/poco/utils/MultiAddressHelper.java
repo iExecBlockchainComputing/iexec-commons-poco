@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.util.List;
 public class MultiAddressHelper {
 
     public static final List<String> IPFS_GATEWAYS = List.of(
-            "https://ipfs-gateway.v8-bellecour.iex.ec",
+            "https://ipfs.iex.ec",
             "https://gateway.ipfs.io",
             "https://gateway.pinata.cloud"
     );
