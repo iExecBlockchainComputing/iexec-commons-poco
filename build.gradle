@@ -10,7 +10,6 @@ group = 'com.iexec.commons'
 
 ext {
     gitTag = 'git tag --points-at HEAD'.execute().text.trim()
-    testContainersVersion = '1.20.4'
 }
 
 if (gitTag.isEmpty()) {
@@ -79,7 +78,7 @@ testing {
                 implementation 'org.mockito:mockito-junit-jupiter'
                 // spring-test for ReflectionTestUtils
                 implementation 'org.springframework:spring-test'
-                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+                implementation "org.testcontainers:junit-jupiter"
                 // runtime
                 runtimeOnly 'ch.qos.logback:logback-classic'
                 runtimeOnly 'org.glassfish.expressly:expressly:5.0.0'

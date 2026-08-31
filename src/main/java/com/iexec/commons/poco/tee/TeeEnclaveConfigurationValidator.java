@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,8 @@ public class TeeEnclaveConfigurationValidator {
      * @return list of violations
      */
     public List<String> validate() {
-        List<String> violations = new ArrayList<>();
-        if (!TeeFramework.GRAMINE
-                .equals(teeEnclaveConfiguration.getFramework())) {
+        final List<String> violations = new ArrayList<>();
+        if (teeEnclaveConfiguration.getFramework() == TeeFramework.SCONE) {
             if (StringUtils.isEmpty(teeEnclaveConfiguration.getEntrypoint())) {
                 violations.add("Empty entrypoint");
             }
@@ -59,7 +58,7 @@ public class TeeEnclaveConfigurationValidator {
                         + teeEnclaveConfiguration.getHeapSize());
             }
         }
-        String fingerprint = teeEnclaveConfiguration.getFingerprint();
+        final String fingerprint = teeEnclaveConfiguration.getFingerprint();
         if (StringUtils.isEmpty(fingerprint)
                 || BytesUtils.stringToBytes(fingerprint).length != 32) {
             violations.add("Fingerprint size is not 32: " + fingerprint);
