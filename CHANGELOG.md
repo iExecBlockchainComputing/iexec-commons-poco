@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.5.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.4.1...v5.5.0) (2026-09-01)
+
+
+### Features
+
+* upgrade to Java 21 ([#173](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/173)) ([7e361fd](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/7e361fd0b3e80037727576121ef012b2db1510bd))
+* upgrade to Spring Boot 3.5.8 ([#171](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/171)) ([6ec82b1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/6ec82b1c28dade16b04fad05e97689433083b10f))
+
+
+### Bug Fixes
+
+* restrict TeeEnclaveConfiguration entrypoint and heap size validation to SCONE ([#176](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/176)) ([6da0919](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/6da09194f6cb82aeb2757d5d751683686d69ef3e))
+* update IPFS internal URL to ipfs.iex.ec ([#175](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/175)) ([6b77fbd](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/6b77fbdc6c768552e245bd9e035c8499608dcece))
+
 ## [5.4.1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.4.0...v5.4.1) (2026-04-29)
 
 
