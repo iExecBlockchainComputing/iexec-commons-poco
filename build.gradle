@@ -19,13 +19,6 @@ if (gitTag.isEmpty()) {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = 'https://docker-regis-adm.iex.ec/repository/maven-public/'
-        credentials {
-            username = nexusUser
-            password = nexusPassword
-        }
-    }
     maven { url = 'https://jitpack.io' }
 }
 
@@ -78,7 +71,7 @@ testing {
                 implementation 'org.mockito:mockito-junit-jupiter'
                 // spring-test for ReflectionTestUtils
                 implementation 'org.springframework:spring-test'
-                implementation "org.testcontainers:junit-jupiter"
+                implementation 'org.testcontainers:junit-jupiter'
                 // runtime
                 runtimeOnly 'ch.qos.logback:logback-classic'
                 runtimeOnly 'org.glassfish.expressly:expressly:5.0.0'
@@ -121,10 +114,10 @@ publishing {
     repositories {
         maven {
             credentials {
-                username = nexusUser
-                password = nexusPassword
+                username = mvnRepositoryUsername
+                password = mvnRepositoryPassword
             }
-            url = project.hasProperty('nexusUrl') ? nexusUrl : ''
+            url = project.hasProperty('mvnRepositoryUrl') ? mvnRepositoryUrl : ''
         }
     }
 }
