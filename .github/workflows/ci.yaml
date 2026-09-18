@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  prepare:
+    name: Determine image tag and publishing rules
+    runs-on: ubuntu-latest
+    # Prevent execution on forks, which have no access to the registry secrets
+    if: github.repository_owner == 'iExecBlockchainComputing'
+    steps:
+      - name: Apply branch and version rules
+        id: rules
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          case "$BRANCH" in
+            main)              kind=production ;;
+            feat/*|fix/*)      kind=develop ;;
+            release-please--*) kind=release ;;
+            *)
+              echo "❌ Branch does not respect naming rules: $BRANCH"
+              echo "Expected one of: main, feat/*, fix/*, release-please--*"
+              exit 1
+              ;;
+          esac
+
+  build-and-test:
+    name: Build, test and analyse
+    needs: prepare
+    # TODO pin to the released java-build-vX.Y.Z SHA once the workflow is merged
+    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/java-build.yml@feat/add-java-build-reusable-workflow
+    with:
+      java-version: '21'
+      sonar: true
+      # the unit tests start a MongoDB container through Testcontainers
+      dockerhub-login: true
+      publish-jars: false
+      upload-jar: false
+    secrets:
+      nexus-username: ${{ secrets.NEXUS_USERNAME }}
+      nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-password: ${{ secrets.DOCKERHUB_TOKEN_PULL_ONLY }}
+      sonar-token: ${{ secrets.SONAR_TOKEN }}
