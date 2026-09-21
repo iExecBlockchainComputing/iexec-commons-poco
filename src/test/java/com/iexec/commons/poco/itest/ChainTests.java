@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Credentials;
@@ -62,7 +63,8 @@ class ChainTests {
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
             .withPull(true)
-            .withExposedService(SERVICE_NAME, SERVICE_PORT);
+            .withExposedService(SERVICE_NAME, SERVICE_PORT)
+            .waitingFor(SERVICE_NAME, Wait.forLogMessage("==> Deployment finished <==\n", 1));
 
 
     @BeforeEach
@@ -230,12 +232,13 @@ class ChainTests {
     // region gas price
     @Test
     void shouldGetNetworkGasPrice() {
-        assertThat(web3jService.getNetworkGasPrice()).isEmpty();
+        assertThat(web3jService.getNetworkGasPrice())
+                .hasValue(BigInteger.valueOf(8_000_000_000L));
     }
 
     @Test
     void shouldReturnNetworkPriceWhenBelowGasPriceCap() {
-        assertThat(web3jService.getUserGasPrice()).isEqualTo(22_000_000_000L);
+        assertThat(web3jService.getUserGasPrice()).isEqualTo(8_000_000_000L);
     }
 
     @Test
