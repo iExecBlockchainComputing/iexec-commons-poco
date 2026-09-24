@@ -539,22 +539,6 @@ public abstract class IexecHubAbstractService {
         return Optional.ofNullable(taskDescription);
     }
 
-    /**
-     * @deprecated single usage found in all code, directly call isTeeTask on getTaskDescription
-     */
-    @Deprecated(forRemoval = true)
-    public boolean isTeeTask(String chainTaskId) {
-        final TaskDescription taskDescription = getTaskDescription(chainTaskId);
-
-        if (taskDescription == null) {
-            log.error("Couldn't get task description from chain [chainTaskId:{}]",
-                    chainTaskId);
-            return false;
-        }
-
-        return taskDescription.isTeeTask();
-    }
-
     // region accessors
 
     public void assertDatasetDealCompatibility(final DatasetOrder datasetOrder, final String dealId) throws IOException {

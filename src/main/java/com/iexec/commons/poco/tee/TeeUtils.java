@@ -113,12 +113,4 @@ public class TeeUtils {
         //TODO add TeeFramework.UNDEFINED
         return null;
     }
-
-    /**
-     * @deprecated not used
-     */
-    @Deprecated(forRemoval = true)
-    public static boolean isTeeChallenge(String challenge) {
-        return challenge != null && !challenge.equals(BytesUtils.EMPTY_ADDRESS);
-    }
 }

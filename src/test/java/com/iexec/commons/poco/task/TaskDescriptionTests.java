@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,6 @@ class TaskDescriptionTests {
     private static final String ENTRYPOINT = "entrypoint";
     private static final String CMD = "cmd";
     private static final int MAX_EXECUTION_TIME = 1;
-    private static final boolean IS_TEE_TASK = true;
     private static final TeeFramework TEE_FRAMEWORK = TeeFramework.SCONE;
     private static final long START_TIME = 1_000_000L;
     private static final int BOT_SIZE = 1;
@@ -73,14 +72,6 @@ class TaskDescriptionTests {
     private static final boolean IS_RESULT_ENCRYPTION = true;
     private static final String RESULT_STORAGE_PROVIDER = "resultStorageProvider";
     private static final String RESULT_STORAGE_PROXY = "resultStorageProxy";
-
-    @Test
-    void emptyTaskDescriptionWithNullDealAndTask() {
-        assertNull(TaskDescription.toTaskDescription(null, null));
-        assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().build(), null));
-        assertNull(TaskDescription.toTaskDescription(null, ChainTask.builder().build()));
-        assertNull(TaskDescription.toTaskDescription(ChainDeal.builder().build(), ChainTask.builder().build()));
-    }
 
     @Test
     void emptyTaskDescriptionWithNullAssets() {
@@ -169,7 +160,6 @@ class TaskDescriptionTests {
                 .trust(TRUST)
                 .category(CATEGORY)
                 .tag(TeeUtils.TEE_SCONE_ONLY_TAG)
-                .isTeeTask(IS_TEE_TASK)
                 .teeFramework(TEE_FRAMEWORK)
                 .requester(REQUESTER)
                 .beneficiary(BENEFICIARY)

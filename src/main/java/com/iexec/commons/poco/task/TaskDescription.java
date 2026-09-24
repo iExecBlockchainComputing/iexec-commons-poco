@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,11 +68,6 @@ public class TaskDescription {
     int botSize;
 
     // TEE from tag
-    /**
-     * @deprecated use more specialized requiresSgx()/requiresTdx() instead
-     */
-    @Deprecated(forRemoval = true)
-    boolean isTeeTask;
     TeeFramework teeFramework;
 
     // Task in IexecLibCore_v5.sol
@@ -177,24 +172,6 @@ public class TaskDescription {
      * Create a {@link TaskDescription} from the provided chain deal. This method
      * if preferred to constructors or the builder method.
      *
-     * @param chainDeal On-chain deal from PoCo smart contracts
-     * @param chainTask On-chain task from PoCo smart contracts
-     * @return the created taskDescription
-     * @deprecated app, category and dataset models will be removed from deal model
-     */
-    @Deprecated(forRemoval = true)
-    public static TaskDescription toTaskDescription(final ChainDeal chainDeal, final ChainTask chainTask) {
-        if (chainDeal == null || chainTask == null) {
-            return null;
-        }
-        return toTaskDescription(
-                chainDeal, chainTask, chainDeal.getChainCategory(), chainDeal.getChainApp(), chainDeal.getChainDataset());
-    }
-
-    /**
-     * Create a {@link TaskDescription} from the provided chain deal. This method
-     * if preferred to constructors or the builder method.
-     *
      * @param chainDeal     On-chain deal from PoCo smart contracts
      * @param chainTask     On-chain task from PoCo smart contracts
      * @param chainCategory On-chain category from PoCo smart contracts
@@ -247,7 +224,6 @@ public class TaskDescription {
                 .botFirstIndex(chainDeal.getBotFirst().intValue())
                 .botSize(chainDeal.getBotSize().intValue())
                 // tee
-                .isTeeTask(TeeUtils.isTeeTag(tag))
                 .teeFramework(TeeUtils.getTeeFramework(tag))
                 // task
                 .chainDealId(chainDeal.getChainDealId())

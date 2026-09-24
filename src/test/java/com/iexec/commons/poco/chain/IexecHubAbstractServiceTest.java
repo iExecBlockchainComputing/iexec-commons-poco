@@ -233,31 +233,6 @@ class IexecHubAbstractServiceTest {
     }
     // endregion
 
-    // region isTeeTask
-    @Test
-    void shouldReturnFalseWhenTaskCanNotBeRetrieved() {
-        when(iexecHubAbstractService.getTaskDescription(CHAIN_TASK_ID)).thenReturn(null);
-        when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
-        assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isFalse();
-    }
-
-    @Test
-    void shouldReturnFalseWhenStdTask() {
-        when(iexecHubAbstractService.getTaskDescription(CHAIN_TASK_ID))
-                .thenReturn(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(false).build());
-        when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
-        assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isFalse();
-    }
-
-    @Test
-    void shouldReturnTrueWhenTeeTask() {
-        when(iexecHubAbstractService.getTaskDescription(CHAIN_TASK_ID))
-                .thenReturn(TaskDescription.builder().chainTaskId(CHAIN_TASK_ID).isTeeTask(true).build());
-        when(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).thenCallRealMethod();
-        assertThat(iexecHubAbstractService.isTeeTask(CHAIN_TASK_ID)).isTrue();
-    }
-    // endregion
-
     private void whenViewTaskReturnTaskTuple(String chainTaskId, String chainDealId) throws Exception {
         IexecHubContract iexecHubContract = mock(IexecHubContract.class);
         ReflectionTestUtils.setField(iexecHubAbstractService, "iexecHubContract", iexecHubContract);
