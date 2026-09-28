@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.5.1](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.5.0...v5.5.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* Upgrade to Spring Boot 3.5.16 ([#181](https://github.com/iExecBlockchainComputing/iexec-commons-poco/issues/181)) ([249e7d7](https://github.com/iExecBlockchainComputing/iexec-commons-poco/commit/249e7d72643767116da8e29beaf3c1fe949a48a0))
+
 ## [5.5.0](https://github.com/iExecBlockchainComputing/iexec-commons-poco/compare/v5.4.1...v5.5.0) (2026-09-18)
 
 
