@@ -6,15 +6,7 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.iexec.commons'
-
-ext {
-    gitTag = 'git tag --points-at HEAD'.execute().text.trim()
-}
-
-if (gitTag.isEmpty()) {
-    version += '-NEXT-SNAPSHOT'
-}
+group = 'com.github.iExecBlockchainComputing'
 
 repositories {
     mavenLocal()
@@ -23,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.8')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.16')
 
     // web3j
     api 'org.web3j:core:4.13.0'
@@ -59,6 +51,7 @@ java {
 
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.add('-parameters')
+    options.compilerArgs.add('-Xlint:all')
 }
 
 testing {
