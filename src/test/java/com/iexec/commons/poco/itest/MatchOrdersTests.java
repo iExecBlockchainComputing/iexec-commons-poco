@@ -31,6 +31,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Credentials;
@@ -73,7 +74,8 @@ class MatchOrdersTests {
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
             .withPull(true)
-            .withExposedService(SERVICE_NAME, SERVICE_PORT);
+            .withExposedService(SERVICE_NAME, SERVICE_PORT)
+            .waitingFor(SERVICE_NAME, Wait.forLogMessage("==> Deployment finished <==\n", 1));
 
     @BeforeEach
     void init() throws CipherException, IOException {
@@ -99,7 +101,7 @@ class MatchOrdersTests {
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
         assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("Dataset order is revoked or fully consumed");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with custom error 'IncompatibleDatasetOrder(\"Dataset order is revoked or fully consumed\")'");
     }
 
     @Test
@@ -111,7 +113,7 @@ class MatchOrdersTests {
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
         assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("Invalid dataset order signature");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with custom error 'IncompatibleDatasetOrder(\"Invalid dataset order signature\")'");
     }
 
     @Test
@@ -121,7 +123,7 @@ class MatchOrdersTests {
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, CHAIN_DEAL_ID);
         assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("Deal not found");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with custom error 'IncompatibleDatasetOrder(\"Deal not found\")'");
     }
 
     @Test
@@ -170,20 +172,20 @@ class MatchOrdersTests {
         // https://github.com/iExecBlockchainComputing/PoCo/blob/v6.0.0/contracts/facets/IexecPoco1Facet.sol#L311
         assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("iExecV5-matchOrders-0x60");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with reason string 'iExecV5-matchOrders-0x60'");
 
         // assertDatasetDealCompatibility reverts for fully consumed dataset
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, chainDealId);
         assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("Dataset order is revoked or fully consumed");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with custom error 'IncompatibleDatasetOrder(\"Dataset order is revoked or fully consumed\")'");
         // assertDatasetDealCompatibility reverts if deal has a dataset
         final DatasetOrder invalidDatasetOrder = getValidOrderBuilder(deployedAddresses.get("dataset")).build();
         final DatasetOrder signedInvalidDatasetOrder = (DatasetOrder) signerService.signOrderForDomain(invalidDatasetOrder, iexecHubService.getOrdersDomain());
         final String txData = MatchOrdersDataEncoder.encodeAssertDatasetDealCompatibility(signedInvalidDatasetOrder, chainDealId);
         assertThatThrownBy(() -> sendCall(txData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("Deal already has a dataset");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with custom error 'IncompatibleDatasetOrder(\"Deal already has a dataset\")'");
     }
 
     @Test
@@ -222,13 +224,13 @@ class MatchOrdersTests {
         // https://github.com/iExecBlockchainComputing/PoCo/blob/v6.0.0/contracts/facets/IexecPoco1Facet.sol#L311
         assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("iExecV5-matchOrders-0x60");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with reason string 'iExecV5-matchOrders-0x60'");
 
         // assertDatasetDealCompatibility revert when dataset not present
         final String assertDatasetDealCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedDatasetOrder, chainDealId);
         assertThatThrownBy(() -> sendCall(assertDatasetDealCompatibilityTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("\"revert\"");
+                .hasMessage("Error: Transaction reverted without a reason string");
 
         // assertDatasetDealCompatibility checks for a deal without a dataset
         for (final Map.Entry<DatasetOrder, String> entry : getInvalidOrders(deployedAddresses.get("dataset")).entrySet()) {
@@ -236,7 +238,7 @@ class MatchOrdersTests {
             final String assertCompatibilityTxData = encodeAssertDatasetDealCompatibility(signedInvalidDatasetOrder, chainDealId);
             assertThatThrownBy(() -> sendCall(assertCompatibilityTxData), entry.getValue())
                     .isInstanceOf(JsonRpcError.class)
-                    .hasMessage(entry.getValue());
+                    .hasMessage(String.format("Error: VM Exception while processing transaction: reverted with custom error 'IncompatibleDatasetOrder(\"%s\")'", entry.getValue()));
         }
     }
 
@@ -276,7 +278,7 @@ class MatchOrdersTests {
         final String matchOrdersTxData = MatchOrdersDataEncoder.encode(signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
         assertThatThrownBy(() -> signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData))
                 .isInstanceOf(JsonRpcError.class)
-                .hasMessage("iExecV5-matchOrders-0x07");
+                .hasMessage("Error: VM Exception while processing transaction: reverted with reason string 'iExecV5-matchOrders-0x07'");
     }
 
     static Stream<Arguments> provideInvalidTags() {
@@ -306,6 +308,7 @@ class MatchOrdersTests {
                 Map.entry(getValidOrderBuilder(datasetAddress).workerpoolrestrict(IEXEC_HUB_ADDRESS).build(), "Workerpool restriction not satisfied"),
                 Map.entry(getValidOrderBuilder(datasetAddress).requesterrestrict(IEXEC_HUB_ADDRESS).build(), "Requester restriction not satisfied"),
                 Map.entry(getValidOrderBuilder(datasetAddress).tag("0xFF").build(), "Tag compatibility not satisfied")
+                //Map.entry(getValidOrderBuilder(datasetAddress).tag(OrderTag.TEE_TDX.getValue()).build(), "Tag compatibility not satisfied")
         );
     }
 
